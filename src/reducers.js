@@ -39,10 +39,12 @@ const command = (state = defaultState.command, action) => {
 const balance = (state = defaultState.balance, action) => {
     switch (action.type) {
         case BALANCE_INIT: {
-            return {
-                period: action.period,
-                balance: _token.balanceInit
-            }
+            return Object.assign({}, state, {
+                [action.chatId]: {
+                    period: action.period,
+                    balance: _token.balanceInit
+                }
+            })
         }
         case BALANCE_CHANGE:
             const balance = Object.keys(state).some(x => x == action.chatId)

@@ -36,6 +36,7 @@
     },
     "dependencies": {
         "redux": "^3.6.0",
+        "redux-thunk": "^2.2.0",
         "node-telegram-bot-api": "^0.27.0",
         "jsonfile": "^2.4.0"
     }
