@@ -7,7 +7,7 @@ import Telegram from './lib/telegram'
 
 l('Start bot')
 
-export const store = createStore(appReducer)
+export const store = createStore(appReducer, {})
 
 new Telegram().listen()
     .then(() => {

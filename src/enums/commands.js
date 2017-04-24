@@ -1,4 +1,5 @@
 export default {
     HELP: 'HELP',
-    ECHO: 'ECHO'
+    ECHO: 'ECHO',
+    BALANCE_CHANGE: 'BALANCE_CHANGE'
 }

@@ -38,6 +38,8 @@ export default class Telegram {
 
         if (inputParser.isAskingForHelp(text))
             return handlers.help.getHelp(message, this._bot)
+        if (inputParser.isAskingForBalanceChange(text))
+            return handlers.balance.change(message, this._bot)
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
 
