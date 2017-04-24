@@ -9,6 +9,10 @@ export default class InputParser {
     isAskingForEcho(text) {
         return true
     }
+    isAskingForHelp(text) {
+        const pattern = /help|помощь/i
+        return text.match(pattern)
+    }
     // isAskingForGenreList(text) {
     //     const pattern = /music|recommendation/i
 

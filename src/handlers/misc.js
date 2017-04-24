@@ -4,8 +4,4 @@ export default class Misc {
     getEcho(message, bot) {
         bot.sendMessage(message.from, `${message.text} 🤖`)
     }
-
-    getHelp(message, bot) {
-        bot.sendMessage(message.from, '//TODO: help')
-    }
 }

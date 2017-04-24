@@ -7,6 +7,7 @@ import InputParser from './InputParser'
 import handlers from '../handlers/index'
 
 import { l } from '../logger'
+import { store } from '../server'
 
 const inputParser = new InputParser()
 
@@ -16,14 +17,18 @@ export default class Telegram {
         const t = token ? token : _config.isProduction ? _token.botToken.prod : _token.botToken.dev
         this._bot = new TelegramBot(t, { polling: true })
         this._handleText = this._handleText.bind(this)
+        this._handleCallback = this._handleCallback.bind(this)
     }
     listen() {
         this._bot.on('text', this._handleText)
+        this._bot.on('callback_query', this._handleCallback);
         return new Promise(() => { }) //TODO: разобраться зачем
     }
     _handleText(msg) {
-        const message = new Message(Message.mapMessage(msg)) //TODO: нафига это надо?
-        const text = message.text
+        const message = new Message(Message.mapMessage(msg))
+        const { text } = message
+
+        const prevCommand = store.getState().command[message.chat.id]
 
         if (!_config.isProduction) {
             if (!inputParser.isDeveloper(message.from)) {
@@ -31,6 +36,8 @@ export default class Telegram {
             }
         }
 
+        if (inputParser.isAskingForHelp(text))
+            return handlers.help.getHelp(message, this._bot)
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
 
@@ -41,7 +48,23 @@ export default class Telegram {
         //     return handlers.music.getNumOfRec(message, this._bot)
 
         // default
-        return handlers.casual.getHelp(message, this._bot)
+        return handlers.help.getHelp(message, this._bot, prevCommand)
+    }
+    _handleCallback(callbackQuery) {
+        const { data } = callbackQuery
+        const message = new Message(Message.mapMessage(callbackQuery.message))
+        const prevCommand = store.getState().command[message.chat.id]
+
+        if (!_config.isProduction) {
+            if (!inputParser.isDeveloper(message.chat.id)) {
+                this._bot.answerCallbackQuery(callbackQuery.id, "No dev access", false);
+                return handlers.auth.getNeedDevStatus(message, this._bot)
+            }
+        }
+
+        // default
+        this._bot.answerCallbackQuery(callbackQuery.id, "Help", false);
+        return handlers.help.getHelp(message, this._bot, data)
     }
 
 
