@@ -1,5 +1,7 @@
-import Misc from './misc.js'
+import Misc from './misc'
+import Auth from './auth'
 
 export default {
-    misc: new Misc()
+    misc: new Misc(),
+    auth: new Auth()
 }

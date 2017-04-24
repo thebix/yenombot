@@ -1,4 +1,11 @@
+import _config from '../config'
+
 export default class InputParser {
+    isDeveloper(id) {
+        return _config.developers
+            && _config.developers.length > 0
+            && _config.developers.some(x => x == id)
+    }
     isAskingForEcho(text) {
         return true
     }

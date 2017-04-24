@@ -25,6 +25,12 @@ export default class Telegram {
         const message = new Message(Message.mapMessage(msg)) //TODO: нафига это надо?
         const text = message.text
 
+        if (!_config.isProduction) {
+            if (!inputParser.isDeveloper(message.from)) {
+                return handlers.auth.getNeedDevStatus(message, this._bot)
+            }
+        }
+
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
 
