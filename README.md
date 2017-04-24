@@ -1,9 +1,10 @@
 # balancebot
 
 ## prepare env
+```
 npm install
-
 touch ./src/token.js
+```
 
 ``` javascript
 export default {
