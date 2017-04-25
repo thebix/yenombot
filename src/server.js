@@ -15,7 +15,8 @@ const enhancer = compose(
 );
 export let store = null
 
-if (FileSystem.isFileExists(_config.fileState, true, false, '{}')) { //TODO: починить варнинг
+if (FileSystem.isDirExists(_config.dirStorage, true)
+    && FileSystem.isFileExists(_config.fileState, true, false, '{}')) { //TODO: починить варнинг
     FileSystem.readJson(_config.fileState)
         .then(state => {
             state = state || {}
@@ -24,8 +25,8 @@ if (FileSystem.isFileExists(_config.fileState, true, false, '{}')) { //TODO: п�
                 .then(() => {
                     l('🤖  Listening to incoming messages')
                 })
-        }) 
-        .catch(x => { 
+        })
+        .catch(x => {
             log(`Ошибка чтения файла прошлого состояния. err = ${x}`, logLevel.ERROR)
         })
 }

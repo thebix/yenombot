@@ -8,6 +8,13 @@ import { l } from '../logger'
 export default class Balance {
     constructor() { }
 
+    initIfNeed(message, bot) {
+        const balance = store.getState().balance[message.chat.id]
+        if (balance === undefined || balance === null || balance === '') {
+            const period = new Date().getMonth()
+            store.dispatch(balanceInit(message.chat.id, period))
+        }
+    }
     change(message, bot) {
         const { text } = message
         const period = new Date().getMonth()
@@ -17,8 +24,8 @@ export default class Balance {
         store.dispatch(balanceChange(message.chat.id, period, text))
         const newState = store.getState()
         balance = newState.balance[message.chat.id].balance
-        store.dispatch(jsonSave(_config.fileState, newState)) 
+        store.dispatch(jsonSave(_config.fileState, newState))
 
-        bot.sendMessage(message.chat.id, `Доступный баланс ${balance} 🤖`)
+        bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`)
     }
 }

@@ -13,6 +13,10 @@ export default class InputParser {
         const pattern = /help|помощь/i
         return text.match(pattern)
     }
+    isAskingForStart(text) {
+        const pattern = /start/i
+        return text.match(pattern)
+    }
     isAskingForBalanceChange(text) {
         const pattern = /[-+]?[0-9]*\.?[0-9]*/i
         return text.match(pattern)
