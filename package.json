@@ -1,5 +1,5 @@
 {
-    "name": "balancebot",
+    "name": "yenombot",
     "version": "0.0.1",
     "description": "group stats",
     "keywords": [
@@ -7,13 +7,13 @@
         "bot",
         "balance"
     ],
-    "main": "server.js",
+    "main": "dist/server.js",
     "scripts": {
         "test": "mocha --compilers js:babel-register",
         "start": "nodemon src/server.js --exec babel-node",
         "debug": "nodemon --debug src/server.js --exec babel-node",
-        "build": "export NODE_ENV=production&& set NODE_ENV=production&& babel src -d dist",
-        "serve": "export NODE_ENV=production&& set NODE_ENV=production&& node dist/server.js"
+        "build": "set NODE_ENV=production&& babel src -d dist",
+        "serve": "set NODE_ENV=production&& node dist/server.js"
     },
     "repository": {
         "type": "git",
@@ -39,5 +39,10 @@
         "redux-thunk": "^2.2.0",
         "node-telegram-bot-api": "^0.27.0",
         "jsonfile": "^2.4.0"
+    },
+    "private": true,
+    "engines": {
+        "node": ">= 0.6.0",
+        "npm": ">= 1.0.0"
     }
 }

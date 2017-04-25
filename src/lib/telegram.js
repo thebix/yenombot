@@ -36,6 +36,9 @@ export default class Telegram {
             }
         }
 
+        if (inputParser.isAskingForStart(text)) {
+            return handlers.balance.initIfNeed(message, this.bot)
+        }
         if (inputParser.isAskingForHelp(text))
             return handlers.help.getHelp(message, this._bot)
         if (inputParser.isAskingForBalanceChange(text))

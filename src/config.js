@@ -6,5 +6,6 @@ export default {
     isProduction: isProduction,
     log: isProduction ? "INFO" : "DEBUG",
     developers: _token.developers,
+    dirStorage: `${__dirname}/storage/`,
     fileState: `${__dirname}/storage/state.json`
 }
