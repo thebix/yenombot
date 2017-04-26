@@ -1,3 +1,5 @@
+import { Parser } from 'expr-eval'
+
 import _config from '../config'
 import { store } from '../server'
 import { balanceInit, balanceChange, jsonSave } from '../actions'
@@ -16,7 +18,16 @@ export default class Balance {
         }
     }
     change(message, bot) {
-        const { text } = message
+        let { text } = message
+
+        const parser = new Parser()
+        try {
+            text = parser.parse(text).evaluate()
+        } catch (ex) {
+            bot.sendMessage(message.chat.id, `Не понял выражение 🤖`)
+            return
+        }
+
         const period = new Date().getMonth()
         let balance = store.getState().balance[message.chat.id]
         if (balance && balance.period != period)

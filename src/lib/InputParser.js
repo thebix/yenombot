@@ -1,3 +1,4 @@
+import { l } from '../logger'
 import _config from '../config'
 
 export default class InputParser {
@@ -18,8 +19,9 @@ export default class InputParser {
         return text.match(pattern)
     }
     isAskingForBalanceChange(text) {
-        const pattern = /[-+]?[0-9]*\.?[0-9]*/i
-        return text.match(pattern)
+        const pattern = /[-+]?[0-9]*\.?[0-9]*/i //TODO: улучшить регекс определения арифметического выражения
+        const res = text.match(pattern)
+        return res && res.length > 0 && parseInt(res[0]) > 0
     }
     // isAskingForGenreList(text) {
     //     const pattern = /music|recommendation/i

@@ -12,8 +12,10 @@
         "test": "mocha --compilers js:babel-register",
         "start": "nodemon src/server.js --exec babel-node",
         "debug": "nodemon --debug src/server.js --exec babel-node",
-        "build": "set NODE_ENV=production&& babel src -d dist",
-        "serve": "set NODE_ENV=production&& node dist/server.js"
+        "build": "export NODE_ENV=production&& babel src -d dist",
+        "serve": "export NODE_ENV=production&& node dist/server.js",
+        "buildW": "set NODE_ENV=production&& babel src -d dist",
+        "serveW": "set NODE_ENV=production&& node dist/server.js"
     },
     "repository": {
         "type": "git",
