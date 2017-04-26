@@ -23,7 +23,7 @@ export const botCmd = (chatId, command) => {
         command
     }
 }
- 
+
 export const botCmdClear = (chatId) => {
     return {
         type: BOT_CMD_CLEAR,
@@ -68,7 +68,7 @@ const fileReadDone = (file, data) => {
 export const fileRead = (file) => {
     return dispatch => {
         dispatch(fileReadRequest(file))
-        FileSystem.getFile(file)
+        return FileSystem.getFile(file)
             .then(data => dispatch(fileReadDone(file, data)))
             .catch(err => {
                 //TODO: обработка ошибки
@@ -94,7 +94,7 @@ const fileSaveDone = (file) => {
 export const fileSave = (file, data, type) => {
     return dispatch => {
         dispatch(fileSaveRequest(file, data))
-        FileSystem.saveFile(file, data)
+        return FileSystem.saveFile(file, data)
             .then(data => dispatch(fileSaveDone(file)))
             .catch(err => {
                 //TODO: обработка ошибки
@@ -120,7 +120,7 @@ const jsonReadDone = (file, id, data) => {
 export const jsonRead = (file, id) => {
     return dispatch => {
         dispatch(jsonReadRequest(file, id))
-        FileSystem.getJson(file)
+        return FileSystem.getJson(file)
             .then(data => dispatch(jsonReadDone(file, id, data)))
             .catch(err => {
                 //TODO: обработка ошибки
@@ -146,7 +146,7 @@ const jsonSaveDone = (file) => {
 export const jsonSave = (file, data) => {
     return dispatch => {
         dispatch(jsonSaveRequest(file, data))
-        FileSystem.saveJson(file, data)
+        return FileSystem.saveJson(file, data)
             .then(data => dispatch(jsonSaveDone(file)))
             .catch(err => {
                 //TODO: обработка ошибки
