@@ -19,6 +19,25 @@ const defaultState = {
             balance: _token.balanceInit,
             period: ''
         }
+    },
+    paymentGroups: {
+        ['84677480']: [{
+            title: 'Категория 1',
+            order: 1
+        }, {
+            title: 'Категория 2',
+            order: 2
+        }, {
+            title: 'Категория 3 очень длинная бесконечная',
+            order: 3
+        }, {
+            title: 'Категория 4',
+            order: 4
+        }, {
+            title: 'Категория 5',
+            order: 5
+        },
+        ]
     }
 }
 
@@ -63,6 +82,7 @@ const balance = (state = defaultState.balance, action) => {
 export default (state, action) => {
     return {
         command: command(state.command, action),
-        balance: balance(state.balance, action)
+        balance: balance(state.balance, action),
+        paymentGroups: defaultState.paymentGroups
     }
 }
