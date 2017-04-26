@@ -4,8 +4,9 @@ import _config from '../config'
 import { store } from '../server'
 import { balanceInit, balanceChange, jsonSave } from '../actions'
 import _commands from '../enums/commands'
+import FileSystem from '../filesystem'
 
-import { l } from '../logger'
+import { l, log } from '../logger'
 
 export default class Balance {
     constructor() { }
@@ -36,6 +37,32 @@ export default class Balance {
         const newState = store.getState()
         balance = newState.balance[message.chat.id].balance
         store.dispatch(jsonSave(_config.fileState, newState))
+
+        //сохранение истории
+        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
+        if (FileSystem.isFileExists(file, true, null, '[]')) {
+            FileSystem.readJson(file)
+                .then((data) => {
+
+                    const history = data || []
+                    history.push({
+                        'date_create': new Date(),
+                        'date_edit': new Date(),
+                        'date_delete': null,
+                        'category': 'no-category',
+                        'value': text,
+                        'user_id': message.from
+                    })
+                    FileSystem.saveJson(file, history)
+                        .then(data => { })
+                        .catch(err => {
+                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
+                        })
+                })
+                .catch(err => {
+                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
+                })
+        }
 
         bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`)
     }
