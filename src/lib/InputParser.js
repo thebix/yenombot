@@ -1,5 +1,8 @@
 import { l } from '../logger'
 import _config from '../config'
+import _commands from '../enums/commands'
+
+import { store } from '../server'
 
 export default class InputParser {
     isDeveloper(id) {
@@ -22,6 +25,13 @@ export default class InputParser {
         const pattern = /[-+]?[0-9]*\.?[0-9]*/i //TODO: улучшить регекс определения арифметического выражения
         const res = text.match(pattern)
         return res && res.length > 0 && parseInt(res[0]) > 0
+    }
+    isAskingForCategoryChange(text, prevCommand, data) {
+        if (prevCommand == _commands.BALANCE_CHANGE) {
+            return true
+            //TODO: в дальнейшем убрать prevCommand и определять что задается категория по data
+            // store.getState()
+        }
     }
     // isAskingForGenreList(text) {
     //     const pattern = /music|recommendation/i
