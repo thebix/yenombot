@@ -12,7 +12,7 @@ l('Start bot')
 
 const enhancer = compose(
     applyMiddleware(thunkMiddleware)
-);
+)
 export let store = null
 
 if (FileSystem.isDirExists(_config.dirStorage, true)
