@@ -41,13 +41,8 @@ export default class Telegram {
         }
         if (inputParser.isAskingForHelp(text))
             return handlers.help.getHelp(message, this._bot)
-
         if (inputParser.isAskingForBalanceChange(text))
             return handlers.balance.change(message, this._bot)
-
-        if (InputParser.isAskingForCategoryChange(text, prevCommand))
-            return true//handlers.balance.categoryChange(message, )
-
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
 
@@ -73,7 +68,13 @@ export default class Telegram {
         }
 
         // default
-        this._bot.answerCallbackQuery(callbackQuery.id, "Help", false);
+        this._bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
+
+        if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
+            return handlers.balance.categoryChange(message, this._bot, data)
+        }
+
+
         return handlers.help.getHelp(message, this._bot, data)
     }
 

@@ -26,9 +26,10 @@ export default class InputParser {
         const res = text.match(pattern)
         return res && res.length > 0 && parseInt(res[0]) > 0
     }
-    isAskingForCategoryChange(text, prevCommand) {
+    isAskingForCategoryChange(text, prevCommand, data) {
         if (prevCommand == _commands.BALANCE_CHANGE) {
             return true
+            //TODO: в дальнейшем убрать prevCommand и определять что задается категория по data
             // store.getState()
         }
     }

@@ -22,15 +22,20 @@ const defaultState = {
     },
     paymentGroups: {
         ['84677480']: [{
-            title: 'Категория 1'
+            title: 'Категория 1',
+            id: 'category1'
         }, {
-            title: 'Категория 2'
+            title: 'Категория 2',
+            id: 'category2'
         }, {
-            title: 'Категория 3 очень длинная бесконечная'
+            title: 'Категория 3 очень длинная бесконечная',
+            id: 'category3'
         }, {
-            title: 'Категория 4'
+            title: 'Категория 4',
+            id: 'category4'
         }, {
-            title: 'Категория 5'
+            title: 'Категория 5',
+            id: 'category5'
         },
         ]
     }
