@@ -43,20 +43,17 @@ export default class Telegram {
             return handlers.help.getHelp(message, this._bot)
         if (inputParser.isAskingForBalanceChange(text))
             return handlers.balance.change(message, this._bot)
+        if (inputParser.isAskingForCommentChange(text, prevCommand))
+            return handlers.balance.commentChange(message, this._bot)
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
-
-        // if (inputParser.isAskingForGenreList(text))
-        //     return handlers.music.getGenreList(message, this._bot)
-
-        // if (inputParser.isAskingForNumberOfRec(text, store.getState(message.from).command))
-        //     return handlers.music.getNumOfRec(message, this._bot)
 
         // default
         return handlers.help.getHelp(message, this._bot, prevCommand)
     }
     _handleCallback(callbackQuery) {
-        const { data } = callbackQuery
+        let { data } = callbackQuery
+        data = data ? JSON.parse(data) : {}
         const message = new Message(Message.mapMessage(callbackQuery.message))
         const prevCommand = store.getState().command[message.chat.id]
 

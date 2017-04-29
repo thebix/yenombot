@@ -22,28 +22,20 @@ export default class InputParser {
         return text.match(pattern)
     }
     isAskingForBalanceChange(text) {
-        const pattern = /[-+]?[0-9]*\.?[0-9]*/i //TODO: улучшить регекс определения арифметического выражения
+        // const pattern = /[-+]?[0-9]*\.?[0-9]*/i
+        const pattern = /^([0-9\-\*\+\/\s\(\)\.,]+)$/
         const res = text.match(pattern)
-        return res && res.length > 0 && parseInt(res[0]) > 0
+        return !!res && res.length > 0 && res.some(x => !!x)
     }
     isAskingForCategoryChange(text, prevCommand, data) {
-        if (prevCommand == _commands.BALANCE_CHANGE) {
-            return true
-            //TODO: в дальнейшем убрать prevCommand и определять что задается категория по data
-            // store.getState()
-        }
+        return data
+            && data.cmd == ("" + _commands.BALANCE_CATEGORY_CHANGE)
     }
-    // isAskingForGenreList(text) {
-    //     const pattern = /music|recommendation/i
-
-    //     return text.match(pattern)
-    // }
-
-    // isAskingForNumberOfRec(text, prevCommand) {
-    //     return prevCommand === commands.GET_GENRE_LIST
-    // }
-
-    // isAskingForRecommendation(text, prevCommand) {
-    //     return prevCommand === commands.SET_NUMBER_OF_REC
-    // }
+    isAskingForCommentChange(text, prevCommand) {
+        const res = prevCommand
+            && (prevCommand == _commands.BALANCE_CHANGE
+                || prevCommand == _commands.BALANCE_CATEGORY_CHANGE)
+        
+        return res
+    }
 }
