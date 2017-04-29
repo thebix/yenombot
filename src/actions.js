@@ -1,8 +1,10 @@
 import FileSystem from './filesystem'
-
+import { l } from './logger'
 
 export const BOT_CMD = 'BOT_CMD'
 export const BOT_CMD_CLEAR = 'BOT_CMD_CLEAR'
+
+export const INIT_BY_TOKEN = 'INIT_BY_TOKEN'
 
 export const BALANCE_INIT = 'BALANCE_INIT'
 export const BALANCE_CHANGE = 'BALANCE_CHANGE'
@@ -28,6 +30,16 @@ export const botCmdClear = (chatId) => {
     return {
         type: BOT_CMD_CLEAR,
         chatId
+    }
+}
+
+
+export const initByToken = (chatId, token) => {
+    // l('token', token)
+    return {
+        type: INIT_BY_TOKEN,
+        chatId,
+        token
     }
 }
 

@@ -20,6 +20,7 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
     FileSystem.readJson(_config.fileState)
         .then(state => {
             state = state || {}
+            l(state)
             store = createStore(appReducer, state, enhancer)
             new Telegram().listen()
                 .then(() => {
