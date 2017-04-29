@@ -70,6 +70,9 @@ export default class Telegram {
         if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
             return handlers.balance.categoryChange(message, this._bot, data)
         }
+        if (inputParser.isAskingForBalanceDelete(message, prevCommand, data)) {
+            return handlers.balance.delete(message, this._bot, data)
+        }
 
 
         return handlers.help.getHelp(message, this._bot, data)

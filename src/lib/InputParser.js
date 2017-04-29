@@ -35,7 +35,10 @@ export default class InputParser {
         const res = prevCommand
             && (prevCommand == _commands.BALANCE_CHANGE
                 || prevCommand == _commands.BALANCE_CATEGORY_CHANGE)
-        
+
         return res
+    }
+    isAskingForBalanceDelete(text, prevCommand, data) {
+        return data.cmd == _commands.BALANCE_REMOVE
     }
 }

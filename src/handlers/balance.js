@@ -37,7 +37,7 @@ export default class Balance {
         if (balance && balance.period != period)
             store.dispatch(balanceInit(message.chat.id, period))
         store.dispatch(balanceChange(message.chat.id, period, text))
-        const newState = store.getState()
+        const newState = store.getState() //TODO: так нехорошо, надо высчитывать баланс
         balance = newState.balance[message.chat.id].balance
         store.dispatch(jsonSave(_config.fileState, newState))
 
@@ -103,8 +103,19 @@ export default class Balance {
                     log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
                 })
         }
-
-        bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`)
+        const { id } = message
+        bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`, {
+            reply_markup: JSON.stringify({
+                inline_keyboard: [[{
+                    text: "Удалить",
+                    callback_data: JSON.stringify({
+                        hId: id,
+                        cmd: _commands.BALANCE_REMOVE
+                    })
+                }]
+                ]
+            })
+        })
     }
     categoryChange(message, bot, data) {
         store.dispatch(botCmd(message.chat.id, _commands.BALANCE_CATEGORY_CHANGE))
@@ -156,7 +167,6 @@ export default class Balance {
                         return
                     }
                     article = article[0]
-                    const groups = store.getState().paymentGroups[message.chat.id] || []
                     article.comment = message.text
 
                     FileSystem.saveJson(file, history)
@@ -172,8 +182,53 @@ export default class Balance {
                 })
         }
     }
-    balanceChange(message, bot) {
-        l('balanceChange')
+    delete(message, bot, data) {
+        //удаление записи
+        //TODO: вынести общий код
+        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
+        if (FileSystem.isFileExists(file, true, null, '[]')) {
+            FileSystem.readJson(file)
+                .then((json) => {
+                    const history = json || []
+                    const category = data
+
+                    const { hId } = category
+                    let article = history.filter(item => item.id == hId)
+                    if (!article || article.length == 0) {
+                        bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
+                        return
+                    }
+                    article = article[0]
+                    if(article.date_delete) {
+                        bot.sendMessage(message.chat.id, `Запись уже была удалена 🤖`)
+                        return
+                    }
+                    store.dispatch(botCmd(message.chat.id, _commands.BALANCE_REMOVE))
+                    article.date_delete = new Date()
+
+                    const balance = store.getState().balance[message.chat.id] || {}
+                    let success
+                    if (balance.period != article.date_delete.getMonth()) {
+                        success = `${article.value} удалено из истории. Остаток за текущий месяц не изменился 🤖`
+                    } else {
+                        store.dispatch(balanceChange(message.chat.id,
+                            new Date(article.date_create).getMonth(),
+                            -article.value))
+                        success = `${article.value} удалено из истории. Остаток ${parseInt(balance.balance) + parseInt(article.value)} 🤖`
+                    }
+
+                    FileSystem.saveJson(file, history)
+                        .then(data => {
+                            bot.sendMessage(message.chat.id, success)
+                        })
+                        .catch(err => {
+                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
+                        })
+                })
+                .catch(err => {
+                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
+                })
+        }
     }
     _mapGroupsToButtons(id, group) {
         return {
