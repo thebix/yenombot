@@ -1,6 +1,7 @@
 export default {
-    HELP: '1',
-    ECHO: '2',
-    BALANCE_CHANGE: '3',
-    BALANCE_CATEGORY_CHANGE: '4'
+    HELP: 1,
+    ECHO: 2,
+    BALANCE_CHANGE: 3,
+    BALANCE_CATEGORY_CHANGE: 4,
+    BALANCE_COMMENT_CHANGE: 5
 }

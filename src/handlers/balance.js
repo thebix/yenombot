@@ -93,9 +93,6 @@ export default class Balance {
                                     .map(group => this._mapGroupsToButtons(id, group))
                             )
                     }
-                    // l('buttons', buttons)
-
-                    // bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`)
                     bot.sendMessage(message.chat.id, `Выбери категорию 🤖`, {
                         reply_markup: JSON.stringify({
                             inline_keyboard: buttons
@@ -133,6 +130,38 @@ export default class Balance {
                     FileSystem.saveJson(file, history)
                         .then(data => {
                             bot.sendMessage(message.chat.id, `${article.value}, ${article.category} 🤖`)
+                        })
+                        .catch(err => {
+                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
+                        })
+                })
+                .catch(err => {
+                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
+                })
+        }
+    }
+    commentChange(message, bot) {
+        store.dispatch(botCmd(message.chat.id, _commands.BALANCE_COMMENT_CHANGE))
+
+        //сохранение коммента к последней записи
+        //TODO: вынести общий код в History
+        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
+        if (FileSystem.isFileExists(file, true, null, '[]')) {
+            FileSystem.readJson(file)
+                .then((json) => {
+                    const history = json || []
+                    let article = history.sort((i1, i2) => i2.id - i1.id)
+                    if (!article || article.length == 0) {
+                        bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
+                        return
+                    }
+                    article = article[0]
+                    const groups = store.getState().paymentGroups[message.chat.id] || []
+                    article.comment = message.text
+
+                    FileSystem.saveJson(file, history)
+                        .then(data => {
+                            bot.sendMessage(message.chat.id, `${article.value}, ${article.comment} 🤖`)
                         })
                         .catch(err => {
                             log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)

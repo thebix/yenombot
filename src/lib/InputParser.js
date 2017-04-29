@@ -30,24 +30,12 @@ export default class InputParser {
     isAskingForCategoryChange(text, prevCommand, data) {
         return data
             && data.cmd == ("" + _commands.BALANCE_CATEGORY_CHANGE)
-        // if (prevCommand == _commands.BALANCE_CHANGE) {
-        //     return true
-        //TODO: в дальнейшем убрать prevCommand и определять что задается категория по data
-        // store.getState()
-        // }
     }
-
-    // isAskingForGenreList(text) {
-    //     const pattern = /music|recommendation/i
-
-    //     return text.match(pattern)
-    // }
-
-    // isAskingForNumberOfRec(text, prevCommand) {
-    //     return prevCommand === commands.GET_GENRE_LIST
-    // }
-
-    // isAskingForRecommendation(text, prevCommand) {
-    //     return prevCommand === commands.SET_NUMBER_OF_REC
-    // }
+    isAskingForCommentChange(text, prevCommand) {
+        const res = prevCommand
+            && (prevCommand == _commands.BALANCE_CHANGE
+                || prevCommand == _commands.BALANCE_CATEGORY_CHANGE)
+        
+        return res
+    }
 }
