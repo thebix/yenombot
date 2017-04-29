@@ -23,19 +23,19 @@ const defaultState = {
     paymentGroups: {
         ['84677480']: [{
             title: 'Категория 1',
-            id: 'category1'
+            id: '1'
         }, {
             title: 'Категория 2',
-            id: 'category2'
+            id: '2'
         }, {
             title: 'Категория 3 очень длинная бесконечная',
-            id: 'category3'
+            id: '3'
         }, {
             title: 'Категория 4',
-            id: 'category4'
+            id: '4'
         }, {
             title: 'Категория 5',
-            id: 'category5'
+            id: '5'
         },
         ]
     }

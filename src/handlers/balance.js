@@ -47,11 +47,12 @@ export default class Balance {
         if (FileSystem.isFileExists(file, true, null, '[]')) {
             FileSystem.readJson(file)
                 .then((data) => {
-                    const id = new Date()
+                    const date = new Date()
+                    const { id } = message
                     const historyItem = {
-                        'id': id.getTime(),
-                        'date_create': id,
-                        'date_edit': id,
+                        'id': message.id,
+                        'date_create': date,
+                        'date_edit': date,
                         'date_delete': null,
                         'category': 'uncat',
                         'value': text,
@@ -117,22 +118,22 @@ export default class Balance {
             FileSystem.readJson(file)
                 .then((json) => {
                     const history = json || []
-                    const category = JSON.parse(data)
+                    const category = data
 
-                    const histId = new Date(category.historyId).getTime()
-                    let article = history.filter(item => item.id == histId)
-                    if(!article || article.length == 0){
+                    const { hId } = category
+                    let article = history.filter(item => item.id == hId)
+                    if (!article || article.length == 0) {
                         bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
                         return
                     }
                     article = article[0]
                     const groups = store.getState().paymentGroups[message.chat.id] || []
-                    article.category = groups.filter(item => category.groupId == item.id)[0].title
+                    article.category = groups.filter(item => category.gId == item.id)[0].title
 
                     FileSystem.saveJson(file, history)
                         .then(data => {
                             bot.sendMessage(message.chat.id, `${article.value}, ${article.category} 🤖`)
-                         })
+                        })
                         .catch(err => {
                             log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
                         })
@@ -149,8 +150,9 @@ export default class Balance {
         return {
             text: group.title,
             callback_data: JSON.stringify({
-                groupId: group.id,
-                historyId: id
+                gId: group.id,
+                hId: id,
+                cmd: _commands.BALANCE_CATEGORY_CHANGE
             })
         }
     }

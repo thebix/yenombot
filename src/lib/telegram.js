@@ -56,7 +56,8 @@ export default class Telegram {
         return handlers.help.getHelp(message, this._bot, prevCommand)
     }
     _handleCallback(callbackQuery) {
-        const { data } = callbackQuery
+        let { data } = callbackQuery
+        data = data ? JSON.parse(data) : {}
         const message = new Message(Message.mapMessage(callbackQuery.message))
         const prevCommand = store.getState().command[message.chat.id]
 
