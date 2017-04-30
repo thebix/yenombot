@@ -20,6 +20,23 @@ export default class Balance {
             store.dispatch(balanceInit(message.chat.id, period))
         }
     }
+    balance(message, bot) {
+        const balance = store.getState().balance[message.chat.id]
+        let res = ``
+        if (balance === undefined || balance === null || balance === '') {
+            store.dispatch(balanceInit(message.chat.id, period))
+            res = store.getState().balanceInit[message.chat.id]
+        }
+        const period = new Date().getMonth()
+        if (period != balance.period) {
+            store.dispatch(balanceInit(message.chat.id, period))
+            res = store.getState().balanceInit[message.chat.id]
+        }
+        res = balance.balance
+        bot.sendMessage(message.chat.id, `Остаток ${res} 🤖`)
+        return res
+
+    }
     change(message, bot) {
         let { text } = message
         store.dispatch(botCmd(message.chat.id, _commands.BALANCE_CHANGE))
@@ -41,6 +58,21 @@ export default class Balance {
         balance = newState.balance[message.chat.id].balance
         store.dispatch(jsonSave(_config.fileState, newState))
 
+        const sendBalance = () => {
+            const { id } = message
+            bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`, {
+                reply_markup: JSON.stringify({
+                    inline_keyboard: [[{
+                        text: "Удалить",
+                        callback_data: JSON.stringify({
+                            hId: id,
+                            cmd: _commands.BALANCE_REMOVE
+                        })
+                    }]
+                    ]
+                })
+            })
+        }
 
         //сохранение истории
         const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
@@ -98,25 +130,19 @@ export default class Balance {
                         reply_markup: JSON.stringify({
                             inline_keyboard: buttons
                         })
+                    }).then(x=> {
+                        sendBalance()
+                    }).catch(ex=> {
+                        sendBalance()
                     })
+                    
                 })
                 .catch(err => {
+                    sendBalance()
                     log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
                 })
         }
-        const { id } = message
-        bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`, {
-            reply_markup: JSON.stringify({
-                inline_keyboard: [[{
-                    text: "Удалить",
-                    callback_data: JSON.stringify({
-                        hId: id,
-                        cmd: _commands.BALANCE_REMOVE
-                    })
-                }]
-                ]
-            })
-        })
+
     }
     categoryChange(message, bot, data) {
         store.dispatch(botCmd(message.chat.id, _commands.BALANCE_CATEGORY_CHANGE))
@@ -138,7 +164,7 @@ export default class Balance {
                     article = article[0]
                     const groups = store.getState().paymentGroups[message.chat.id] || []
                     let oldCategory = ``
-                    if(article.category && article.category != 'uncat')
+                    if (article.category && article.category != 'uncat')
                         oldCategory = `${article.category} -> `
                     article.category = groups.filter(item => category.gId == item.id)[0].title
 

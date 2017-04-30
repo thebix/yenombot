@@ -44,6 +44,8 @@ export default class Telegram {
         if (inputParser.isAskingForInitToken(text)) {
             return handlers.init.initByToken(message, this._bot)
         }
+        if (inputParser.isAskingForBalance(text))
+            return handlers.balance.balance(message, this._bot)
         if (inputParser.isAskingForBalanceChange(text))
             return handlers.balance.change(message, this._bot)
         if (inputParser.isAskingForCommentChange(text, prevCommand))
