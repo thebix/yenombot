@@ -25,6 +25,10 @@ export default class InputParser {
         const pattern = /token/i
         return text.match(pattern)
     }
+    isAskingForBalance(text) {
+        const pattern = /bal|balance/i
+        return text.match(pattern)
+    }
     isAskingForBalanceChange(text) {
         // const pattern = /[-+]?[0-9]*\.?[0-9]*/i
         const pattern = /^([0-9\-\*\+\/\s\(\)\.,]+)$/
