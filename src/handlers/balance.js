@@ -59,8 +59,9 @@ export default class Balance {
                         'user_id': message.from,
                         'comment': ''
                     }
-
-                    const history = data || []
+                    let history = data
+                    if (!history || history.constructor !== Array)
+                        history = []
                     history.push(historyItem)
                     FileSystem.saveJson(file, history)
                         .then(data => { })
@@ -136,11 +137,14 @@ export default class Balance {
                     }
                     article = article[0]
                     const groups = store.getState().paymentGroups[message.chat.id] || []
+                    let oldCategory = ``
+                    if(article.category && article.category != 'uncat')
+                        oldCategory = `${article.category} -> `
                     article.category = groups.filter(item => category.gId == item.id)[0].title
 
                     FileSystem.saveJson(file, history)
                         .then(data => {
-                            bot.sendMessage(message.chat.id, `${article.value}, ${article.category} 🤖`)
+                            bot.sendMessage(message.chat.id, `${article.value}, ${oldCategory}${article.category} 🤖`)
                         })
                         .catch(err => {
                             log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
@@ -199,7 +203,7 @@ export default class Balance {
                         return
                     }
                     article = article[0]
-                    if(article.date_delete) {
+                    if (article.date_delete) {
                         bot.sendMessage(message.chat.id, `Запись уже была удалена 🤖`)
                         return
                     }
