@@ -56,7 +56,8 @@ var Telegram = function () {
         value: function listen() {
             this._bot.on('text', this._handleText);
             this._bot.on('callback_query', this._handleCallback);
-            return new Promise(function () {}); //TODO: разобраться зачем
+            //return new Promise(() => { }) //TODO: разобраться зачем
+            return;
         }
     }, {
         key: '_handleText',
@@ -76,15 +77,15 @@ var Telegram = function () {
             if (inputParser.isAskingForStart(text)) {
                 return _index2.default.balance.initIfNeed(message, this.bot);
             }
-            if (inputParser.isAskingForHelp(text)) return _index2.default.help.getHelp(message, this._bot);
+            // if (inputParser.isAskingForHelp(text))
+            //     return handlers.help.getHelp(message, this._bot)
+            if (inputParser.isAskingForInitToken(text)) {
+                return _index2.default.init.initByToken(message, this._bot);
+            }
+            if (inputParser.isAskingForBalance(text)) return _index2.default.balance.balance(message, this._bot);
             if (inputParser.isAskingForBalanceChange(text)) return _index2.default.balance.change(message, this._bot);
+            if (inputParser.isAskingForCommentChange(text, prevCommand)) return _index2.default.balance.commentChange(message, this._bot);
             if (inputParser.isAskingForEcho(text)) return _index2.default.misc.getEcho(message, this._bot);
-
-            // if (inputParser.isAskingForGenreList(text))
-            //     return handlers.music.getGenreList(message, this._bot)
-
-            // if (inputParser.isAskingForNumberOfRec(text, store.getState(message.from).command))
-            //     return handlers.music.getNumOfRec(message, this._bot)
 
             // default
             return _index2.default.help.getHelp(message, this._bot, prevCommand);
@@ -94,6 +95,7 @@ var Telegram = function () {
         value: function _handleCallback(callbackQuery) {
             var data = callbackQuery.data;
 
+            data = data ? JSON.parse(data) : {};
             var message = new _message2.default(_message2.default.mapMessage(callbackQuery.message));
             var prevCommand = _server.store.getState().command[message.chat.id];
 
@@ -105,7 +107,15 @@ var Telegram = function () {
             }
 
             // default
-            this._bot.answerCallbackQuery(callbackQuery.id, "Help", false);
+            this._bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
+
+            if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
+                return _index2.default.balance.categoryChange(message, this._bot, data);
+            }
+            if (inputParser.isAskingForBalanceDelete(message, prevCommand, data)) {
+                return _index2.default.balance.delete(message, this._bot, data);
+            }
+
             return _index2.default.help.getHelp(message, this._bot, data);
         }
     }]);
