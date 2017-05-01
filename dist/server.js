@@ -41,9 +41,11 @@ if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _file
     _filesystem2.default.readJson(_config3.default.fileState).then(function (state) {
         state = state || {};
         exports.store = store = (0, _redux.createStore)(_reducers2.default, state, enhancer);
-        new _telegram2.default().listen().then(function () {
-            (0, _logger.l)('🤖  Listening to incoming messages');
-        });
+        new _telegram2.default().listen();
+        // .then((data) => {
+        //     l('🤖  Listening to incoming messages')
+        // })
+        // .catch(ex => log(ex, logLevel.ERROR))
     }).catch(function (x) {
         (0, _logger.log)('\u041E\u0448\u0438\u0431\u043A\u0430 \u0447\u0442\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u043F\u0440\u043E\u0448\u043B\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F. err = ' + x, _logger.logLevel.ERROR);
     });

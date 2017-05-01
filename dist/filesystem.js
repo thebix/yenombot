@@ -92,7 +92,7 @@ FileSystem.isFileExists = function (path) {
         if (!isMakeIfNot) {
             return false;
         }
-        _fs2.default.writeFile(path, data);
+        _fs2.default.writeFileSync(path, data);
     }
     return true;
 };
