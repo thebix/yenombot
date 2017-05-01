@@ -15,10 +15,8 @@ export default {
     developers: [
         //TODO: paste your telegram id here
     ],
-    //initTokens: [''],//TODO: paste your tokens for /token command
-
+    
     //init tokens data block
-    //initData: { [initToken]: { /* init data */ } }
     initData: {
         ['some-fucking-init-token']: {
             balanceInit: 666,  //TODO: monthly limitÏ

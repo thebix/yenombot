@@ -8,6 +8,7 @@ import handlers from '../handlers/index'
 
 import { l } from '../logger'
 import { store } from '../server'
+import { userAdd } from '../actions'
 
 const inputParser = new InputParser()
 
@@ -29,7 +30,12 @@ export default class Telegram {
         const message = new Message(Message.mapMessage(msg))
         const { text } = message
 
-        const prevCommand = store.getState().command[message.chat.id]
+        const state = store.getState()
+        const prevCommand = state.command[message.chat.id]
+
+        if (state && state.users && !state.users[message.user.id]) {
+            store.dispatch(userAdd(message.user))
+        }
 
         if (!_config.isProduction) {
             if (!inputParser.isDeveloper(message.from)) {
@@ -44,6 +50,9 @@ export default class Telegram {
         //     return handlers.help.getHelp(message, this._bot)
         if (inputParser.isAskingForInitToken(text)) {
             return handlers.init.initByToken(message, this._bot)
+        }
+        if (inputParser.isAskingForReport(text)) {
+            return handlers.balance.report(message, this._bot)
         }
         if (inputParser.isAskingForBalance(text))
             return handlers.balance.balance(message, this._bot)
@@ -61,7 +70,8 @@ export default class Telegram {
         let { data } = callbackQuery
         data = data ? JSON.parse(data) : {}
         const message = new Message(Message.mapMessage(callbackQuery.message))
-        const prevCommand = store.getState().command[message.chat.id]
+        const state = store.getState()
+        const prevCommand = state.command[message.chat.id]
 
         if (!_config.isProduction) {
             if (!inputParser.isDeveloper(message.chat.id)) {
