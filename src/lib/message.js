@@ -14,6 +14,7 @@ export default class Message {
             from: msg.from.id,
             text: msg.text,
             user: {
+                id: msg.from.id,
                 firstName: msg.from.first_name,
                 lastName: msg.from.last_name,
                 username: msg.from.username

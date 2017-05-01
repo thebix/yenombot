@@ -49,4 +49,8 @@ export default class InputParser {
     isAskingForBalanceDelete(text, prevCommand, data) {
         return data.cmd == _commands.BALANCE_REMOVE
     }
+    isAskingForReport(text) {
+        const pattern = /repo|report/i
+        return text.match(pattern)
+    }
 }

@@ -9,7 +9,9 @@ import {
     INIT_BY_TOKEN,
 
     BALANCE_INIT,
-    BALANCE_CHANGE
+    BALANCE_CHANGE,
+
+    USER_ADD
 } from './actions'
 
 const defaultState = {
@@ -26,6 +28,8 @@ const defaultState = {
         ['84677480']: 0
     },
     paymentGroups: {
+    },
+    users: {
     }
 }
 
@@ -99,11 +103,27 @@ const balanceInit = (state = defaultState.balanceInit, action) => {
     return state
 }
 
+const users = (state = defaultState.users, action) => {
+    switch (action.type) {
+        case USER_ADD:
+            return Object.assign({}, state, {
+                [action.id]: {
+                    firstName: action.firstName,
+                    lastName: action.lastName,
+                    username: action.username,
+                    id: action.id
+                }
+            })
+    }
+    return state
+}
+
 export default (state, action) => {
     return {
         command: command(state.command, action),
         balance: balance(state.balance, action, state.balanceInit),
         paymentGroups: paymentGroups(state.paymentGroups, action),
-        balanceInit: balanceInit(state.balanceInit, action)
+        balanceInit: balanceInit(state.balanceInit, action),
+        users: users(state.users, action)
     }
 }
