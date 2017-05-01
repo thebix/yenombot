@@ -53,7 +53,7 @@ export default class FileSystem {
             if (!isMakeIfNot) {
                 return false
             }
-            fs.writeFile(path, data)
+            fs.writeFileSync(path, data)
         }
         return true
     }
