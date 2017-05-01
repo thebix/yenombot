@@ -12,7 +12,7 @@ l('Start bot')
 
 const enhancer = compose(
     applyMiddleware(thunkMiddleware)
-);
+)
 export let store = null
 
 if (FileSystem.isDirExists(_config.dirStorage, true)
@@ -22,9 +22,10 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
             state = state || {}
             store = createStore(appReducer, state, enhancer)
             new Telegram().listen()
-                .then(() => {
-                    l('🤖  Listening to incoming messages')
-                })
+                // .then((data) => {
+                //     l('🤖  Listening to incoming messages')
+                // })
+                // .catch(ex => log(ex, logLevel.ERROR))
         })
         .catch(x => {
             log(`Ошибка чтения файла прошлого состояния. err = ${x}`, logLevel.ERROR)

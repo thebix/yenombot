@@ -3,16 +3,20 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.botCmdClear = exports.botCmd = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
+exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.botCmdClear = exports.botCmd = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
 
 var _filesystem = require('./filesystem');
 
 var _filesystem2 = _interopRequireDefault(_filesystem);
 
+var _logger = require('./logger');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var BOT_CMD = exports.BOT_CMD = 'BOT_CMD';
 var BOT_CMD_CLEAR = exports.BOT_CMD_CLEAR = 'BOT_CMD_CLEAR';
+
+var INIT_BY_TOKEN = exports.INIT_BY_TOKEN = 'INIT_BY_TOKEN';
 
 var BALANCE_INIT = exports.BALANCE_INIT = 'BALANCE_INIT';
 var BALANCE_CHANGE = exports.BALANCE_CHANGE = 'BALANCE_CHANGE';
@@ -38,6 +42,15 @@ var botCmdClear = exports.botCmdClear = function botCmdClear(chatId) {
     return {
         type: BOT_CMD_CLEAR,
         chatId: chatId
+    };
+};
+
+var initByToken = exports.initByToken = function initByToken(chatId, token) {
+    // l('token', token)
+    return {
+        type: INIT_BY_TOKEN,
+        chatId: chatId,
+        token: token
     };
 };
 
@@ -76,7 +89,7 @@ var fileReadDone = function fileReadDone(file, data) {
 var fileRead = exports.fileRead = function fileRead(file) {
     return function (dispatch) {
         dispatch(fileReadRequest(file));
-        _filesystem2.default.getFile(file).then(function (data) {
+        return _filesystem2.default.getFile(file).then(function (data) {
             return dispatch(fileReadDone(file, data));
         }).catch(function (err) {
             //TODO: обработка ошибки
@@ -102,7 +115,7 @@ var fileSaveDone = function fileSaveDone(file) {
 var fileSave = exports.fileSave = function fileSave(file, data, type) {
     return function (dispatch) {
         dispatch(fileSaveRequest(file, data));
-        _filesystem2.default.saveFile(file, data).then(function (data) {
+        return _filesystem2.default.saveFile(file, data).then(function (data) {
             return dispatch(fileSaveDone(file));
         }).catch(function (err) {
             //TODO: обработка ошибки
@@ -128,7 +141,7 @@ var jsonReadDone = function jsonReadDone(file, id, data) {
 var jsonRead = exports.jsonRead = function jsonRead(file, id) {
     return function (dispatch) {
         dispatch(jsonReadRequest(file, id));
-        _filesystem2.default.getJson(file).then(function (data) {
+        return _filesystem2.default.getJson(file).then(function (data) {
             return dispatch(jsonReadDone(file, id, data));
         }).catch(function (err) {
             //TODO: обработка ошибки
@@ -154,7 +167,7 @@ var jsonSaveDone = function jsonSaveDone(file) {
 var jsonSave = exports.jsonSave = function jsonSave(file, data) {
     return function (dispatch) {
         dispatch(jsonSaveRequest(file, data));
-        _filesystem2.default.saveJson(file, data).then(function (data) {
+        return _filesystem2.default.saveJson(file, data).then(function (data) {
             return dispatch(jsonSaveDone(file));
         }).catch(function (err) {
             //TODO: обработка ошибки

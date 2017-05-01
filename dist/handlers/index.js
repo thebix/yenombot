@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _init = require('./init');
+
+var _init2 = _interopRequireDefault(_init);
+
 var _misc = require('./misc');
 
 var _misc2 = _interopRequireDefault(_misc);
@@ -26,5 +30,6 @@ exports.default = {
     misc: new _misc2.default(),
     auth: new _auth2.default(),
     help: new _help2.default(),
-    balance: new _balance2.default()
+    balance: new _balance2.default(),
+    init: new _init2.default()
 };

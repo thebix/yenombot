@@ -19,9 +19,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 var defaultState = {
     command: _defineProperty({}, '84677480', ''),
     balance: _defineProperty({}, '84677480', {
-        balance: _token3.default.balanceInit,
+        balance: 0,
         period: ''
-    })
+    }),
+    balanceInit: _defineProperty({}, '84677480', 0),
+    paymentGroups: {}
 };
 
 var command = function command() {
@@ -40,19 +42,21 @@ var command = function command() {
 var balance = function balance() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.balance;
     var action = arguments[1];
+    var balanceInit = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : state.balanceInit;
 
+    var initBalance = balanceInit ? balanceInit[action.chatId] || 0 : 0;
     switch (action.type) {
         case _actions.BALANCE_INIT:
             {
                 return Object.assign({}, state, _defineProperty({}, action.chatId, {
                     period: action.period,
-                    balance: _token3.default.balanceInit
+                    balance: initBalance
                 }));
             }
         case _actions.BALANCE_CHANGE:
             var _balance2 = Object.keys(state).some(function (x) {
                 return x == action.chatId;
-            }) ? state[action.chatId].balance - action.sub : _token3.default.balanceInit - action.sub;
+            }) ? state[action.chatId].balance - action.sub : initBalance - action.sub;
             return Object.assign({}, state, _defineProperty({}, action.chatId, {
                 period: action.period,
                 balance: _balance2
@@ -61,9 +65,35 @@ var balance = function balance() {
     return state;
 };
 
+var paymentGroups = function paymentGroups() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.paymentGroups;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _actions.INIT_BY_TOKEN:
+            if (action.token && _token3.default.initData && _token3.default.initData[action.token] && _token3.default.initData[action.token].paymentGroups && _token3.default.initData[action.token].paymentGroups.length > 0) return Object.assign({}, state, _defineProperty({}, action.chatId, _token3.default.initData[action.token].paymentGroups));
+
+    }
+    return state;
+};
+
+var balanceInit = function balanceInit() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.balanceInit;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _actions.INIT_BY_TOKEN:
+            if (action.token && _token3.default.initData && _token3.default.initData[action.token] && _token3.default.initData[action.token].balanceInit) return Object.assign({}, state, _defineProperty({}, action.chatId, _token3.default.initData[action.token].balanceInit));
+
+    }
+    return state;
+};
+
 exports.default = function (state, action) {
     return {
         command: command(state.command, action),
-        balance: balance(state.balance, action)
+        balance: balance(state.balance, action, state.balanceInit),
+        paymentGroups: paymentGroups(state.paymentGroups, action),
+        balanceInit: balanceInit(state.balanceInit, action)
     };
 };

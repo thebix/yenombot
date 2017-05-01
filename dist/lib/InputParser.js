@@ -12,6 +12,12 @@ var _config2 = require('../config');
 
 var _config3 = _interopRequireDefault(_config2);
 
+var _commands2 = require('../enums/commands');
+
+var _commands3 = _interopRequireDefault(_commands2);
+
+var _server = require('../server');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -46,26 +52,44 @@ var InputParser = function () {
             return text.match(pattern);
         }
     }, {
+        key: 'isAskingForInitToken',
+        value: function isAskingForInitToken(text) {
+            var pattern = /token/i;
+            return text.match(pattern);
+        }
+    }, {
+        key: 'isAskingForBalance',
+        value: function isAskingForBalance(text) {
+            var pattern = /bal|balance/i;
+            return text.match(pattern);
+        }
+    }, {
         key: 'isAskingForBalanceChange',
         value: function isAskingForBalanceChange(text) {
-            var pattern = /[-+]?[0-9]*\.?[0-9]*/i; //TODO: улучшить регекс определения арифметического выражения
+            // const pattern = /[-+]?[0-9]*\.?[0-9]*/i
+            var pattern = /^([0-9\-\*\+\/\s\(\)\.,]+)$/;
             var res = text.match(pattern);
-            return res && res.length > 0 && parseInt(res[0]) > 0;
+            return !!res && res.length > 0 && res.some(function (x) {
+                return !!x;
+            });
         }
-        // isAskingForGenreList(text) {
-        //     const pattern = /music|recommendation/i
+    }, {
+        key: 'isAskingForCategoryChange',
+        value: function isAskingForCategoryChange(text, prevCommand, data) {
+            return data && data.cmd == "" + _commands3.default.BALANCE_CATEGORY_CHANGE;
+        }
+    }, {
+        key: 'isAskingForCommentChange',
+        value: function isAskingForCommentChange(text, prevCommand) {
+            var res = prevCommand && (prevCommand == _commands3.default.BALANCE_CHANGE || prevCommand == _commands3.default.BALANCE_CATEGORY_CHANGE);
 
-        //     return text.match(pattern)
-        // }
-
-        // isAskingForNumberOfRec(text, prevCommand) {
-        //     return prevCommand === commands.GET_GENRE_LIST
-        // }
-
-        // isAskingForRecommendation(text, prevCommand) {
-        //     return prevCommand === commands.SET_NUMBER_OF_REC
-        // }
-
+            return res;
+        }
+    }, {
+        key: 'isAskingForBalanceDelete',
+        value: function isAskingForBalanceDelete(text, prevCommand, data) {
+            return data.cmd == _commands3.default.BALANCE_REMOVE;
+        }
     }]);
 
     return InputParser;

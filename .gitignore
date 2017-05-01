@@ -1,5 +1,5 @@
 npm-debug.log
 node_modules
 token.js
-src/storage/state.json
-dist/storage/state.json
+src/storage
+dist/storage

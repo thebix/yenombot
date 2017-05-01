@@ -22,7 +22,8 @@ export default class Telegram {
     listen() {
         this._bot.on('text', this._handleText)
         this._bot.on('callback_query', this._handleCallback);
-        return new Promise(() => { }) //TODO: разобраться зачем
+        //return new Promise(() => { }) //TODO: разобраться зачем
+        return
     }
     _handleText(msg) {
         const message = new Message(Message.mapMessage(msg))
@@ -39,24 +40,26 @@ export default class Telegram {
         if (inputParser.isAskingForStart(text)) {
             return handlers.balance.initIfNeed(message, this.bot)
         }
-        if (inputParser.isAskingForHelp(text))
-            return handlers.help.getHelp(message, this._bot)
+        // if (inputParser.isAskingForHelp(text))
+        //     return handlers.help.getHelp(message, this._bot)
+        if (inputParser.isAskingForInitToken(text)) {
+            return handlers.init.initByToken(message, this._bot)
+        }
+        if (inputParser.isAskingForBalance(text))
+            return handlers.balance.balance(message, this._bot)
         if (inputParser.isAskingForBalanceChange(text))
             return handlers.balance.change(message, this._bot)
+        if (inputParser.isAskingForCommentChange(text, prevCommand))
+            return handlers.balance.commentChange(message, this._bot)
         if (inputParser.isAskingForEcho(text))
             return handlers.misc.getEcho(message, this._bot)
-
-        // if (inputParser.isAskingForGenreList(text))
-        //     return handlers.music.getGenreList(message, this._bot)
-
-        // if (inputParser.isAskingForNumberOfRec(text, store.getState(message.from).command))
-        //     return handlers.music.getNumOfRec(message, this._bot)
 
         // default
         return handlers.help.getHelp(message, this._bot, prevCommand)
     }
     _handleCallback(callbackQuery) {
-        const { data } = callbackQuery
+        let { data } = callbackQuery
+        data = data ? JSON.parse(data) : {}
         const message = new Message(Message.mapMessage(callbackQuery.message))
         const prevCommand = store.getState().command[message.chat.id]
 
@@ -68,7 +71,16 @@ export default class Telegram {
         }
 
         // default
-        this._bot.answerCallbackQuery(callbackQuery.id, "Help", false);
+        this._bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
+
+        if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
+            return handlers.balance.categoryChange(message, this._bot, data)
+        }
+        if (inputParser.isAskingForBalanceDelete(message, prevCommand, data)) {
+            return handlers.balance.delete(message, this._bot, data)
+        }
+
+
         return handlers.help.getHelp(message, this._bot, data)
     }
 
