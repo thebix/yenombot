@@ -76,7 +76,8 @@ export default class Balance {
 
         //сохранение истории
         const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
-        if (FileSystem.isFileExists(file, true, null, '[]')) {
+        if (FileSystem.isDirExists(_config.dirStorage, true)
+            && FileSystem.isFileExists(file, true, null, '[]')) {
             FileSystem.readJson(file)
                 .then((data) => {
                     const date = new Date()
@@ -96,7 +97,9 @@ export default class Balance {
                         history = []
                     history.push(historyItem)
                     FileSystem.saveJson(file, history)
-                        .then(data => { })
+                        .then(data => {
+                            data = data //TODO: Callig w/o callback is deprecated
+                        })
                         .catch(err => {
                             log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
                         })
@@ -104,38 +107,51 @@ export default class Balance {
 
                     const groups = newState.paymentGroups[message.chat.id]
                     if (!groups || groups.length == 0) { //для чата не заданы группы
+                        sendBalance()
                         return
                     }
 
-                    const rowCount = 2
-                    const remDiv = groups.length % 3
-                    const rows = parseInt(groups.length / rowCount)
-                        + (remDiv ? 1 : 0)
-
-                    let i = 0
-                    const buttons = []
-                    for (i; i < rows; i++) {
-                        if (i != rows - 1)
-                            buttons.push(
-                                groups.slice(i * rowCount, i * rowCount + rowCount)
-                                    .map(group => this._mapGroupsToButtons(id, group))
-                            )
-                        else
-                            buttons.push(
-                                groups.slice(i * rowCount, i * rowCount + remDiv)
-                                    .map(group => this._mapGroupsToButtons(id, group))
-                            )
+                    const cols = 3 // кол-во в блоке
+                    const buttons = [] //результат
+                    const blocksCount = parseInt(groups.length / cols)
+                        + ((groups.length % cols) > 0 ? 1 : 0)
+                    for (let i = 0; i < blocksCount; i++) {
+                        buttons.push(
+                            groups.slice(i * cols, i * cols + cols)
+                                .map(group => this._mapGroupsToButtons(id, group))
+                        )
                     }
+
+
+                    // const rowCount = 2
+                    // const remDiv = groups.length % 3
+                    // const rows = parseInt(groups.length / rowCount)
+                    //     + (remDiv ? 1 : 0)
+
+                    // let i = 0
+                    // const buttons = []
+                    // for (i; i < rows; i++) {
+                    //     if (i != rows - 1)
+                    //         buttons.push(
+                    //             groups.slice(i * rowCount, i * rowCount + rowCount)
+                    //                 .map(group => this._mapGroupsToButtons(id, group))
+                    //         )
+                    //     else
+                    //         buttons.push(
+                    //             groups.slice(i * rowCount, i * rowCount + remDiv)
+                    //                 .map(group => this._mapGroupsToButtons(id, group))
+                    //         )
+                    // }
                     bot.sendMessage(message.chat.id, `Выбери категорию 🤖`, {
                         reply_markup: JSON.stringify({
                             inline_keyboard: buttons
                         })
-                    }).then(x=> {
+                    }).then(x => {
                         sendBalance()
-                    }).catch(ex=> {
+                    }).catch(ex => {
                         sendBalance()
                     })
-                    
+
                 })
                 .catch(err => {
                     sendBalance()

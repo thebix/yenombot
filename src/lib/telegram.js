@@ -22,7 +22,8 @@ export default class Telegram {
     listen() {
         this._bot.on('text', this._handleText)
         this._bot.on('callback_query', this._handleCallback);
-        return new Promise(() => { }) //TODO: разобраться зачем
+        //return new Promise(() => { }) //TODO: разобраться зачем
+        return
     }
     _handleText(msg) {
         const message = new Message(Message.mapMessage(msg))
@@ -39,8 +40,8 @@ export default class Telegram {
         if (inputParser.isAskingForStart(text)) {
             return handlers.balance.initIfNeed(message, this.bot)
         }
-        if (inputParser.isAskingForHelp(text))
-            return handlers.help.getHelp(message, this._bot)
+        // if (inputParser.isAskingForHelp(text))
+        //     return handlers.help.getHelp(message, this._bot)
         if (inputParser.isAskingForInitToken(text)) {
             return handlers.init.initByToken(message, this._bot)
         }
