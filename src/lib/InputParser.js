@@ -26,7 +26,11 @@ export default class InputParser {
         return text.match(pattern)
     }
     isAskingForBalance(text) {
-        const pattern = /bal|balance/i
+        const pattern = /^\/bal$|^\/balance$/i
+        return text.match(pattern)
+    }
+    isAskingForBalanceInit(text) {
+        const pattern = /^\/bal init$|^\/balance init$/i
         return text.match(pattern)
     }
     isAskingForBalanceChange(text) {
