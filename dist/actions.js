@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.botCmdClear = exports.botCmd = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
+exports.userAdd = exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.botCmdClear = exports.botCmd = exports.USER_ADD = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
 
 var _filesystem = require('./filesystem');
 
@@ -29,6 +29,8 @@ var FS_JSON_READ = exports.FS_JSON_READ = 'FS_JSON_READ';
 var FS_JSON_READ_DONE = exports.FS_JSON_READ_DONE = 'FS_JSON_READ_DONE';
 var FS_JSON_WRITE = exports.FS_JSON_WRITE = 'FS_JSON_WRITE';
 var FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE_DONE = 'FS_JSON_WRITE_DONE';
+
+var USER_ADD = exports.USER_ADD = 'USER_ADD';
 
 var botCmd = exports.botCmd = function botCmd(chatId, command) {
     return {
@@ -172,5 +174,20 @@ var jsonSave = exports.jsonSave = function jsonSave(file, data) {
         }).catch(function (err) {
             //TODO: обработка ошибки
         });
+    };
+};
+
+var userAdd = exports.userAdd = function userAdd(_ref) {
+    var id = _ref.id,
+        firstName = _ref.firstName,
+        lastName = _ref.lastName,
+        username = _ref.username;
+
+    return {
+        type: USER_ADD,
+        id: id,
+        firstName: firstName,
+        lastName: lastName,
+        username: username
     };
 };
