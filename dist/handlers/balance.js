@@ -8,6 +8,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _exprEval = require('expr-eval');
 
+var _stream = require('stream');
+
 var _config2 = require('../config');
 
 var _config3 = _interopRequireDefault(_config2);
@@ -26,6 +28,18 @@ var _filesystem2 = _interopRequireDefault(_filesystem);
 
 var _logger = require('../logger');
 
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _stringToStream = require('string-to-stream');
+
+var _stringToStream2 = _interopRequireDefault(_stringToStream);
+
+var _json2csv = require('json2csv');
+
+var _json2csv2 = _interopRequireDefault(_json2csv);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -34,7 +48,14 @@ var Balance = function () {
     function Balance() {
         _classCallCheck(this, Balance);
 
+        this._sendBalance = function (message, bot, balance, options) {
+            var id = message.id;
+
+            bot.sendMessage(message.chat.id, '\u041E\u0441\u0442\u0430\u0442\u043E\u043A ' + balance + ' \uD83E\uDD16', options);
+        };
+
         this._mapGroupsToButtons = this._mapGroupsToButtons.bind(this);
+        this._sendBalance = this._sendBalance.bind(this);
     }
 
     _createClass(Balance, [{
@@ -42,9 +63,15 @@ var Balance = function () {
         value: function initIfNeed(message, bot) {
             var balance = _server.store.getState().balance[message.chat.id];
             if (balance === undefined || balance === null || balance === '') {
-                var _period = new Date().getMonth();
-                _server.store.dispatch((0, _actions.balanceInit)(message.chat.id, _period));
+                this.init(message, bot);
             }
+        }
+    }, {
+        key: 'init',
+        value: function init(message, bot) {
+            var period = new Date().getMonth();
+            _server.store.dispatch((0, _actions.balanceInit)(message.chat.id, period));
+            this.balance(message, bot);
         }
     }, {
         key: 'balance',
@@ -89,22 +116,6 @@ var Balance = function () {
             balance = newState.balance[message.chat.id].balance;
             _server.store.dispatch((0, _actions.jsonSave)(_config3.default.fileState, newState));
 
-            var sendBalance = function sendBalance() {
-                var id = message.id;
-
-                bot.sendMessage(message.chat.id, '\u041E\u0441\u0442\u0430\u0442\u043E\u043A ' + balance + ' \uD83E\uDD16', {
-                    reply_markup: JSON.stringify({
-                        inline_keyboard: [[{
-                            text: "Удалить",
-                            callback_data: JSON.stringify({
-                                hId: id,
-                                cmd: _commands3.default.BALANCE_REMOVE
-                            })
-                        }]]
-                    })
-                });
-            };
-
             //сохранение истории
             var file = _config3.default.dirStorage + 'balance-hist-' + message.chat.id + '.json';
             if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isFileExists(file, true, null, '[]')) {
@@ -134,7 +145,7 @@ var Balance = function () {
                     var groups = newState.paymentGroups[message.chat.id];
                     if (!groups || groups.length == 0) {
                         //для чата не заданы группы
-                        sendBalance();
+                        _this._sendBalance(message, balance);
                         return;
                     }
 
@@ -147,36 +158,31 @@ var Balance = function () {
                         }));
                     }
 
-                    // const rowCount = 2
-                    // const remDiv = groups.length % 3
-                    // const rows = parseInt(groups.length / rowCount)
-                    //     + (remDiv ? 1 : 0)
-
-                    // let i = 0
-                    // const buttons = []
-                    // for (i; i < rows; i++) {
-                    //     if (i != rows - 1)
-                    //         buttons.push(
-                    //             groups.slice(i * rowCount, i * rowCount + rowCount)
-                    //                 .map(group => this._mapGroupsToButtons(id, group))
-                    //         )
-                    //     else
-                    //         buttons.push(
-                    //             groups.slice(i * rowCount, i * rowCount + remDiv)
-                    //                 .map(group => this._mapGroupsToButtons(id, group))
-                    //         )
-                    // }
-                    bot.sendMessage(message.chat.id, '\u0412\u044B\u0431\u0435\u0440\u0438 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044E \uD83E\uDD16', {
+                    bot.sendMessage(message.chat.id, '\u0417\u0430\u043F\u0438\u0441\u0430\u043B ' + text, {
                         reply_markup: JSON.stringify({
-                            inline_keyboard: buttons
+                            inline_keyboard: [[{
+                                text: "Удалить",
+                                callback_data: JSON.stringify({
+                                    hId: id,
+                                    cmd: _commands3.default.BALANCE_REMOVE
+                                })
+                            }]]
                         })
                     }).then(function (x) {
-                        sendBalance();
+                        bot.sendMessage(message.chat.id, '\u0412\u044B\u0431\u0435\u0440\u0438 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044E \uD83E\uDD16', {
+                            reply_markup: JSON.stringify({
+                                inline_keyboard: buttons
+                            })
+                        }).then(function (x) {
+                            _this._sendBalance(message, bot, balance);
+                        }).catch(function (ex) {
+                            _this._sendBalance(message, bot, balance);
+                        });
                     }).catch(function (ex) {
-                        sendBalance();
+                        _this._sendBalance(message, bot, balance);
                     });
                 }).catch(function (err) {
-                    sendBalance();
+                    _this._sendBalance(message, bot, balance);
                     (0, _logger.log)('\u041E\u0448\u0438\u0431\u043A\u0430 \u0447\u0442\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u0438\u0441\u0430\u0442\u043E\u0440\u0438\u0438 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. err = ' + err + '. file = ' + file);
                 });
             }
@@ -184,6 +190,8 @@ var Balance = function () {
     }, {
         key: 'categoryChange',
         value: function categoryChange(message, bot, data) {
+            var _this2 = this;
+
             _server.store.dispatch((0, _actions.botCmd)(message.chat.id, _commands3.default.BALANCE_CATEGORY_CHANGE));
 
             //сохранение категории
@@ -209,9 +217,12 @@ var Balance = function () {
                     article.category = groups.filter(function (item) {
                         return category.gId == item.id;
                     })[0].title;
-
+                    var comment = article.comment ? ', ' + article.comment : '';
                     _filesystem2.default.saveJson(file, history).then(function (data) {
-                        bot.sendMessage(message.chat.id, article.value + ', ' + oldCategory + article.category + ' \uD83E\uDD16');
+                        bot.sendMessage(message.chat.id, article.value + ', ' + oldCategory + article.category + comment + ' \uD83E\uDD16').then(function (data) {
+                            var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
+                            _this2._sendBalance(message, bot, balance);
+                        });
                     }).catch(function (err) {
                         (0, _logger.log)('\u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u0438\u0441\u0430\u0442\u043E\u0440\u0438\u0438 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. err = ' + err + '. file = ' + file);
                     });
@@ -223,6 +234,8 @@ var Balance = function () {
     }, {
         key: 'commentChange',
         value: function commentChange(message, bot) {
+            var _this3 = this;
+
             _server.store.dispatch((0, _actions.botCmd)(message.chat.id, _commands3.default.BALANCE_COMMENT_CHANGE));
 
             //сохранение коммента к последней записи
@@ -242,7 +255,10 @@ var Balance = function () {
                     article.comment = message.text;
 
                     _filesystem2.default.saveJson(file, history).then(function (data) {
-                        bot.sendMessage(message.chat.id, article.value + ', ' + article.comment + ' \uD83E\uDD16');
+                        bot.sendMessage(message.chat.id, article.value + ', ' + article.category + ', ' + article.comment + ' \uD83E\uDD16').then(function (data) {
+                            var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
+                            _this3._sendBalance(message, bot, balance);
+                        });
                     }).catch(function (err) {
                         (0, _logger.log)('\u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u0438\u0441\u0430\u0442\u043E\u0440\u0438\u0438 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. err = ' + err + '. file = ' + file);
                     });
@@ -309,6 +325,58 @@ var Balance = function () {
                     cmd: _commands3.default.BALANCE_CATEGORY_CHANGE
                 })
             };
+        }
+    }, {
+        key: 'report',
+        value: function report(message, bot) {
+            var _this4 = this;
+
+            var file = _config3.default.dirStorage + 'balance-hist-' + message.chat.id + '.json';
+            if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isFileExists(file)) {
+                _filesystem2.default.readJson(file).then(function (json) {
+                    json = json.filter(function (x) {
+                        return !x.date_delete;
+                    }).sort(function (a, b) {
+                        return b.id - a.id;
+                    });
+
+                    var _store$getState = _server.store.getState(),
+                        users = _store$getState.users;
+
+                    var fields = [{
+                        label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
+                        value: function value(row, field, data) {
+                            return (0, _logger.getDateString)(new Date(row.date_create));
+                        },
+                        default: 'NULL' // default if value function returns null or undefined 
+                    }, 'value', 'category', 'comment', {
+                        label: 'Юзер', // Supports duplicate labels (required, else your column will be labeled [function]) 
+                        value: function value(row, field, data) {
+                            return users[row.user_id].firstName + ' ' + users[row.user_id].lastName;
+                        },
+                        default: 'NULL' // default if value Îfunction returns null or undefined 
+                    }, 'id'];
+                    var fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id'];
+                    var csv = (0, _json2csv2.default)({ data: json, fields: fields, fieldNames: fieldNames });
+                    if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isDirExists(_config3.default.dirStorage + 'repo', true)) {
+                        var _file = 'repo-' + message.chat.title + '.csv'; //TODO: для каждого чата отдельно, или даже для юзера
+                        _filesystem2.default.saveFile(_config3.default.dirStorage + 'repo/' + _file, csv).then(function (data) {
+                            bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + _file).then(function (data) {
+                                var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
+                                _this4._sendBalance(message, bot, balance);
+                            }).catch(function (ex) {
+                                return (0, _logger.log)(ex, _logger.logLevel.ERROR);
+                            });
+                        }).catch(function (ex) {
+                            return (0, _logger.log)(ex, _logger.logLevel.ERROR);
+                        });
+                    }
+                }).catch(function (err) {
+                    (0, _logger.log)('report: \u041E\u0448\u0438\u0431\u043A\u0430 \u0447\u0442\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u0438\u0441\u0430\u0442\u043E\u0440\u0438\u0438 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. err = ' + err + '. file = ' + file, _logger.logLevel.ERROR);
+                });
+            } else {
+                bot.sendMessage(message.chat.id, '\u041D\u0435\u0442 \u0440\u0430\u043D\u0435\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043D\u044B\u0445 \u0442\u0440\u0430\u0442 \u0434\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0447\u0430\u0442\u0430 \uD83E\uDD16');
+            }
         }
     }]);
 

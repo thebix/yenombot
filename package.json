@@ -1,6 +1,6 @@
 {
   "name": "yenombot",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "group stats",
   "keywords": [
     "telegram",
@@ -19,14 +19,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JonathanZWhite/bot-server.git"
+    "url": "git+https://github.com/thebix/yenombot.git"
   },
   "author": "Paul Byron",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/thebix/balancebot/issues"
+    "url": "https://github.com/thebix/yenombot/issues"
   },
-  "homepage": "https://github.com/thebix/balancebot#readme",
+  "homepage": "https://github.com/thebix/yenombot#readme",
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-preset-es2015": "^6.18.0",

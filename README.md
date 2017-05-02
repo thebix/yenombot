@@ -3,6 +3,7 @@
 ## prepare env
 ```
 npm install
+cd src
 touch ./src/token.js
 ```
 
@@ -19,7 +20,7 @@ export default {
     //init tokens data block
     initData: {
         ['some-fucking-init-token']: {
-            balanceInit: 666,  //TODO: monthly limitÏ
+            balanceInit: 666,  //TODO: monthly limit
             paymentGroups: [{
                 title: 'Cat 1',
                 id: '1'
