@@ -15,22 +15,11 @@ import {
 } from './actions'
 
 const defaultState = {
-    command: {
-        ['84677480']: ''
-    },
-    balance: {
-        ['84677480']: {
-            balance: 0,
-            period: ''
-        }
-    },
-    balanceInit: {
-        ['84677480']: 0
-    },
-    paymentGroups: {
-    },
-    users: {
-    }
+    command: {},
+    balance: {},
+    balanceInit: {},
+    paymentGroups: {},
+    users: {}
 }
 
 const command = (state = defaultState.command, action) => {

@@ -21,9 +21,14 @@ export default class Balance {
     initIfNeed(message, bot) {
         const balance = store.getState().balance[message.chat.id]
         if (balance === undefined || balance === null || balance === '') {
-            const period = new Date().getMonth()
-            store.dispatch(balanceInit(message.chat.id, period))
+            this.init(message, bot)
         }
+    }
+    init(message, bot) {
+        const period = new Date().getMonth()
+        store.dispatch(balanceInit(message.chat.id, period))
+        this.balance(message, bot)
+        
     }
     balance(message, bot) {
         const balance = store.getState().balance[message.chat.id]

@@ -32,3 +32,16 @@ export default {
      
 }
 ```
+
+## prod
+```
+npm build
+npm run serve
+```
+
+## start bot
+```
+/start
+/token some-fucking-init-token
+/bal init
+```

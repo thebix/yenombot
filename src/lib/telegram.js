@@ -44,7 +44,7 @@ export default class Telegram {
         }
 
         if (inputParser.isAskingForStart(text)) {
-            return handlers.balance.initIfNeed(message, this.bot)
+            return handlers.balance.initIfNeed(message, this._bot)
         }
         // if (inputParser.isAskingForHelp(text))
         //     return handlers.help.getHelp(message, this._bot)
@@ -56,6 +56,8 @@ export default class Telegram {
         }
         if (inputParser.isAskingForBalance(text))
             return handlers.balance.balance(message, this._bot)
+        if (inputParser.isAskingForBalanceInit(text))
+            return handlers.balance.init(message, this._bot)
         if (inputParser.isAskingForBalanceChange(text))
             return handlers.balance.change(message, this._bot)
         if (inputParser.isAskingForCommentChange(text, prevCommand))
