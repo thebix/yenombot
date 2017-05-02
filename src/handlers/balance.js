@@ -28,7 +28,7 @@ export default class Balance {
         const period = new Date().getMonth()
         store.dispatch(balanceInit(message.chat.id, period))
         this.balance(message, bot)
-        
+
     }
     balance(message, bot) {
         const balance = store.getState().balance[message.chat.id]
@@ -294,6 +294,7 @@ export default class Balance {
             && FileSystem.isFileExists(file)) {
             FileSystem.readJson(file)
                 .then((json) => {
+                    json = json.filter(x => !x.date_delete).sort((a,b) => b.id - a.id)
                     const { users } = store.getState()
                     var fields = [{
                         label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
@@ -307,8 +308,8 @@ export default class Balance {
                             return `${users[row.user_id].firstName} ${users[row.user_id].lastName}`
                         },
                         default: 'NULL' // default if value Îfunction returns null or undefined 
-                    }];
-                    const fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер']
+                    }, 'id'];
+                    const fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id']
                     var csv = json2csv({ data: json, fields, fieldNames });
                     if (FileSystem.isDirExists(_config.dirStorage, true)
                         && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
