@@ -9,7 +9,6 @@ import FileSystem from '../filesystem'
 import { l, log, logLevel, getDateString } from '../logger'
 
 import fs from 'fs'
-import str from 'string-to-stream'
 import json2csv from 'json2csv'
 
 export default class Balance {
