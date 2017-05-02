@@ -3,6 +3,7 @@
 ## prepare env
 ```
 npm install
+cd src
 touch ./src/token.js
 ```
 
@@ -15,13 +16,11 @@ export default {
     developers: [
         //TODO: paste your telegram id here
     ],
-    //initTokens: [''],//TODO: paste your tokens for /token command
-
+    
     //init tokens data block
-    //initData: { [initToken]: { /* init data */ } }
     initData: {
         ['some-fucking-init-token']: {
-            balanceInit: 666,  //TODO: monthly limitÏ
+            balanceInit: 666,  //TODO: monthly limit
             paymentGroups: [{
                 title: 'Cat 1',
                 id: '1'
@@ -33,4 +32,17 @@ export default {
     }
      
 }
+```
+
+## prod
+```
+npm build
+npm run serve
+```
+
+## start bot
+```
+/start
+/token some-fucking-init-token
+/bal init
 ```

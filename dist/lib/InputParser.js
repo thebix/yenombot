@@ -60,7 +60,13 @@ var InputParser = function () {
     }, {
         key: 'isAskingForBalance',
         value: function isAskingForBalance(text) {
-            var pattern = /bal|balance/i;
+            var pattern = /^\/bal$|^\/balance$/i;
+            return text.match(pattern);
+        }
+    }, {
+        key: 'isAskingForBalanceInit',
+        value: function isAskingForBalanceInit(text) {
+            var pattern = /^\/bal init$|^\/balance init$/i;
             return text.match(pattern);
         }
     }, {
@@ -89,6 +95,12 @@ var InputParser = function () {
         key: 'isAskingForBalanceDelete',
         value: function isAskingForBalanceDelete(text, prevCommand, data) {
             return data.cmd == _commands3.default.BALANCE_REMOVE;
+        }
+    }, {
+        key: 'isAskingForReport',
+        value: function isAskingForReport(text) {
+            var pattern = /repo|report/i;
+            return text.match(pattern);
         }
     }]);
 

@@ -18,6 +18,8 @@ export const FS_JSON_READ_DONE = 'FS_JSON_READ_DONE'
 export const FS_JSON_WRITE = 'FS_JSON_WRITE'
 export const FS_JSON_WRITE_DONE = 'FS_JSON_WRITE_DONE'
 
+export const USER_ADD = 'USER_ADD'
+
 export const botCmd = (chatId, command) => {
     return {
         type: BOT_CMD,
@@ -163,5 +165,16 @@ export const jsonSave = (file, data) => {
             .catch(err => {
                 //TODO: обработка ошибки
             })
+    }
+}
+
+
+export const userAdd = ({id, firstName, lastName, username}) => {
+    return {
+        type: USER_ADD,
+        id,
+        firstName,
+        lastName,
+        username
     }
 }

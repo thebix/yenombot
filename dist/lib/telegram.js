@@ -34,6 +34,8 @@ var _logger = require('../logger');
 
 var _server = require('../server');
 
+var _actions = require('../actions');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -66,7 +68,12 @@ var Telegram = function () {
             var text = message.text;
 
 
-            var prevCommand = _server.store.getState().command[message.chat.id];
+            var state = _server.store.getState();
+            var prevCommand = state.command[message.chat.id];
+
+            if (state && state.users && !state.users[message.user.id]) {
+                _server.store.dispatch((0, _actions.userAdd)(message.user));
+            }
 
             if (!_config3.default.isProduction) {
                 if (!inputParser.isDeveloper(message.from)) {
@@ -75,14 +82,18 @@ var Telegram = function () {
             }
 
             if (inputParser.isAskingForStart(text)) {
-                return _index2.default.balance.initIfNeed(message, this.bot);
+                return _index2.default.balance.initIfNeed(message, this._bot);
             }
             // if (inputParser.isAskingForHelp(text))
             //     return handlers.help.getHelp(message, this._bot)
             if (inputParser.isAskingForInitToken(text)) {
                 return _index2.default.init.initByToken(message, this._bot);
             }
+            if (inputParser.isAskingForReport(text)) {
+                return _index2.default.balance.report(message, this._bot);
+            }
             if (inputParser.isAskingForBalance(text)) return _index2.default.balance.balance(message, this._bot);
+            if (inputParser.isAskingForBalanceInit(text)) return _index2.default.balance.init(message, this._bot);
             if (inputParser.isAskingForBalanceChange(text)) return _index2.default.balance.change(message, this._bot);
             if (inputParser.isAskingForCommentChange(text, prevCommand)) return _index2.default.balance.commentChange(message, this._bot);
             if (inputParser.isAskingForEcho(text)) return _index2.default.misc.getEcho(message, this._bot);
@@ -97,7 +108,8 @@ var Telegram = function () {
 
             data = data ? JSON.parse(data) : {};
             var message = new _message2.default(_message2.default.mapMessage(callbackQuery.message));
-            var prevCommand = _server.store.getState().command[message.chat.id];
+            var state = _server.store.getState();
+            var prevCommand = state.command[message.chat.id];
 
             if (!_config3.default.isProduction) {
                 if (!inputParser.isDeveloper(message.chat.id)) {

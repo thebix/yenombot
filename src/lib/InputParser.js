@@ -26,7 +26,11 @@ export default class InputParser {
         return text.match(pattern)
     }
     isAskingForBalance(text) {
-        const pattern = /bal|balance/i
+        const pattern = /^\/bal$|^\/balance$/i
+        return text.match(pattern)
+    }
+    isAskingForBalanceInit(text) {
+        const pattern = /^\/bal init$|^\/balance init$/i
         return text.match(pattern)
     }
     isAskingForBalanceChange(text) {
@@ -48,5 +52,9 @@ export default class InputParser {
     }
     isAskingForBalanceDelete(text, prevCommand, data) {
         return data.cmd == _commands.BALANCE_REMOVE
+    }
+    isAskingForReport(text) {
+        const pattern = /repo|report/i
+        return text.match(pattern)
     }
 }

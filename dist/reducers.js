@@ -17,13 +17,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var defaultState = {
-    command: _defineProperty({}, '84677480', ''),
-    balance: _defineProperty({}, '84677480', {
-        balance: 0,
-        period: ''
-    }),
-    balanceInit: _defineProperty({}, '84677480', 0),
-    paymentGroups: {}
+    command: {},
+    balance: {},
+    balanceInit: {},
+    paymentGroups: {},
+    users: {}
 };
 
 var command = function command() {
@@ -54,12 +52,12 @@ var balance = function balance() {
                 }));
             }
         case _actions.BALANCE_CHANGE:
-            var _balance2 = Object.keys(state).some(function (x) {
+            var _balance = Object.keys(state).some(function (x) {
                 return x == action.chatId;
             }) ? state[action.chatId].balance - action.sub : initBalance - action.sub;
             return Object.assign({}, state, _defineProperty({}, action.chatId, {
                 period: action.period,
-                balance: _balance2
+                balance: _balance
             }));
     }
     return state;
@@ -89,11 +87,28 @@ var balanceInit = function balanceInit() {
     return state;
 };
 
+var users = function users() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.users;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _actions.USER_ADD:
+            return Object.assign({}, state, _defineProperty({}, action.id, {
+                firstName: action.firstName,
+                lastName: action.lastName,
+                username: action.username,
+                id: action.id
+            }));
+    }
+    return state;
+};
+
 exports.default = function (state, action) {
     return {
         command: command(state.command, action),
         balance: balance(state.balance, action, state.balanceInit),
         paymentGroups: paymentGroups(state.paymentGroups, action),
-        balanceInit: balanceInit(state.balanceInit, action)
+        balanceInit: balanceInit(state.balanceInit, action),
+        users: users(state.users, action)
     };
 };
