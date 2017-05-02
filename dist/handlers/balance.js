@@ -32,10 +32,6 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _stringToStream = require('string-to-stream');
-
-var _stringToStream2 = _interopRequireDefault(_stringToStream);
-
 var _json2csv = require('json2csv');
 
 var _json2csv2 = _interopRequireDefault(_json2csv);
