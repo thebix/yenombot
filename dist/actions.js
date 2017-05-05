@@ -3,9 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.userAdd = exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.botCmdClear = exports.botCmd = exports.USER_ADD = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
+exports.userAdd = exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.setBotBalanceMessageId = exports.botCmdClear = exports.botCmd = exports.USER_ADD = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_BALANCE_MESSAGE_ID = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;
 
-var _filesystem = require('./filesystem');
+var _filesystem = require('./lib/filesystem');
 
 var _filesystem2 = _interopRequireDefault(_filesystem);
 
@@ -15,6 +15,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var BOT_CMD = exports.BOT_CMD = 'BOT_CMD';
 var BOT_CMD_CLEAR = exports.BOT_CMD_CLEAR = 'BOT_CMD_CLEAR';
+var BOT_BALANCE_MESSAGE_ID = exports.BOT_BALANCE_MESSAGE_ID = 'BOT_BALANCE_MESSAGE_ID';
 
 var INIT_BY_TOKEN = exports.INIT_BY_TOKEN = 'INIT_BY_TOKEN';
 
@@ -47,8 +48,15 @@ var botCmdClear = exports.botCmdClear = function botCmdClear(chatId) {
     };
 };
 
+var setBotBalanceMessageId = exports.setBotBalanceMessageId = function setBotBalanceMessageId(chatId, messageId) {
+    return {
+        type: BOT_BALANCE_MESSAGE_ID,
+        messageId: messageId,
+        chatId: chatId
+    };
+};
+
 var initByToken = exports.initByToken = function initByToken(chatId, token) {
-    // l('token', token)
     return {
         type: INIT_BY_TOKEN,
         chatId: chatId,
