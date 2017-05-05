@@ -21,7 +21,8 @@ var defaultState = {
     balance: {},
     balanceInit: {},
     paymentGroups: {},
-    users: {}
+    users: {},
+    botBalanceMessageId: {}
 };
 
 var command = function command() {
@@ -103,12 +104,24 @@ var users = function users() {
     return state;
 };
 
+var botBalanceMessageId = function botBalanceMessageId() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.botBalanceMessageId;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _actions.BOT_BALANCE_MESSAGE_ID:
+            return Object.assign({}, state, _defineProperty({}, action.chatId, action.messageId));
+    }
+    return state;
+};
+
 exports.default = function (state, action) {
     return {
         command: command(state.command, action),
         balance: balance(state.balance, action, state.balanceInit),
         paymentGroups: paymentGroups(state.paymentGroups, action),
         balanceInit: balanceInit(state.balanceInit, action),
-        users: users(state.users, action)
+        users: users(state.users, action),
+        botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action)
     };
 };

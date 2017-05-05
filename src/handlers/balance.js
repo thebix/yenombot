@@ -1,15 +1,17 @@
 import { Parser } from 'expr-eval'
 import { Readable } from 'stream'
 import _config from '../config'
-import { store } from '../server'
-import { balanceInit, balanceChange, jsonSave, botCmd } from '../actions'
+import { store, history } from '../server'
+import {
+    balanceInit, balanceChange, jsonSave, botCmd,
+    setBotBalanceMessageId
+} from '../actions'
 import _commands from '../enums/commands'
-import FileSystem from '../filesystem'
+import FileSystem from '../lib/filesystem'
 
 import { l, log, logLevel, getDateString } from '../logger'
 
 import fs from 'fs'
-import str from 'string-to-stream'
 import json2csv from 'json2csv'
 
 export default class Balance {
@@ -68,224 +70,197 @@ export default class Balance {
         balance = newState.balance[message.chat.id].balance
         store.dispatch(jsonSave(_config.fileState, newState))
 
-        //сохранение истории
-        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
-        if (FileSystem.isDirExists(_config.dirStorage, true)
-            && FileSystem.isFileExists(file, true, null, '[]')) {
-            FileSystem.readJson(file)
-                .then((data) => {
-                    const date = new Date()
-                    const { id } = message
-                    const historyItem = {
-                        'id': message.id,
-                        'date_create': date,
-                        'date_edit': date,
-                        'date_delete': null,
-                        'category': 'uncat',
-                        'value': text,
-                        'user_id': message.from,
-                        'comment': ''
-                    }
-                    let history = data
-                    if (!history || history.constructor !== Array)
-                        history = []
-                    history.push(historyItem)
-                    FileSystem.saveJson(file, history)
-                        .then(data => {
-                            data = data //TODO: Callig w/o callback is deprecated
-                        })
-                        .catch(err => {
-                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
-                        })
-
-
-                    const groups = newState.paymentGroups[message.chat.id]
-                    if (!groups || groups.length == 0) { //для чата не заданы группы
-                        this._sendBalance(message, balance)
-                        return
-                    }
-
-                    const cols = 3 // кол-во в блоке
-                    const buttons = [] //результат
-                    const blocksCount = parseInt(groups.length / cols)
-                        + ((groups.length % cols) > 0 ? 1 : 0)
-                    for (let i = 0; i < blocksCount; i++) {
-                        buttons.push(
-                            groups.slice(i * cols, i * cols + cols)
-                                .map(group => this._mapGroupsToButtons(id, group))
-                        )
-                    }
-
-                    bot.sendMessage(message.chat.id, `Записал ${text}`, {
-                        reply_markup: JSON.stringify({
-                            inline_keyboard: [[{
-                                text: "Удалить",
-                                callback_data: JSON.stringify({
-                                    hId: id,
-                                    cmd: _commands.BALANCE_REMOVE
-                                })
-                            }]
-                            ]
-                        })
-                    }).then(x => {
-                        bot.sendMessage(message.chat.id, `Выбери категорию 🤖`, {
-                            reply_markup: JSON.stringify({
-                                inline_keyboard: buttons
-                            })
-                        }).then(x => {
-                            this._sendBalance(message, bot, balance)
-                        }).catch(ex => {
-                            this._sendBalance(message, bot, balance)
-                        })
-                    }).catch(ex => {
-                        this._sendBalance(message, bot, balance)
-                    })
-
-                })
-                .catch(err => {
-                    this._sendBalance(message, bot, balance)
-                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
-                })
+        // 
+        const groups = newState.paymentGroups[message.chat.id]
+        if (!groups || groups.length == 0) { //для чата не заданы группы
+            return this._sendBalance(message, bot, balance)
         }
 
+        // сохранение истории
+        const date = new Date()
+        const historyItem = {
+            'id': message.id,
+            'date_create': date,
+            'date_edit': date,
+            'date_delete': null,
+            'category': 'uncat',
+            'value': text,
+            'user_id': message.from,
+            'comment': ''
+        }
+        let success = `Записал ${text}`
+        bot.sendMessage(message.chat.id, `${success} 🤖`)
+            .then(x => {
+                const cols = 3 // кол-во в блоке
+                let buttons = [] //результат
+                const blocksCount = parseInt(groups.length / cols)
+                    + ((groups.length % cols) > 0 ? 1 : 0)
+                for (let i = 0; i < blocksCount; i++) {
+                    buttons.push(
+                        groups.slice(i * cols, i * cols + cols)
+                            .map(group => this._mapGroupsToButtons(x.message_id, group))
+                    )
+                }
+                bot.editMessageText(`${success}. Выбери категорию 🤖`, {
+                    message_id: x.message_id,
+                    chat_id: message.chat.id,
+                    reply_markup: JSON.stringify({
+                        inline_keyboard: [[{
+                            text: "Удалить",
+                            callback_data: JSON.stringify({
+                                hId: x.message_id,
+                                cmd: _commands.BALANCE_REMOVE
+                            })
+                        }], ...buttons
+                        ]
+                    })
+                })
+                historyItem.id = x.message_id
+                history.create(historyItem, message.chat.id)
+                    .then(x => { })
+                    .catch(ex => log(ex, logLevel.ERROR))
+                return this._sendBalance(message, bot, balance)
+            }).catch(ex => {
+                log(`Ошибка сохранения отправки сообщения боту. История записана с id сообщения от пользовалея = ${historyItem.id}. err = ${ex}.`)
+                history.create(historyItem, message.chat.id)
+                return this._sendBalance(message, bot, balance)
+            })
     }
     categoryChange(message, bot, data) {
         store.dispatch(botCmd(message.chat.id, _commands.BALANCE_CATEGORY_CHANGE))
 
         //сохранение категории
-        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
-        if (FileSystem.isFileExists(file, true, null, '[]')) {
-            FileSystem.readJson(file)
-                .then((json) => {
-                    const history = json || []
-                    const category = data
-
-                    const { hId } = category
-                    let article = history.filter(item => item.id == hId)
-                    if (!article || article.length == 0) {
-                        bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
-                        return
-                    }
-                    article = article[0]
-                    const groups = store.getState().paymentGroups[message.chat.id] || []
-                    let oldCategory = ``
-                    if (article.category && article.category != 'uncat')
-                        oldCategory = `${article.category} -> `
-                    article.category = groups.filter(item => category.gId == item.id)[0].title
-                    const comment = article.comment ? `, ${article.comment}` : ``
-                    FileSystem.saveJson(file, history)
-                        .then(data => {
-                            bot.sendMessage(message.chat.id, `${article.value}, ${oldCategory}${article.category}${comment} 🤖`)
-                                .then((data) => {
-                                    const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
-                                    this._sendBalance(message, bot, balance)
-                                })
+        const { hId, gId } = data
+        return history.getById(hId, message.chat.id)
+            .then(item => {
+                if (!item) {
+                    bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
+                    return Promise.reject(`Не удалось найти запись в истории 🤖`)
+                }
+                const groups = store.getState().paymentGroups[message.chat.id] || []
+                let oldCategory = ``
+                if (item.category && item.category != 'uncat')
+                    oldCategory = `${item.category} -> `
+                item.category = groups.filter(x => gId == x.id)[0].title
+                const comment = item.comment ? `, ${item.comment}` : ``
+                return history.setById(hId, item, message.chat.id)
+                    .then(data => {
+                        return bot.editMessageText(`${item.value}, ${oldCategory}${item.category}${comment} 🤖`, {
+                            message_id: hId,
+                            chat_id: message.chat.id,
+                            reply_markup: JSON.stringify({
+                                inline_keyboard: [[{
+                                    text: "Удалить",
+                                    callback_data: JSON.stringify({
+                                        hId: hId,
+                                        cmd: _commands.BALANCE_REMOVE
+                                    })
+                                }]]
+                            })
                         })
-                        .catch(err => {
-                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
-                        })
-                })
-                .catch(err => {
-                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
-                })
-        }
+                    })
+                    .catch(ex => log(ex, logLevel.ERROR))
+            }).catch(ex => log(ex, logLevel.ERROR))
     }
     commentChange(message, bot) {
         store.dispatch(botCmd(message.chat.id, _commands.BALANCE_COMMENT_CHANGE))
 
-        //сохранение коммента к последней записи
-        //TODO: вынести общий код в History
-        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
-        if (FileSystem.isFileExists(file, true, null, '[]')) {
-            FileSystem.readJson(file)
-                .then((json) => {
-                    const history = json || []
-                    let article = history.sort((i1, i2) => i2.id - i1.id)
-                    if (!article || article.length == 0) {
-                        bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
-                        return
-                    }
-                    article = article[0]
-                    article.comment = message.text
+        // сохранение коммента к последней записи
+        return history.getAll(message.chat.id)
+            .then(all => {
+                if (!all || all.constructor !== Array)
+                    all = []
+                let article = all.sort((i1, i2) => i2.id - i1.id)
+                if (!article || article.length == 0) {
+                    return bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
+                }
+                article = article[0]
+                article.comment = message.text
 
-                    FileSystem.saveJson(file, history)
-                        .then(data => {
-                            bot.sendMessage(message.chat.id, `${article.value}, ${article.category}, ${article.comment} 🤖`)
-                                .then((data) => {
-                                    const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
-                                    this._sendBalance(message, bot, balance)
-                                })
-                        })
-                        .catch(err => {
-                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
-                        })
-                })
-                .catch(err => {
-                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
-                })
-        }
+                return history.setById(article.id, article, message.chat.id)
+                    .then(data => {
+                        bot.editMessageText(`${article.value}, ${article.category}, ${article.comment} 🤖`, {
+                            message_id: article.id,
+                            chat_id: message.chat.id,
+                            reply_markup: JSON.stringify({
+                                inline_keyboard: [[{
+                                    text: "Удалить",
+                                    callback_data: JSON.stringify({
+                                        hId: article.id,
+                                        cmd: _commands.BALANCE_REMOVE
+                                    })
+                                }]]
+                            })
+                        }).then((data) => {
+                            const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
+                            return this._sendBalance(message, bot, balance)
+                        }).catch(ex => log(ex, logLevel.ERROR))
+                    })
+            }).catch(ex => log(ex, logLevel.ERROR))
     }
     delete(message, bot, data) {
-        //удаление записи
-        //TODO: вынести общий код
-        const file = `${_config.dirStorage}balance-hist-${message.chat.id}.json`
-        if (FileSystem.isFileExists(file, true, null, '[]')) {
-            FileSystem.readJson(file)
-                .then((json) => {
-                    const history = json || []
-                    const category = data
-
-                    const { hId } = category
-                    let article = history.filter(item => item.id == hId)
-                    if (!article || article.length == 0) {
-                        bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
-                        return
-                    }
-                    article = article[0]
-                    if (article.date_delete) {
-                        bot.sendMessage(message.chat.id, `Запись уже была удалена 🤖`)
-                        return
-                    }
-                    store.dispatch(botCmd(message.chat.id, _commands.BALANCE_REMOVE))
-                    article.date_delete = new Date()
-
-                    const balance = store.getState().balance[message.chat.id] || {}
-                    let success
-                    if (balance.period != article.date_delete.getMonth()) {
-                        success = `${article.value} удалено из истории. Остаток за текущий месяц не изменился 🤖`
-                    } else {
-                        store.dispatch(balanceChange(message.chat.id,
-                            new Date(article.date_create).getMonth(),
-                            -article.value))
-                        success = `${article.value} удалено из истории. Остаток ${parseInt(balance.balance) + parseInt(article.value)} 🤖`
-                    }
-
-                    FileSystem.saveJson(file, history)
-                        .then(data => {
-                            bot.sendMessage(message.chat.id, success)
-                        })
-                        .catch(err => {
-                            log(`Ошибка сохранения файла исатории баланса. err = ${err}. file = ${file}`)
-                        })
+        // удаление записи
+        const { hId, gId } = data
+        let success = ''
+        let newBalance = undefined
+        return history.getById(hId, message.chat.id)
+            .then(item => {
+                if (!item) {
+                    bot.sendMessage(message.chat.id, `Не удалось найти запись в истории 🤖`)
+                    return Promise.reject(`Не удалось найти запись в истории 🤖`)
+                }
+                if (item.date_delete) {
+                    // bot.sendMessage(message.chat.id, `Запись уже была удалена 🤖`)
+                    return Promise.resolve()
+                }
+                store.dispatch(botCmd(message.chat.id, _commands.BALANCE_REMOVE))
+                item.date_delete = new Date()
+                const balance = store.getState().balance[message.chat.id] || {}
+                if (balance.period != item.date_delete.getMonth()) {
+                    success = `${item.value} удалено из истории. Остаток за текущий месяц не изменился 🤖`
+                } else {
+                    store.dispatch(balanceChange(message.chat.id,
+                        new Date(item.date_create).getMonth(),
+                        -item.value))
+                    newBalance = parseInt(balance.balance) + parseInt(item.value)
+                    success = `${item.value}, ${item.category}, ${item.comment} удалено из истории 🤖`
+                }
+                return history.setById(hId, item, message.chat.id)
+            })
+            .then(item => {
+                if (newBalance !== undefined)
+                    this._sendBalance(message, bot, newBalance, false)
+                return bot.editMessageText(`${success}`, {
+                    message_id: hId,
+                    chat_id: message.chat.id
                 })
-                .catch(err => {
-                    log(`Ошибка чтения файла исатории баланса. err = ${err}. file = ${file}`)
-                })
-        }
+            })
+            .catch(ex => log(ex, logLevel.ERROR))
     }
-    _mapGroupsToButtons(id, group) {
+    _mapGroupsToButtons(id, group, replyId) {
         return {
             text: group.title,
             callback_data: JSON.stringify({
                 gId: group.id,
                 hId: id,
+                rId: replyId,
                 cmd: _commands.BALANCE_CATEGORY_CHANGE
             })
         }
     }
-    _sendBalance = (message, bot, balance, options) => {
-        const { id } = message
-        bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`, options)
+    _sendBalance = (message, bot, balance, isNewMessage = true) => {
+        const messageId = store.getState().botBalanceMessageId[message.chat.id]
+        if (!messageId || isNewMessage) {
+            return bot.sendMessage(message.chat.id, `Остаток ${balance} 🤖`)
+                .then(x => {
+                    store.dispatch(setBotBalanceMessageId(message.chat.id, x.message_id))
+                })
+        }
+        else
+            return bot.editMessageText(`Остаток ${balance} 🤖`, {
+                message_id: messageId,
+                chat_id: message.chat.id,
+            })
     }
 
     report(message, bot) {
@@ -294,7 +269,7 @@ export default class Balance {
             && FileSystem.isFileExists(file)) {
             FileSystem.readJson(file)
                 .then((json) => {
-                    json = json.filter(x => !x.date_delete).sort((a,b) => b.id - a.id)
+                    json = json.filter(x => !x.date_delete).sort((a, b) => b.id - a.id)
                     const { users } = store.getState()
                     var fields = [{
                         label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 

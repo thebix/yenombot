@@ -5,6 +5,7 @@ import { l } from './logger'
 import {
     BOT_CMD,
     BOT_CMD_CLEAR,
+    BOT_BALANCE_MESSAGE_ID,
 
     INIT_BY_TOKEN,
 
@@ -19,7 +20,8 @@ const defaultState = {
     balance: {},
     balanceInit: {},
     paymentGroups: {},
-    users: {}
+    users: {},
+    botBalanceMessageId: {}
 }
 
 const command = (state = defaultState.command, action) => {
@@ -107,12 +109,23 @@ const users = (state = defaultState.users, action) => {
     return state
 }
 
+const botBalanceMessageId = (state = defaultState.botBalanceMessageId, action) => {
+    switch (action.type) {
+        case BOT_BALANCE_MESSAGE_ID:
+            return Object.assign({}, state, {
+                [action.chatId]: action.messageId
+            })
+    }
+    return state
+}
+
 export default (state, action) => {
     return {
         command: command(state.command, action),
         balance: balance(state.balance, action, state.balanceInit),
         paymentGroups: paymentGroups(state.paymentGroups, action),
         balanceInit: balanceInit(state.balanceInit, action),
-        users: users(state.users, action)
+        users: users(state.users, action),
+        botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action)
     }
 }
