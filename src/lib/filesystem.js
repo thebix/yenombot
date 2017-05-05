@@ -1,7 +1,7 @@
 import fs from 'fs'
 import jsonfile from 'jsonfile'
 
-import { log } from './logger'
+import { log } from '../logger'
 
 export default class FileSystem {
     static getFile(file) {
@@ -45,6 +45,8 @@ export default class FileSystem {
             });
         })
     }
+
+    //TODO: переименовать в sync
     static isFileExists = (path, isMakeIfNot = false, isLogErrIfNot = false, data = '') => {
         if (!fs.existsSync(path)) {
             if (isLogErrIfNot) {
@@ -57,6 +59,7 @@ export default class FileSystem {
         }
         return true
     }
+    //TODO: переименовать в sync
     static isDirExists = (path, isMakeIfNot = false, isLogErrIfNot = false) => {
         if (!fs.existsSync(path)) {
             if (isLogErrIfNot) {
