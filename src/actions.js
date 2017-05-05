@@ -1,8 +1,9 @@
-import FileSystem from './filesystem'
+import FileSystem from './lib/filesystem'
 import { l } from './logger'
 
 export const BOT_CMD = 'BOT_CMD'
 export const BOT_CMD_CLEAR = 'BOT_CMD_CLEAR'
+export const BOT_BALANCE_MESSAGE_ID = 'BOT_BALANCE_MESSAGE_ID'
 
 export const INIT_BY_TOKEN = 'INIT_BY_TOKEN'
 
