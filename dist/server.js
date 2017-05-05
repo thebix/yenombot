@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.store = undefined;
+exports.history = exports.store = undefined;
 
 var _redux = require('redux');
 
@@ -11,9 +11,13 @@ var _reduxThunk = require('redux-thunk');
 
 var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 
-var _filesystem = require('./filesystem');
+var _filesystem = require('./lib/filesystem');
 
 var _filesystem2 = _interopRequireDefault(_filesystem);
+
+var _history = require('./lib/history');
+
+var _history2 = _interopRequireDefault(_history);
 
 var _logger = require('./logger');
 
@@ -31,10 +35,11 @@ var _telegram2 = _interopRequireDefault(_telegram);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-(0, _logger.l)('Start bot');
+(0, _logger.log)('Start bot', _logger.logLevel.INFO);
 
 var enhancer = (0, _redux.compose)((0, _redux.applyMiddleware)(_reduxThunk2.default));
 var store = exports.store = null;
+var history = exports.history = new _history2.default(_config3.default.dirStorage, 'balance-hist-${id}.json');
 
 if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')) {
     //TODO: починить варнинг
