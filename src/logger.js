@@ -22,15 +22,18 @@ export const log = (text, level = logLevel.DEBUG) => {
         || (_config.log == logLevel.INFO && (level == logLevel.INFO || level == logLevel.ERROR))
         || (_config.log == logLevel.ERROR && level == logLevel.ERROR)) {
         const t = `${getDateString()} | ${level} | ${text}`
-        console.log(t)
+        if (level == logLevel.ERROR)
+            console.trace(t)
+        else
+            console.log(t)
     }
 }
 
 export const l = (text, obj = "zero") => {
-    if(typeof(text) === 'object'){
+    if (typeof (text) === 'object') {
         text = JSON.stringify(text)
     }
-    if(obj !== "zero"){
+    if (obj !== "zero") {
         text = `${text} = ${JSON.stringify(obj)}`
     }
     log(text, logLevel.DEBUG)
