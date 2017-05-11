@@ -19,7 +19,9 @@ export default class Balance {
     constructor() {
         this._mapGroupsToButtons = this._mapGroupsToButtons.bind(this)
         this._sendBalance = this._sendBalance.bind(this)
-        this._getUsersSumsByPeriod = this._getUsersSumsByPeriod.bind(this)
+        this._getUsersSums = this._getUsersSums.bind(this)
+        this._getCategoriesSums = this._getCategoriesSums.bind(this)
+        this._getCategoriesPercents = this._getCategoriesPercents.bind(this)
     }
 
     initIfNeed(message, bot) {
@@ -311,9 +313,9 @@ export default class Balance {
 
     stats(message, bot) {
         //TODO: получить из message { dateStart = null, dateEnd = null, userId = null, }
-        const dateEnd = new Date()
+        const dateEnd = new Date(2017, 4, 12)
         const dateEndTime = dateEnd.getTime()
-        const dateStart = lib.time.getChangedDateTime({ days: -1 })
+        const dateStart = lib.time.getChangedDateTime({ days: -4 })
         const dateStartTime = dateStart.getTime()
 
         const userId = null //84677480
@@ -325,13 +327,18 @@ export default class Balance {
             //         .filter(item => !userId || item.user_id == userId))
             // })
             .then(all => { //
-                const { users } = store.getState()
-
-                //TODO: сколько потрачено за период / в среднем за прошлые
-                let sumsText = `Трат по людям (в этом периоде | среднее значение для периода'):`
-                const usersSumsByCurrent = this._getUsersSumsByPeriod(all, dateStart, dateEnd)
                 if (!all || all.length == 0)
                     return bot.sendMessage(message.chat.id, `Нет истории. Остаток ${balance} 🤖`)
+
+                const { users } = store.getState()
+
+                // сколько потрачено за период / в среднем за прошлые
+                let sumsText = `Потрачено [в этом периоде | в среднем ]:`
+                const usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd)
+
+                // траты по категориям / средние траты за %период%
+                let sumsCatsText = `По категориям [в этом периоде | в среднем ]:`
+                const catsSumsByCurrent = this._getCategoriesSums(all, dateStart, dateEnd, userId)
 
                 //вычисление интервалов и среднего
                 // TODO: получение инетрвалов в отдельную функцию
@@ -351,8 +358,10 @@ export default class Balance {
                 }
 
                 const usersSumsBeforeCurrent = {}
+                const catsSumsBeforeCurrent = {}
                 periods.forEach(period => {
-                    const curUsrSums = this._getUsersSumsByPeriod(all, period.start, period.end)
+                    // сколько потрачено за период / в среднем за прошлые
+                    const curUsrSums = this._getUsersSums(all, period.start, period.end)
                     const allKeys = Object.keys(usersSumsBeforeCurrent)
                     Object.keys(curUsrSums).forEach(key => {
                         if (allKeys.indexOf(key) != -1)
@@ -360,26 +369,63 @@ export default class Balance {
                         else
                             usersSumsBeforeCurrent[key] = curUsrSums[key]
                     })
-                })
-                l('usersSumsBeforeCurrent', usersSumsBeforeCurrent)
-                //TODO: usersSumsBeforeCurrent / periods.length //TODO: учитывать при этом не полный интервал (первый)
 
+                    // траты по категориям / средние траты за %период%
+                    const curCatSums = this._getCategoriesSums(all, period.start, period.end, userId)
+                    const allCatSumsKeys = Object.keys(catsSumsBeforeCurrent)
+                    Object.keys(curCatSums).forEach(key => {
+                        if (allCatSumsKeys.indexOf(key) != -1)
+                            catsSumsBeforeCurrent[key] = catsSumsBeforeCurrent[key] + curCatSums[key]
+                        else
+                            catsSumsBeforeCurrent[key] = curCatSums[key] || 0
+                    })
+                })
+
+                // сколько потрачено за период / в среднем за прошлые
                 Object.keys(usersSumsByCurrent).forEach(userId => {
                     const userName = `${users[userId].firstName} ${users[userId].lastName}`
                     const sum = usersSumsByCurrent[userId]
-                    sumsText = `${sumsText}\r\n${userName}: ${sum}`
+                    sumsText = `${sumsText}\r\n${userName}: ${sum} | ${usersSumsBeforeCurrent[userId] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
                 })
+                bot.sendMessage(message.chat.id, `${sumsText} 🤖`) //TODO: ретурнить общий промис
 
-                return bot.sendMessage(message.chat.id, `${sumsText} 🤖`)
-                //TODO: Траты по категориям / средние траты за %период%
+                // траты по категориям / средние траты за %период%
+                Object.keys(catsSumsByCurrent).forEach(category => {
+                    const sum = catsSumsByCurrent[category]
+                    sumsCatsText = `${sumsCatsText}\r\n${category}: ${sum} | ${catsSumsBeforeCurrent[category] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
+                })
+                bot.sendMessage(message.chat.id, `${sumsCatsText} 🤖`) //TODO: ретурнить общий промис
+
+                l('catsSumsByCurrent', JSON.stringify(catsSumsByCurrent))
                 //TODO: поцентное соотношение по группам / в среднем до этого за %период% / за все время
-
+                const cats = this._getCategoriesPercents(catsSumsByCurrent)
+                l('cats', JSON.stringify(cats))
             })
             .catch(ex => log(ex, logLevel.ERROR))
     }
 
+    _getCategoriesPercents(catsSums) {
+        const categories = Object.keys(catsSums)
+        l('categories', categories)
+        const sum = categories.reduce((acc, val) => {
+            if (isNaN(catsSums[val]))
+                return acc
+            return acc + catsSums[val]
+        }, 0)
+        l('sum', sum)
+        const result = {}
+        categories.forEach(cat => {
+            if (isNaN(catsSums[cat]))
+                result[cat] = 'err'
+            else
+                result[cat] = catsSums[cat] * 100 / sum
+        })
+        return result
+    }
+
     //TODO: вынести в отдельный модуль или класс
-    _getUsersSumsByPeriod(all = [], dateStart = new Date(), dateEnd = new Date()) {
+    // сколько потрачено за период / в среднем за прошлые
+    _getUsersSums(all = [], dateStart = new Date(), dateEnd = new Date()) {
         const dateStartTime = dateStart.getTime()
         const dateEndTime = dateEnd.getTime()
 
@@ -393,9 +439,36 @@ export default class Balance {
                 const sum = current
                     .filter(item => item.user_id == userId)
                     .reduce((acc, val) => {
+                        if (isNaN(val.value))
+                            return acc
                         return acc + val.value
                     }, 0)
                 result[userId] = sum
+            })
+        return result
+    }
+
+    // Траты по категориям / средние траты за %период%
+    _getCategoriesSums(all = [], dateStart = new Date(), dateEnd = new Date(), userId = null) {
+        const dateStartTime = dateStart.getTime()
+        const dateEndTime = dateEnd.getTime()
+
+        const current = all //filter
+            .filter(item => !dateStartTime || new Date(item.date_create).getTime() >= dateStartTime)
+            .filter(item => !dateEndTime || new Date(item.date_create).getTime() < dateEndTime)
+            .filter(item => !userId || item.user_id == userId)
+        const result = {}
+        Array.from(new Set( //http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            current.map(item => item.category)))
+            .forEach(category => {
+                const sum = current
+                    .filter(item => item.category == category)
+                    .reduce((acc, val) => {
+                        if (isNaN(val.value))
+                            return acc
+                        return acc + val.value
+                    }, 0)
+                result[category] = sum
             })
         return result
     }
