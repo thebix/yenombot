@@ -330,15 +330,19 @@ export default class Balance {
                 if (!all || all.length == 0)
                     return bot.sendMessage(message.chat.id, `Нет истории. Остаток ${balance} 🤖`)
 
-                const { users } = store.getState()
+                const { users, paymentGroups } = store.getState()
+                const hasCats = paymentGroups[message.chat.id]
+                    && Object.keys(paymentGroups[message.chat.id]).length > 0
 
                 // сколько потрачено за период / в среднем за прошлые
-                let sumsText = `Потрачено [в этом периоде | в среднем ]:`
+                let sumsText = `Потрачено [в этом периоде | в среднем]:`
                 const usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd)
 
                 // траты по категориям / средние траты за %период%
-                let sumsCatsText = `По категориям [в этом периоде | в среднем ]:`
-                const catsSumsByCurrent = this._getCategoriesSums(all, dateStart, dateEnd, userId)
+                let sumsCatsText = `По категориям [в этом периоде | в среднем]:`
+                const catsSumsByCurrent = hasCats ? this._getCategoriesSums(all, dateStart, dateEnd, userId) : {}
+
+                let percCatsText = `Процентные соотношения [в этом периоде | за все время]:`
 
                 //вычисление интервалов и среднего
                 // TODO: получение инетрвалов в отдельную функцию
@@ -357,49 +361,67 @@ export default class Balance {
                     curDateStart = lib.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd)
                 }
 
-                const usersSumsBeforeCurrent = {}
-                const catsSumsBeforeCurrent = {}
+                const usersSumsBefore = {}
+                const catsSumsBefore = {}
                 periods.forEach(period => {
                     // сколько потрачено за период / в среднем за прошлые
                     const curUsrSums = this._getUsersSums(all, period.start, period.end)
-                    const allKeys = Object.keys(usersSumsBeforeCurrent)
+                    const allKeys = Object.keys(usersSumsBefore)
                     Object.keys(curUsrSums).forEach(key => {
                         if (allKeys.indexOf(key) != -1)
-                            usersSumsBeforeCurrent[key] = usersSumsBeforeCurrent[key] + curUsrSums[key]
+                            usersSumsBefore[key] = usersSumsBefore[key] + curUsrSums[key]
                         else
-                            usersSumsBeforeCurrent[key] = curUsrSums[key]
+                            usersSumsBefore[key] = curUsrSums[key]
                     })
 
                     // траты по категориям / средние траты за %период%
-                    const curCatSums = this._getCategoriesSums(all, period.start, period.end, userId)
-                    const allCatSumsKeys = Object.keys(catsSumsBeforeCurrent)
-                    Object.keys(curCatSums).forEach(key => {
-                        if (allCatSumsKeys.indexOf(key) != -1)
-                            catsSumsBeforeCurrent[key] = catsSumsBeforeCurrent[key] + curCatSums[key]
-                        else
-                            catsSumsBeforeCurrent[key] = curCatSums[key] || 0
-                    })
+                    if (hasCats) {
+                        const curCatSums = this._getCategoriesSums(all, period.start, period.end, userId)
+                        const allCatSumsKeys = Object.keys(catsSumsBefore)
+                        Object.keys(curCatSums).forEach(key => {
+                            if (allCatSumsKeys.indexOf(key) != -1)
+                                catsSumsBefore[key] = catsSumsBefore[key] + curCatSums[key]
+                            else
+                                catsSumsBefore[key] = curCatSums[key] || 0
+                        })
+                    }
                 })
 
                 // сколько потрачено за период / в среднем за прошлые
                 Object.keys(usersSumsByCurrent).forEach(userId => {
                     const userName = `${users[userId].firstName} ${users[userId].lastName}`
                     const sum = usersSumsByCurrent[userId]
-                    sumsText = `${sumsText}\r\n${userName}: ${sum} | ${usersSumsBeforeCurrent[userId] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
+                    sumsText = `${sumsText}\r\n${userName}: ${sum} | ${usersSumsBefore[userId] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
                 })
                 bot.sendMessage(message.chat.id, `${sumsText} 🤖`) //TODO: ретурнить общий промис
 
-                // траты по категориям / средние траты за %период%
-                Object.keys(catsSumsByCurrent).forEach(category => {
-                    const sum = catsSumsByCurrent[category]
-                    sumsCatsText = `${sumsCatsText}\r\n${category}: ${sum} | ${catsSumsBeforeCurrent[category] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
-                })
-                bot.sendMessage(message.chat.id, `${sumsCatsText} 🤖`) //TODO: ретурнить общий промис
+                if (hasCats) {
+                    // траты по категориям / средние траты за %период%
+                    Object.keys(catsSumsByCurrent).forEach(category => {
+                        const sum = catsSumsByCurrent[category]
+                        sumsCatsText = `${sumsCatsText}\r\n${category}: ${sum} | ${catsSumsBefore[category] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
+                    })
+                    bot.sendMessage(message.chat.id, `${sumsCatsText} 🤖`) //TODO: ретурнить общий промис
 
-                l('catsSumsByCurrent', JSON.stringify(catsSumsByCurrent))
-                //TODO: поцентное соотношение по группам / в среднем до этого за %период% / за все время
-                const cats = this._getCategoriesPercents(catsSumsByCurrent)
-                l('cats', JSON.stringify(cats))
+                    // l('catsSumsByCurrent', JSON.stringify(catsSumsByCurrent))
+                    //TODO: поцентное соотношение по группам / в среднем до этого за %период% / за все время
+                    const cats = this._getCategoriesPercents(catsSumsByCurrent)
+                    const catsBefore = this._getCategoriesPercents(catsSumsBefore)
+                    l('cats', JSON.stringify(cats))
+                    l('catsBefore', JSON.stringify(catsBefore))
+
+                    const categories = paymentGroups[message.chat.id]
+                        .sort((cat1, cat2) => cat1.id - cat2.id)
+                    categories.forEach(cat => {
+                        const cur = cats[cat.title]
+                        const bef = catsBefore[cat.title]
+                        if(!cur || (!cur && !bef))
+                            return true
+                        
+                        percCatsText = `${percCatsText}\r\n${cat.title}: ${cur || 0}% | ${bef || 0}%` //TODO: учитывать при этом не полный интервал (первый)
+                    })
+                    return bot.sendMessage(message.chat.id, `${percCatsText} 🤖`) //TODO: ретурнить общий промис
+                }
             })
             .catch(ex => log(ex, logLevel.ERROR))
     }
@@ -418,7 +440,7 @@ export default class Balance {
             if (isNaN(catsSums[cat]))
                 result[cat] = 'err'
             else
-                result[cat] = catsSums[cat] * 100 / sum
+                result[cat] = Math.round(catsSums[cat] * 100 / sum)
         })
         return result
     }
