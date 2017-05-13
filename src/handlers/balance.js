@@ -50,7 +50,7 @@ export default class Balance {
         }
         res = balance.balance
         bot.sendMessage(message.chat.id, `Остаток ${res} 🤖`)
-        this.stats(message, bot)
+
         return res
 
     }
@@ -312,23 +312,36 @@ export default class Balance {
     }
 
     stats(message, bot) {
-        //TODO: получить из message { dateStart = null, dateEnd = null, userId = null, }
-        const dateEnd = new Date(2017, 4, 12)
+        // получение интервала
+        let dateEnd, dateStart, dateEndUser
+        const split = (message.text + '').split(' ')
+        if (split.length == 1) { // без параметров => просто статистика за текущий месяц
+            dateEnd = new Date()
+            dateStart = new Date(dateEnd.getFullYear(), dateEnd.getMonth(), 1)
+            dateEndUser = dateEnd
+        } else if (split.length < 3) { //дата начала - до - текущая дата
+            dateEnd = new Date()
+            dateStart = lib.time.getBack(split[1].trim(' '), dateEnd)
+        } else { //дата начала - до - дата окончания
+            //если юзер вводил, он ввел день окончания, который тоже должен попасть в отчет
+            const end = lib.time.getBack(split[2].trim(' ')) //дата окончания (начало даты 0:00)
+            dateStart = lib.time.getBack(split[1].trim(' '), end)
+            dateEnd = lib.time.getChangedDateTime({ days: 1 },
+                lib.time.getBack(split[2].trim(' ')))
+            if (lib.time.isDateSame(dateStart, dateEnd))
+                dateEndUser = dateEnd
+            else
+                dateEndUser = lib.time.getChangedDateTime({ days: -1 }, dateEnd) //юзеру показывается дата на 1 меньше
+        }
+
         const dateEndTime = dateEnd.getTime()
-
-        const dateStart = lib.time.getChangedDateTime({ days: -4 }, dateEnd)
         const dateStartTime = dateStart.getTime()
-
         const userId = null //84677480
 
-        const dateEndUser = lib.time.getChangedDateTime({ days: -1 }, dateEnd) //юзеру показывается дата на 1 меньше
         const { users, paymentGroups } = store.getState()
         const hasCats = paymentGroups[message.chat.id]
             && Object.keys(paymentGroups[message.chat.id]).length > 0
 
-        // сколько потрачено за период / в среднем за прошлые
-        let titleInfo = `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`
-        bot.sendMessage(message.chat.id, `${titleInfo} 🤖`)
         let sumsText = `Потрачено [в этом | в среднем]:`
         let sumsCatsText = `По категориям [в этом | в среднем]:`
         let percCatsText = `Проценты [в этом | за все время]:`
@@ -340,8 +353,10 @@ export default class Balance {
         const catsSumsBefore = {}
         let all = [] //все записи истории чата
         const periods = [] //все прошлые периоды (кроме текущего)
-
-        return history.getAll(message.chat.id)
+        // сколько потрачено за период / в среднем за прошлые
+        let titleInfo = `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`
+        bot.sendMessage(message.chat.id, `${titleInfo} 🤖`)
+            .then(x => history.getAll(message.chat.id))
             .then(data => { //
                 all = data
                 if (!all || all.length == 0)
@@ -351,6 +366,9 @@ export default class Balance {
                 const dateFirst = new Date(all[all.length - 1].date_create)
                 const dateFirstTime = dateFirst.getTime()
                 const curTicks = dateEndTime - dateStartTime
+                if (curTicks < 1000 * 60 * 60 * 4)
+                    return bot.sendMessage(message.chat.id, `Слишком короткий интервал. Минимум 4 часа. 🤖`)
+
                 let curDateEnd = lib.time.getChangedDateTime({ ticks: -1 }, dateStart)
                 let curDateStart = lib.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd)
                 while (curDateEnd.getTime() >= dateFirstTime) {
@@ -395,8 +413,9 @@ export default class Balance {
                 // сколько потрачено за период / в среднем за прошлые
                 Object.keys(usersSumsByCurrent).forEach(userId => {
                     const userName = `${users[userId].firstName} ${users[userId].lastName}`
-                    const sum = Math.round(usersSumsByCurrent[userId])
-                    sumsText = `${sumsText}\r\n${userName}: ${sum} | ${usersSumsBefore[userId] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
+                    const sum = Math.round(usersSumsByCurrent[userId]) || 0
+                    const bef = Math.round(usersSumsBefore[userId] / periods.length) || 0
+                    sumsText = `${sumsText}\r\n${userName}: ${sum} | ${bef}` //TODO: учитывать при этом не полный интервал (первый)
                 })
                 return bot.sendMessage(message.chat.id, `${sumsText} 🤖`)
             })
@@ -432,7 +451,7 @@ export default class Balance {
                 })
                 return bot.sendMessage(message.chat.id, `${percCatsText} 🤖`)
             })
-            .then(d=> {
+            .then(d => {
                 const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
                 return this._sendBalance(message, bot, balance)
             })

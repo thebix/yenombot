@@ -7,12 +7,6 @@ export const logLevel = {
 }
 
 export const dateTimeString = (date = new Date()) => {
-    const options = {
-        year: '2-digit', month: 'numeric', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: 'numeric',
-        hour12: false,
-        weekday: "long"
-    }
     return `${date.toLocaleDateString()} ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}:${("0" + date.getSeconds()).slice(-2)}`
 }
 

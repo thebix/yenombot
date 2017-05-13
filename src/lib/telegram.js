@@ -43,16 +43,16 @@ export default class Telegram {
             }
         }
 
-        if (inputParser.isAskingForStart(text)) {
+        if (inputParser.isAskingForStart(text))
             return handlers.balance.initIfNeed(message, this._bot)
-        }
         // if (inputParser.isAskingForHelp(text))
         //     return handlers.help.getHelp(message, this._bot)
-        if (inputParser.isAskingForInitToken(text)) {
+        if (inputParser.isAskingForInitToken(text)) 
             return handlers.init.initByToken(message, this._bot)
-        }
-        if (inputParser.isAskingForReport(text)) {
+        if (inputParser.isAskingForReport(text)) 
             return handlers.balance.report(message, this._bot)
+        if (inputParser.isAskingForStats(text)) {
+            return handlers.balance.stats(message, this._bot)
         }
         if (inputParser.isAskingForBalance(text))
             return handlers.balance.balance(message, this._bot)

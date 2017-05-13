@@ -57,4 +57,8 @@ export default class InputParser {
         const pattern = /repo|report/i
         return text.match(pattern)
     }
+    isAskingForStats(text) {
+        const pattern = /stat|stats/i
+        return text.match(pattern)
+    }
 }
