@@ -10,7 +10,7 @@ import _commands from '../enums/commands'
 import FileSystem from '../lib/filesystem'
 import lib from '../lib/index'
 
-import { l, log, logLevel, getDateString } from '../logger'
+import { l, log, logLevel, dateTimeString } from '../logger'
 
 import fs from 'fs'
 import json2csv from 'json2csv'
@@ -281,7 +281,7 @@ export default class Balance {
                 var fields = [{
                     label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
                     value: function (row, field, data) {
-                        return getDateString(new Date(row.date_create))
+                        return dateTimeString(new Date(row.date_create))
                     },
                     default: 'NULL' // default if value function returns null or undefined 
                 }, 'value', 'category', 'comment', {
@@ -295,7 +295,7 @@ export default class Balance {
                 var csv = json2csv({ data: all, fields, fieldNames });
                 if (FileSystem.isDirExists(_config.dirStorage, true)
                     && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
-                    file = `repo-${message.chat.title}.csv` //TODO: для каждого чата отдельно, или даже для юзера
+                    file = `repo-${message.chat.title}.csv`
 
                     return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
                 }
@@ -315,38 +315,39 @@ export default class Balance {
         //TODO: получить из message { dateStart = null, dateEnd = null, userId = null, }
         const dateEnd = new Date(2017, 4, 12)
         const dateEndTime = dateEnd.getTime()
-        const dateStart = lib.time.getChangedDateTime({ days: -4 })
+
+        const dateStart = lib.time.getChangedDateTime({ days: -4 }, dateEnd)
         const dateStartTime = dateStart.getTime()
 
         const userId = null //84677480
+
+        const dateEndUser = lib.time.getChangedDateTime({ days: -1 }, dateEnd) //юзеру показывается дата на 1 меньше
+        const { users, paymentGroups } = store.getState()
+        const hasCats = paymentGroups[message.chat.id]
+            && Object.keys(paymentGroups[message.chat.id]).length > 0
+
+        // сколько потрачено за период / в среднем за прошлые
+        let titleInfo = `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`
+        bot.sendMessage(message.chat.id, `${titleInfo} 🤖`)
+        let sumsText = `Потрачено [в этом | в среднем]:`
+        let sumsCatsText = `По категориям [в этом | в среднем]:`
+        let percCatsText = `Проценты [в этом | за все время]:`
+        let categories = hasCats ? paymentGroups[message.chat.id].sort((cat1, cat2) => cat1.id - cat2.id) : []
+
+        let usersSumsByCurrent = {}
+        let catsSumsByCurrent = {}
+        const usersSumsBefore = {}
+        const catsSumsBefore = {}
+        let all = [] //все записи истории чата
+        const periods = [] //все прошлые периоды (кроме текущего)
+
         return history.getAll(message.chat.id)
-            // .then(all => { 
-            //     return Promise.resolve(all
-            //         .filter(item => !dateStartTime || new Date(item.date_create).getTime() > dateStartTime)
-            //         .filter(item => !dateEndTime || new Date(item.date_create).getTime() < dateEndTime)
-            //         .filter(item => !userId || item.user_id == userId))
-            // })
-            .then(all => { //
+            .then(data => { //
+                all = data
                 if (!all || all.length == 0)
-                    return bot.sendMessage(message.chat.id, `Нет истории. Остаток ${balance} 🤖`)
+                    return bot.sendMessage(message.chat.id, `Нет истории. 🤖`)
 
-                const { users, paymentGroups } = store.getState()
-                const hasCats = paymentGroups[message.chat.id]
-                    && Object.keys(paymentGroups[message.chat.id]).length > 0
-
-                // сколько потрачено за период / в среднем за прошлые
-                let sumsText = `Потрачено [в этом периоде | в среднем]:`
-                const usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd)
-
-                // траты по категориям / средние траты за %период%
-                let sumsCatsText = `По категориям [в этом периоде | в среднем]:`
-                const catsSumsByCurrent = hasCats ? this._getCategoriesSums(all, dateStart, dateEnd, userId) : {}
-
-                let percCatsText = `Процентные соотношения [в этом периоде | за все время]:`
-
-                //вычисление интервалов и среднего
-                // TODO: получение инетрвалов в отдельную функцию
-                const periods = [] //TODO: сделть это возвращаемым из функции значением
+                // получение интервалов
                 const dateFirst = new Date(all[all.length - 1].date_create)
                 const dateFirstTime = dateFirst.getTime()
                 const curTicks = dateEndTime - dateStartTime
@@ -361,8 +362,7 @@ export default class Balance {
                     curDateStart = lib.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd)
                 }
 
-                const usersSumsBefore = {}
-                const catsSumsBefore = {}
+                // получение за прошлые периоды
                 periods.forEach(period => {
                     // сколько потрачено за период / в среднем за прошлые
                     const curUsrSums = this._getUsersSums(all, period.start, period.end)
@@ -387,65 +387,80 @@ export default class Balance {
                     }
                 })
 
+                return Promise.resolve(true)
+            })
+            .then(initDone => {
+                usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd)  // траты в этом месяце
+
                 // сколько потрачено за период / в среднем за прошлые
                 Object.keys(usersSumsByCurrent).forEach(userId => {
                     const userName = `${users[userId].firstName} ${users[userId].lastName}`
-                    const sum = usersSumsByCurrent[userId]
+                    const sum = Math.round(usersSumsByCurrent[userId])
                     sumsText = `${sumsText}\r\n${userName}: ${sum} | ${usersSumsBefore[userId] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
                 })
-                bot.sendMessage(message.chat.id, `${sumsText} 🤖`) //TODO: ретурнить общий промис
+                return bot.sendMessage(message.chat.id, `${sumsText} 🤖`)
+            })
+            .then(d => {
+                if (!hasCats) return Promise.resolve({})
+                catsSumsByCurrent = this._getCategoriesSums(all, dateStart, dateEnd, userId) // траты по категориям 
+                categories = categories.sort((cat1, cat2) => catsSumsByCurrent[cat2.title] - (catsSumsByCurrent[cat1.title]))
 
-                if (hasCats) {
-                    // траты по категориям / средние траты за %период%
-                    Object.keys(catsSumsByCurrent).forEach(category => {
-                        const sum = catsSumsByCurrent[category]
-                        sumsCatsText = `${sumsCatsText}\r\n${category}: ${sum} | ${catsSumsBefore[category] / periods.length}` //TODO: учитывать при этом не полный интервал (первый)
-                    })
-                    bot.sendMessage(message.chat.id, `${sumsCatsText} 🤖`) //TODO: ретурнить общий промис
+                // траты по категориям / средние траты за %период%
+                categories.forEach(cat => {
+                    const cur = Math.round(catsSumsByCurrent[cat.title])
+                    const bef = Math.round(catsSumsBefore[cat.title] / periods.length)
+                    if (!cur || (!cur && !bef))
+                        return true
+                    sumsCatsText = `${sumsCatsText}\r\n${cat.title}: ${cur || 0} | ${bef || 0}` //TODO: учитывать при этом не полный интервал (первый)
+                })
+                return bot.sendMessage(message.chat.id, `${sumsCatsText} 🤖`)
 
-                    // l('catsSumsByCurrent', JSON.stringify(catsSumsByCurrent))
-                    //TODO: поцентное соотношение по группам / в среднем до этого за %период% / за все время
-                    const cats = this._getCategoriesPercents(catsSumsByCurrent)
-                    const catsBefore = this._getCategoriesPercents(catsSumsBefore)
-                    l('cats', JSON.stringify(cats))
-                    l('catsBefore', JSON.stringify(catsBefore))
+            })
+            .then(d => {
+                if (!hasCats) return Promise.resolve({})
+                //поцентное соотношение по группам / (не сделал)в среднем до этого за %период% / за все время
+                const cats = this._getCategoriesPercents(catsSumsByCurrent)
+                const catsBefore = this._getCategoriesPercents(catsSumsBefore)
 
-                    const categories = paymentGroups[message.chat.id]
-                        .sort((cat1, cat2) => cat1.id - cat2.id)
-                    categories.forEach(cat => {
-                        const cur = cats[cat.title]
-                        const bef = catsBefore[cat.title]
-                        if(!cur || (!cur && !bef))
-                            return true
-                        
-                        percCatsText = `${percCatsText}\r\n${cat.title}: ${cur || 0}% | ${bef || 0}%` //TODO: учитывать при этом не полный интервал (первый)
-                    })
-                    return bot.sendMessage(message.chat.id, `${percCatsText} 🤖`) //TODO: ретурнить общий промис
-                }
+                categories.forEach(cat => {
+                    const cur = Math.round(cats[cat.title])
+                    const bef = Math.round(catsBefore[cat.title])
+                    if (!cur || (!cur && !bef))
+                        return true
+
+                    percCatsText = `${percCatsText}\r\n${cat.title}: ${cur || 0}% | ${bef || 0}%` //TODO: учитывать при этом не полный интервал (первый)
+                })
+                return bot.sendMessage(message.chat.id, `${percCatsText} 🤖`)
+            })
+            .then(d=> {
+                const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
+                return this._sendBalance(message, bot, balance)
             })
             .catch(ex => log(ex, logLevel.ERROR))
     }
 
     _getCategoriesPercents(catsSums) {
         const categories = Object.keys(catsSums)
-        l('categories', categories)
         const sum = categories.reduce((acc, val) => {
             if (isNaN(catsSums[val]))
                 return acc
             return acc + catsSums[val]
         }, 0)
-        l('sum', sum)
         const result = {}
-        categories.forEach(cat => {
+        let sumWithoutLast = 0
+        categories.forEach((cat, i) => {
             if (isNaN(catsSums[cat]))
                 result[cat] = 'err'
-            else
+            else if (i == (categories.length - 1))
+                result[cat] = 100 - sumWithoutLast
+            else {
                 result[cat] = Math.round(catsSums[cat] * 100 / sum)
+                sumWithoutLast += result[cat]
+            }
         })
         return result
     }
 
-    //TODO: вынести в отдельный модуль или класс
     // сколько потрачено за период / в среднем за прошлые
     _getUsersSums(all = [], dateStart = new Date(), dateEnd = new Date()) {
         const dateStartTime = dateStart.getTime()

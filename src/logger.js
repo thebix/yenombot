@@ -6,7 +6,7 @@ export const logLevel = {
     DEBUG: "DEBUG"
 }
 
-export const getDateString = (date = new Date()) => {
+export const dateTimeString = (date = new Date()) => {
     const options = {
         year: '2-digit', month: 'numeric', day: 'numeric',
         hour: '2-digit', minute: '2-digit', second: 'numeric',
@@ -21,7 +21,7 @@ export const log = (text, level = logLevel.DEBUG) => {
     if (_config.log == logLevel.DEBUG
         || (_config.log == logLevel.INFO && (level == logLevel.INFO || level == logLevel.ERROR))
         || (_config.log == logLevel.ERROR && level == logLevel.ERROR)) {
-        const t = `${getDateString()} | ${level} | ${text}`
+        const t = `${dateTimeString()} | ${level} | ${text}`
         if (level == logLevel.ERROR)
             console.trace(t)
         else

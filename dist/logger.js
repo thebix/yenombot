@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.l = exports.log = exports.getDateString = exports.logLevel = undefined;
+exports.l = exports.log = exports.dateTimeString = exports.logLevel = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -19,7 +19,7 @@ var logLevel = exports.logLevel = {
     DEBUG: "DEBUG"
 };
 
-var getDateString = exports.getDateString = function getDateString() {
+var dateTimeString = exports.dateTimeString = function dateTimeString() {
     var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
 
     var options = {
@@ -36,7 +36,7 @@ var log = exports.log = function log(text) {
 
     if (!text) return;
     if (_config3.default.log == logLevel.DEBUG || _config3.default.log == logLevel.INFO && (level == logLevel.INFO || level == logLevel.ERROR) || _config3.default.log == logLevel.ERROR && level == logLevel.ERROR) {
-        var t = getDateString() + " | " + level + " | " + text;
+        var t = dateTimeString() + " | " + level + " | " + text;
         console.log(t);
     }
 };
