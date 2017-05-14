@@ -54,11 +54,11 @@ export default class InputParser {
         return data.cmd == _commands.BALANCE_REMOVE
     }
     isAskingForReport(text) {
-        const pattern = /repo|report/i
+        const pattern = /^\/repo|report/i
         return text.match(pattern)
     }
     isAskingForStats(text) {
-        const pattern = /stat|stats/i
+        const pattern = /^\/stat|stats/i
         return text.match(pattern)
     }
 }

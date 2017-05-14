@@ -65,6 +65,10 @@ export default class Time {
         return new Date(year, month - 1, day)
     }
 
+    getStartDate(date = new Date()) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    }
+
     dateTimeString(date = new Date()) {
         const options = {
             year: '2-digit', month: 'numeric', day: 'numeric',
@@ -76,13 +80,6 @@ export default class Time {
     }
 
     dateString(date = new Date(), isFullYear = false) {
-
-        // const options = {
-        //     year: '2-digit', month: 'numeric', day: 'numeric',
-        //     hour: '2-digit', minute: '2-digit', second: 'numeric',
-        //     hour12: false,
-        //     weekday: "long"
-        // }
         // сокращенная запись только для этого столетия
         const century = Math.floor(date.getFullYear() / 100) * 100
         let yearDiff = isFullYear ? 0 : century < 2000 ? 0 : 2000
@@ -122,6 +119,19 @@ export default class Time {
             case weekdays.su: //case zero problem
             default: return 'Вс'
         }
+    }
+
+    getMonday(d = new Date(), next = false) {
+        d = new Date(d);
+        const day = d.getDay()
+        let diff
+        if (!next && diff === 1) {
+            diff = 0
+        } else
+            diff = 7 - day + (day === 0 ? -6 : 1)
+        return this.getStartDate(
+            this.getChangedDateTime({ days: diff }, d))
+
     }
 
     daysBetween(d1, d2) {

@@ -338,6 +338,13 @@ export default class Balance {
         const dateStartTime = dateStart.getTime()
         const userId = null //84677480
 
+        store.dispatch(botCmd(message.chat.id, _commands.BALANCE_STATS, {
+            dateEndTime,
+            dateStartTime,
+            dateEndUser,
+            userId
+        }))
+
         const { users, paymentGroups } = store.getState()
         const hasCats = paymentGroups[message.chat.id]
             && Object.keys(paymentGroups[message.chat.id]).length > 0

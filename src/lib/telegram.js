@@ -1,18 +1,19 @@
 import TelegramBot from 'node-telegram-bot-api'
 import _token from '../token'
 import _config from '../config'
+import _commands from '../enums/commands'
 
 import Message from './message'
 import InputParser from './InputParser'
 import handlers from '../handlers/index'
 
-import { l } from '../logger'
+import { l, log, logLevel } from '../logger'
 import { store } from '../server'
 import { userAdd } from '../actions'
 
 const inputParser = new InputParser()
 
-export default class Telegram {
+export default class Telegram { // extends TelegramBot
     //token - если не передан, берется из token.js
     constructor(token) {
         const t = token ? token : _config.isProduction ? _token.botToken.prod : _token.botToken.dev
@@ -25,6 +26,15 @@ export default class Telegram {
         this._bot.on('callback_query', this._handleCallback);
         //return new Promise(() => { }) //TODO: разобраться зачем
         return
+    }
+    trigger(cmd = _commands.HELP, message) { //INFO: message должен быть соствлен очень внимательно
+        switch (cmd) {
+            case _commands.BALANCE_STATS:
+                return handlers.balance.stats(message, this._bot)
+            default:
+                log(`Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`, logLevel.ERROR)
+        }
+        throw `Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`
     }
     _handleText(msg) {
         const message = new Message(Message.mapMessage(msg))
@@ -47,9 +57,9 @@ export default class Telegram {
             return handlers.balance.initIfNeed(message, this._bot)
         // if (inputParser.isAskingForHelp(text))
         //     return handlers.help.getHelp(message, this._bot)
-        if (inputParser.isAskingForInitToken(text)) 
+        if (inputParser.isAskingForInitToken(text))
             return handlers.init.initByToken(message, this._bot)
-        if (inputParser.isAskingForReport(text)) 
+        if (inputParser.isAskingForReport(text))
             return handlers.balance.report(message, this._bot)
         if (inputParser.isAskingForStats(text)) {
             return handlers.balance.stats(message, this._bot)
