@@ -46,16 +46,18 @@ export default class Time {
         return dt
     }
 
-    // 16.12.2017 | 16/12/2016 | 16/12 = 16/12/текущий год | 16 - текущий месяц
+    // 16.12.2017 | 16/12/2016 | 16.12.16 | 16/12 = 16/12/текущий год | 16 - текущий месяц
     getDate(date = new Date()) {
         if (Object.prototype.toString.call(date) === '[object Date]') return date
         date = date + ''
         let split = date.split('.')
         if (!split || split.length == 1)
             split = date.split('/')
-        // if (!split || split.length == 0)
-        //     return null
-        const year = split.length == 3 ? split[2] : (new Date()).getFullYear()
+        let year = split.length == 3 ? split[2] : (new Date()).getFullYear()
+        year = +year
+        if (year.toString().length < 4)
+            year += 2000
+        if (year > new Date().getFullYear()) year -= 100
         const month = split.length > 1 ? split[1] : (new Date()).getMonth() + 1
         const day = parseInt(split[0])
         if (isNaN(day))
@@ -75,19 +77,22 @@ export default class Time {
 
     dateString(date = new Date(), isFullYear = false) {
 
-        const options = {
-            year: '2-digit', month: 'numeric', day: 'numeric',
-            hour: '2-digit', minute: '2-digit', second: 'numeric',
-            hour12: false,
-            weekday: "long"
-        }
-        return `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear() - (isFullYear ? 0 : 2000)}`
+        // const options = {
+        //     year: '2-digit', month: 'numeric', day: 'numeric',
+        //     hour: '2-digit', minute: '2-digit', second: 'numeric',
+        //     hour12: false,
+        //     weekday: "long"
+        // }
+        // сокращенная запись только для этого столетия
+        const century = Math.floor(date.getFullYear() / 100) * 100
+        let yearDiff = isFullYear ? 0 : century < 2000 ? 0 : 2000
+        return `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear() - yearDiff}`
     }
 
 
 
     getWeekday(day) {
-        if (!day)
+        if (day === null || day === undefined)
             return weekdays.unknown
         day = (day + '').toLowerCase()
         if (day == '1' || day == 'пн' || day == 'mo') return weekdays.mo
@@ -96,7 +101,7 @@ export default class Time {
         if (day == '4' || day == 'чт' || day == 'th') return weekdays.th
         if (day == '5' || day == 'пт' || day == 'fr') return weekdays.fr
         if (day == '6' || day == 'сб' || day == 'sa') return weekdays.sa
-        if (day == '7' || day == 'вс' || day == 'su') return weekdays.su
+        if (day == '0' || day == 'вс' || day == 'su') return weekdays.su
         return weekdays.unknown
 
     }
@@ -106,19 +111,21 @@ export default class Time {
     }
 
     weekdayString(date = new Date()) {
-        switch (this.getWeekday(date.getDay())) {
+        const weekday = this.getWeekday(date.getDay())
+        switch (weekday) {
             case weekdays.mo: return 'Пн'
             case weekdays.tu: return 'Вт'
             case weekdays.we: return 'Ср'
             case weekdays.th: return 'Чт'
             case weekdays.fr: return 'Пт'
             case weekdays.sa: return 'Сб'
-            case weekdays.su: return 'Вс'
+            case weekdays.su: //case zero problem
+            default: return 'Вс'
         }
     }
 
     daysBetween(d1, d2) {
-        return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))
+        return Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))
     }
 
     // search = mo | 16.12.2017 | 16.12 | 16
@@ -137,7 +144,6 @@ export default class Time {
         }
         // день недели
         const weekday = this.getWeekday(search)
-
         if (weekday != weekdays.unknown) {
             const start = this.getWeekday(after.getDay())
             let diff = 0

@@ -322,6 +322,7 @@ export default class Balance {
         } else if (split.length < 3) { //дата начала - до - текущая дата
             dateEnd = new Date()
             dateStart = lib.time.getBack(split[1].trim(' '), dateEnd)
+            dateEndUser = dateEnd
         } else { //дата начала - до - дата окончания
             //если юзер вводил, он ввел день окончания, который тоже должен попасть в отчет
             const end = lib.time.getBack(split[2].trim(' ')) //дата окончания (начало даты 0:00)
@@ -333,7 +334,6 @@ export default class Balance {
             else
                 dateEndUser = lib.time.getChangedDateTime({ days: -1 }, dateEnd) //юзеру показывается дата на 1 меньше
         }
-
         const dateEndTime = dateEnd.getTime()
         const dateStartTime = dateStart.getTime()
         const userId = null //84677480
@@ -341,7 +341,6 @@ export default class Balance {
         const { users, paymentGroups } = store.getState()
         const hasCats = paymentGroups[message.chat.id]
             && Object.keys(paymentGroups[message.chat.id]).length > 0
-
         let sumsText = `Потрачено [в этом | в среднем]:`
         let sumsCatsText = `По категориям [в этом | в среднем]:`
         let percCatsText = `Проценты [в этом | за все время]:`
