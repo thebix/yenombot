@@ -26,6 +26,10 @@ var _filesystem = require('../lib/filesystem');
 
 var _filesystem2 = _interopRequireDefault(_filesystem);
 
+var _index = require('../lib/index');
+
+var _index2 = _interopRequireDefault(_index);
+
 var _logger = require('../logger');
 
 var _fs = require('fs');
@@ -60,6 +64,9 @@ var Balance = function () {
 
         this._mapGroupsToButtons = this._mapGroupsToButtons.bind(this);
         this._sendBalance = this._sendBalance.bind(this);
+        this._getUsersSums = this._getUsersSums.bind(this);
+        this._getCategoriesSums = this._getCategoriesSums.bind(this);
+        this._getCategoriesPercents = this._getCategoriesPercents.bind(this);
     }
 
     _createClass(Balance, [{
@@ -93,6 +100,7 @@ var Balance = function () {
             }
             res = balance.balance;
             bot.sendMessage(message.chat.id, '\u041E\u0441\u0442\u0430\u0442\u043E\u043A ' + res + ' \uD83E\uDD16');
+
             return res;
         }
     }, {
@@ -317,52 +325,291 @@ var Balance = function () {
         value: function report(message, bot) {
             var _this4 = this;
 
-            var file = _config3.default.dirStorage + 'balance-hist-' + message.chat.id + '.json';
-            if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isFileExists(file)) {
-                _filesystem2.default.readJson(file).then(function (json) {
-                    json = json.filter(function (x) {
-                        return !x.date_delete;
-                    }).sort(function (a, b) {
-                        return b.id - a.id;
+            var noBalance = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+            var file = void 0;
+            return _server.history.getAll(message.chat.id).then(function (all) {
+                // if (!all || all.constructor !== Array)
+                //     all = []
+
+                all = all.filter(function (x) {
+                    return !x.date_delete;
+                }).sort(function (a, b) {
+                    return b.id - a.id;
+                });
+
+                var _store$getState = _server.store.getState(),
+                    users = _store$getState.users;
+
+                var fields = [{
+                    label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
+                    value: function value(row, field, data) {
+                        return (0, _logger.dateTimeString)(new Date(row.date_create));
+                    },
+                    default: 'NULL' // default if value function returns null or undefined 
+                }, 'value', 'category', 'comment', {
+                    label: 'Юзер', // Supports duplicate labels (required, else your column will be labeled [function]) 
+                    value: function value(row, field, data) {
+                        return users[row.user_id].firstName + ' ' + users[row.user_id].lastName;
+                    },
+                    default: 'NULL' // default if value Îfunction returns null or undefined 
+                }, 'id'];
+                var fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id'];
+                var csv = (0, _json2csv2.default)({ data: all, fields: fields, fieldNames: fieldNames });
+                if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isDirExists(_config3.default.dirStorage + 'repo', true)) {
+                    file = 'repo-' + message.chat.title + '.csv';
+
+                    return _filesystem2.default.saveFile(_config3.default.dirStorage + 'repo/' + file, csv);
+                }
+                return bot.sendMessage(message.chat.id, '\u041D\u0435\u0442 \u0440\u0430\u043D\u0435\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043D\u044B\u0445 \u0442\u0440\u0430\u0442 \u0434\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0447\u0430\u0442\u0430 \uD83E\uDD16');
+            }).then(function (data) {
+                return bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + file);
+            }).then(function (data) {
+                if (noBalance) return Promise.resolve();
+                var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
+                return _this4._sendBalance(message, bot, balance);
+            }).catch(function (ex) {
+                return (0, _logger.log)(ex, _logger.logLevel.ERROR);
+            });
+        }
+    }, {
+        key: 'stats',
+        value: function stats(message, bot) {
+            var _this5 = this;
+
+            // получение интервала
+            var dateEnd = void 0,
+                dateStart = void 0,
+                dateEndUser = void 0;
+            var split = (message.text + '').split(' ');
+            if (split.length == 1) {
+                // без параметров => просто статистика за текущий месяц
+                dateEnd = new Date();
+                dateStart = new Date(dateEnd.getFullYear(), dateEnd.getMonth(), 1);
+                dateEndUser = dateEnd;
+            } else if (split.length < 3) {
+                //дата начала - до - текущая дата
+                dateEnd = new Date();
+                dateStart = _index2.default.time.getBack(split[1].trim(' '), dateEnd);
+                dateEndUser = dateEnd;
+            } else {
+                //дата начала - до - дата окончания
+                //если юзер вводил, он ввел день окончания, который тоже должен попасть в отчет
+                var end = _index2.default.time.getBack(split[2].trim(' ')); //дата окончания (начало даты 0:00)
+                dateStart = _index2.default.time.getBack(split[1].trim(' '), end);
+                dateEnd = _index2.default.time.getChangedDateTime({ days: 1 }, _index2.default.time.getBack(split[2].trim(' ')));
+                if (_index2.default.time.isDateSame(dateStart, dateEnd)) dateEndUser = dateEnd;else dateEndUser = _index2.default.time.getChangedDateTime({ days: -1 }, dateEnd); //юзеру показывается дата на 1 меньше
+            }
+            var dateEndTime = dateEnd.getTime();
+            var dateStartTime = dateStart.getTime();
+            var userId = null; //84677480
+
+            _server.store.dispatch((0, _actions.botCmd)(message.chat.id, _commands3.default.BALANCE_STATS, {
+                dateEndTime: dateEndTime,
+                dateStartTime: dateStartTime,
+                dateEndUser: dateEndUser,
+                userId: userId
+            }));
+
+            var _store$getState2 = _server.store.getState(),
+                users = _store$getState2.users,
+                paymentGroups = _store$getState2.paymentGroups;
+
+            var hasCats = paymentGroups[message.chat.id] && Object.keys(paymentGroups[message.chat.id]).length > 0;
+            var sumsText = '\u041F\u043E\u0442\u0440\u0430\u0447\u0435\u043D\u043E [\u0432 \u044D\u0442\u043E\u043C | \u0432 \u0441\u0440\u0435\u0434\u043D\u0435\u043C]:';
+            var sumsCatsText = '\u041F\u043E \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F\u043C [\u0432 \u044D\u0442\u043E\u043C | \u0432 \u0441\u0440\u0435\u0434\u043D\u0435\u043C]:';
+            var percCatsText = '\u041F\u0440\u043E\u0446\u0435\u043D\u0442\u044B [\u0432 \u044D\u0442\u043E\u043C | \u0437\u0430 \u0432\u0441\u0435 \u0432\u0440\u0435\u043C\u044F]:';
+            var categories = hasCats ? paymentGroups[message.chat.id].sort(function (cat1, cat2) {
+                return cat1.id - cat2.id;
+            }) : [];
+
+            var usersSumsByCurrent = {};
+            var catsSumsByCurrent = {};
+            var usersSumsBefore = {};
+            var catsSumsBefore = {};
+            var all = []; //все записи истории чата
+            var periods = []; //все прошлые периоды (кроме текущего)
+            // сколько потрачено за период / в среднем за прошлые
+            var titleInfo = '\u041F\u0435\u0440\u0438\u043E\u0434: ' + _index2.default.time.dateWeekdayString(dateStart) + ' - ' + _index2.default.time.dateWeekdayString(dateEndUser) + '\n\u0414\u043D\u0435\u0439: ' + _index2.default.time.daysBetween(dateStart, dateEnd);
+            bot.sendMessage(message.chat.id, titleInfo + ' \uD83E\uDD16').then(function (x) {
+                return _server.history.getAll(message.chat.id);
+            }).then(function (data) {
+                //
+                all = data;
+                if (!all || all.length == 0) return bot.sendMessage(message.chat.id, '\u041D\u0435\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0438. \uD83E\uDD16');
+
+                // получение интервалов
+                var dateFirst = new Date(all[all.length - 1].date_create);
+                var dateFirstTime = dateFirst.getTime();
+                var curTicks = dateEndTime - dateStartTime;
+                if (curTicks < 1000 * 60 * 60 * 4) return bot.sendMessage(message.chat.id, '\u0421\u043B\u0438\u0448\u043A\u043E\u043C \u043A\u043E\u0440\u043E\u0442\u043A\u0438\u0439 \u0438\u043D\u0442\u0435\u0440\u0432\u0430\u043B. \u041C\u0438\u043D\u0438\u043C\u0443\u043C 4 \u0447\u0430\u0441\u0430. \uD83E\uDD16');
+
+                var curDateEnd = _index2.default.time.getChangedDateTime({ ticks: -1 }, dateStart);
+                var curDateStart = _index2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
+                while (curDateEnd.getTime() >= dateFirstTime) {
+                    periods.push({
+                        start: curDateStart,
+                        end: curDateEnd
+                    });
+                    curDateEnd = _index2.default.time.getChangedDateTime({ ticks: -1 }, curDateStart);
+                    curDateStart = _index2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
+                }
+
+                // получение за прошлые периоды
+                periods.forEach(function (period) {
+                    // сколько потрачено за период / в среднем за прошлые
+                    var curUsrSums = _this5._getUsersSums(all, period.start, period.end);
+                    var allKeys = Object.keys(usersSumsBefore);
+                    Object.keys(curUsrSums).forEach(function (key) {
+                        if (allKeys.indexOf(key) != -1) usersSumsBefore[key] = usersSumsBefore[key] + curUsrSums[key];else usersSumsBefore[key] = curUsrSums[key];
                     });
 
-                    var _store$getState = _server.store.getState(),
-                        users = _store$getState.users;
-
-                    var fields = [{
-                        label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
-                        value: function value(row, field, data) {
-                            return (0, _logger.getDateString)(new Date(row.date_create));
-                        },
-                        default: 'NULL' // default if value function returns null or undefined 
-                    }, 'value', 'category', 'comment', {
-                        label: 'Юзер', // Supports duplicate labels (required, else your column will be labeled [function]) 
-                        value: function value(row, field, data) {
-                            return users[row.user_id].firstName + ' ' + users[row.user_id].lastName;
-                        },
-                        default: 'NULL' // default if value Îfunction returns null or undefined 
-                    }, 'id'];
-                    var fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id'];
-                    var csv = (0, _json2csv2.default)({ data: json, fields: fields, fieldNames: fieldNames });
-                    if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) && _filesystem2.default.isDirExists(_config3.default.dirStorage + 'repo', true)) {
-                        var _file = 'repo-' + message.chat.title + '.csv'; //TODO: для каждого чата отдельно, или даже для юзера
-                        _filesystem2.default.saveFile(_config3.default.dirStorage + 'repo/' + _file, csv).then(function (data) {
-                            bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + _file).then(function (data) {
-                                var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
-                                _this4._sendBalance(message, bot, balance);
-                            }).catch(function (ex) {
-                                return (0, _logger.log)(ex, _logger.logLevel.ERROR);
-                            });
-                        }).catch(function (ex) {
-                            return (0, _logger.log)(ex, _logger.logLevel.ERROR);
+                    // траты по категориям / средние траты за %период%
+                    if (hasCats) {
+                        var curCatSums = _this5._getCategoriesSums(all, period.start, period.end, userId);
+                        var allCatSumsKeys = Object.keys(catsSumsBefore);
+                        Object.keys(curCatSums).forEach(function (key) {
+                            if (allCatSumsKeys.indexOf(key) != -1) catsSumsBefore[key] = catsSumsBefore[key] + curCatSums[key];else catsSumsBefore[key] = curCatSums[key] || 0;
                         });
                     }
-                }).catch(function (err) {
-                    (0, _logger.log)('report: \u041E\u0448\u0438\u0431\u043A\u0430 \u0447\u0442\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u0438\u0441\u0430\u0442\u043E\u0440\u0438\u0438 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. err = ' + err + '. file = ' + file, _logger.logLevel.ERROR);
                 });
-            } else {
-                bot.sendMessage(message.chat.id, '\u041D\u0435\u0442 \u0440\u0430\u043D\u0435\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043D\u044B\u0445 \u0442\u0440\u0430\u0442 \u0434\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0447\u0430\u0442\u0430 \uD83E\uDD16');
-            }
+
+                return Promise.resolve(true);
+            }).then(function (initDone) {
+                usersSumsByCurrent = _this5._getUsersSums(all, dateStart, dateEnd); // траты в этом месяце
+
+                // сколько потрачено за период / в среднем за прошлые
+                Object.keys(usersSumsByCurrent).forEach(function (userId) {
+                    var userName = users[userId].firstName + ' ' + users[userId].lastName;
+                    var sum = Math.round(usersSumsByCurrent[userId]) || 0;
+                    var bef = Math.round(usersSumsBefore[userId] / periods.length) || 0;
+                    sumsText = sumsText + '\r\n' + userName + ': ' + sum + ' | ' + bef; //TODO: учитывать при этом не полный интервал (первый)
+                });
+                return bot.sendMessage(message.chat.id, sumsText + ' \uD83E\uDD16');
+            }).then(function (d) {
+                if (!hasCats) return Promise.resolve({});
+                catsSumsByCurrent = _this5._getCategoriesSums(all, dateStart, dateEnd, userId); // траты по категориям 
+                categories = categories.sort(function (cat1, cat2) {
+                    return catsSumsByCurrent[cat2.title] - catsSumsByCurrent[cat1.title];
+                });
+
+                // траты по категориям / средние траты за %период%
+                categories.forEach(function (cat) {
+                    var cur = Math.round(catsSumsByCurrent[cat.title]);
+                    var bef = Math.round(catsSumsBefore[cat.title] / periods.length);
+                    if (!cur || !cur && !bef) return true;
+                    sumsCatsText = sumsCatsText + '\r\n' + cat.title + ': ' + (cur || 0) + ' | ' + (bef || 0); //TODO: учитывать при этом не полный интервал (первый)
+                });
+                return bot.sendMessage(message.chat.id, sumsCatsText + ' \uD83E\uDD16');
+            }).then(function (d) {
+                if (!hasCats) return Promise.resolve({});
+                //поцентное соотношение по группам / (не сделал)в среднем до этого за %период% / за все время
+                var cats = _this5._getCategoriesPercents(catsSumsByCurrent);
+                var catsBefore = _this5._getCategoriesPercents(catsSumsBefore);
+
+                categories.forEach(function (cat) {
+                    var cur = Math.round(cats[cat.title]);
+                    var bef = Math.round(catsBefore[cat.title]);
+                    if (!cur || !cur && !bef) return true;
+
+                    percCatsText = percCatsText + '\r\n' + cat.title + ': ' + (cur || 0) + '% | ' + (bef || 0) + '%'; //TODO: учитывать при этом не полный интервал (первый)
+                });
+                return bot.sendMessage(message.chat.id, percCatsText + ' \uD83E\uDD16');
+            }).then(function (d) {
+                var balance = _server.store.getState().balance[message.chat.id].balance; //TODO: нужна проверка, что баланс этого периода
+                return _this5._sendBalance(message, bot, balance);
+            }).catch(function (ex) {
+                return (0, _logger.log)(ex, _logger.logLevel.ERROR);
+            });
+        }
+    }, {
+        key: '_getCategoriesPercents',
+        value: function _getCategoriesPercents(catsSums) {
+            var categories = Object.keys(catsSums);
+            var sum = categories.reduce(function (acc, val) {
+                if (isNaN(catsSums[val])) return acc;
+                return acc + catsSums[val];
+            }, 0);
+            var result = {};
+            var sumWithoutLast = 0;
+            categories.forEach(function (cat, i) {
+                if (isNaN(catsSums[cat])) result[cat] = 'err';else if (i == categories.length - 1) result[cat] = 100 - sumWithoutLast;else {
+                    result[cat] = Math.round(catsSums[cat] * 100 / sum);
+                    sumWithoutLast += result[cat];
+                }
+            });
+            return result;
+        }
+
+        // сколько потрачено за период / в среднем за прошлые
+
+    }, {
+        key: '_getUsersSums',
+        value: function _getUsersSums() {
+            var all = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+            var dateStart = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+            var dateEnd = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Date();
+
+            var dateStartTime = dateStart.getTime();
+            var dateEndTime = dateEnd.getTime();
+
+            var current = all //filter
+            .filter(function (item) {
+                return !dateStartTime || new Date(item.date_create).getTime() >= dateStartTime;
+            }).filter(function (item) {
+                return !dateEndTime || new Date(item.date_create).getTime() < dateEndTime;
+            });
+            var result = {};
+            Array.from(new Set( //http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            current.map(function (item) {
+                return item.user_id;
+            }))).forEach(function (userId) {
+                var sum = current.filter(function (item) {
+                    return item.user_id == userId;
+                }).reduce(function (acc, val) {
+                    if (isNaN(val.value)) return acc;
+                    return acc + val.value;
+                }, 0);
+                result[userId] = sum;
+            });
+            return result;
+        }
+
+        // Траты по категориям / средние траты за %период%
+
+    }, {
+        key: '_getCategoriesSums',
+        value: function _getCategoriesSums() {
+            var all = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+            var dateStart = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+            var dateEnd = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Date();
+            var userId = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+            var dateStartTime = dateStart.getTime();
+            var dateEndTime = dateEnd.getTime();
+
+            var current = all //filter
+            .filter(function (item) {
+                return !dateStartTime || new Date(item.date_create).getTime() >= dateStartTime;
+            }).filter(function (item) {
+                return !dateEndTime || new Date(item.date_create).getTime() < dateEndTime;
+            }).filter(function (item) {
+                return !userId || item.user_id == userId;
+            });
+            var result = {};
+            Array.from(new Set( //http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            current.map(function (item) {
+                return item.category;
+            }))).forEach(function (category) {
+                var sum = current.filter(function (item) {
+                    return item.category == category;
+                }).reduce(function (acc, val) {
+                    if (isNaN(val.value)) return acc;
+                    return acc + val.value;
+                }, 0);
+                result[category] = sum;
+            });
+            return result;
         }
     }]);
 

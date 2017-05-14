@@ -74,6 +74,15 @@ export default class History {
         if (FileSystem.isDirExists(this._path, true)
             && FileSystem.isFileExists(path, true, null, '[]')) {
             return FileSystem.readJson(path)
+                .then(all => {
+                    if (!all || all.constructor !== Array) {
+                        all = []
+                        log(`Для '${templateId}' не удалось нормально прочитать файл '${path}'`)
+                    }
+                    return Promise.resolve(all.sort((i1, i2) => i2.id - i1.id))
+                })
+                .catch(ex => Promise.reject(`Для '${templateId}' не удалось нормально прочитать файл '${path}', ex = '${ex}'`))
+            // return FileSystem.readJson(path)
         }
         return Promise.reject('Problem with file access')
     }

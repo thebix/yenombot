@@ -34,10 +34,13 @@ var FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE_DONE = 'FS_JSON_WRITE_DONE';
 var USER_ADD = exports.USER_ADD = 'USER_ADD';
 
 var botCmd = exports.botCmd = function botCmd(chatId, command) {
+    var pars = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     return {
         type: BOT_CMD,
         chatId: chatId,
-        command: command
+        command: command,
+        pars: pars
     };
 };
 

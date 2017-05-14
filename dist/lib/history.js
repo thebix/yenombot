@@ -107,7 +107,18 @@ var History = function () {
             var path = this._getFilePath(templateId);
 
             if (_filesystem2.default.isDirExists(this._path, true) && _filesystem2.default.isFileExists(path, true, null, '[]')) {
-                return _filesystem2.default.readJson(path);
+                return _filesystem2.default.readJson(path).then(function (all) {
+                    if (!all || all.constructor !== Array) {
+                        all = [];
+                        (0, _logger.log)('\u0414\u043B\u044F \'' + templateId + '\' \u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043D\u043E\u0440\u043C\u0430\u043B\u044C\u043D\u043E \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u0444\u0430\u0439\u043B \'' + path + '\'');
+                    }
+                    return Promise.resolve(all.sort(function (i1, i2) {
+                        return i2.id - i1.id;
+                    }));
+                }).catch(function (ex) {
+                    return Promise.reject('\u0414\u043B\u044F \'' + templateId + '\' \u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043D\u043E\u0440\u043C\u0430\u043B\u044C\u043D\u043E \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u0444\u0430\u0439\u043B \'' + path + '\', ex = \'' + ex + '\'');
+                });
+                // return FileSystem.readJson(path)
             }
             return Promise.reject('Problem with file access');
         }

@@ -6,13 +6,7 @@ export const logLevel = {
     DEBUG: "DEBUG"
 }
 
-export const getDateString = (date = new Date()) => {
-    const options = {
-        year: '2-digit', month: 'numeric', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: 'numeric',
-        hour12: false,
-        weekday: "long"
-    }
+export const dateTimeString = (date = new Date()) => {
     return `${date.toLocaleDateString()} ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}:${("0" + date.getSeconds()).slice(-2)}`
 }
 
@@ -21,16 +15,19 @@ export const log = (text, level = logLevel.DEBUG) => {
     if (_config.log == logLevel.DEBUG
         || (_config.log == logLevel.INFO && (level == logLevel.INFO || level == logLevel.ERROR))
         || (_config.log == logLevel.ERROR && level == logLevel.ERROR)) {
-        const t = `${getDateString()} | ${level} | ${text}`
-        console.log(t)
+        const t = `${dateTimeString()} | ${level} | ${text}`
+        if (level == logLevel.ERROR)
+            console.trace(t)
+        else
+            console.log(t)
     }
 }
 
 export const l = (text, obj = "zero") => {
-    if(typeof(text) === 'object'){
+    if (typeof (text) === 'object') {
         text = JSON.stringify(text)
     }
-    if(obj !== "zero"){
+    if (obj !== "zero") {
         text = `${text} = ${JSON.stringify(obj)}`
     }
     log(text, logLevel.DEBUG)

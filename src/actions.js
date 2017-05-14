@@ -21,11 +21,12 @@ export const FS_JSON_WRITE_DONE = 'FS_JSON_WRITE_DONE'
 
 export const USER_ADD = 'USER_ADD'
 
-export const botCmd = (chatId, command) => {
+export const botCmd = (chatId, command, pars = {}) => {
     return {
         type: BOT_CMD,
         chatId,
-        command
+        command,
+        pars
     }
 }
 

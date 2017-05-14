@@ -99,7 +99,13 @@ var InputParser = function () {
     }, {
         key: 'isAskingForReport',
         value: function isAskingForReport(text) {
-            var pattern = /repo|report/i;
+            var pattern = /^\/repo|report/i;
+            return text.match(pattern);
+        }
+    }, {
+        key: 'isAskingForStats',
+        value: function isAskingForStats(text) {
+            var pattern = /^\/stat|stats/i;
             return text.match(pattern);
         }
     }]);
