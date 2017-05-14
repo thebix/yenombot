@@ -1,4 +1,4 @@
-import Time from './Time'
+import Time from './time'
 
 export default {
     time: new Time(),
