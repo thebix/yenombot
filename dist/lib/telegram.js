@@ -18,6 +18,10 @@ var _config2 = require('../config');
 
 var _config3 = _interopRequireDefault(_config2);
 
+var _commands2 = require('../enums/commands');
+
+var _commands3 = _interopRequireDefault(_commands2);
+
 var _message = require('./message');
 
 var _message2 = _interopRequireDefault(_message);
@@ -43,6 +47,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var inputParser = new _InputParser2.default();
 
 var Telegram = function () {
+    // extends TelegramBot
     //token - если не передан, берется из token.js
     function Telegram(token) {
         _classCallCheck(this, Telegram);
@@ -60,6 +65,23 @@ var Telegram = function () {
             this._bot.on('callback_query', this._handleCallback);
             //return new Promise(() => { }) //TODO: разобраться зачем
             return;
+        }
+    }, {
+        key: 'trigger',
+        value: function trigger() {
+            var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _commands3.default.HELP;
+            var message = arguments[1];
+            var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+            //INFO: message должен быть соствлен очень внимательно
+            switch (cmd) {
+                case _commands3.default.BALANCE_STATS:
+                    return _index2.default.balance.stats(message, this._bot, options.noBalance);
+                case _commands3.default.BALANCE_REPORT:
+                    return _index2.default.balance.report(message, this._bot, options.noBalance);
+                default:
+                    (0, _logger.log)('\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().', _logger.logLevel.ERROR);
+            }
+            throw '\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().';
         }
     }, {
         key: '_handleText',
@@ -81,16 +103,13 @@ var Telegram = function () {
                 }
             }
 
-            if (inputParser.isAskingForStart(text)) {
-                return _index2.default.balance.initIfNeed(message, this._bot);
-            }
+            if (inputParser.isAskingForStart(text)) return _index2.default.balance.initIfNeed(message, this._bot);
             // if (inputParser.isAskingForHelp(text))
             //     return handlers.help.getHelp(message, this._bot)
-            if (inputParser.isAskingForInitToken(text)) {
-                return _index2.default.init.initByToken(message, this._bot);
-            }
-            if (inputParser.isAskingForReport(text)) {
-                return _index2.default.balance.report(message, this._bot);
+            if (inputParser.isAskingForInitToken(text)) return _index2.default.init.initByToken(message, this._bot);
+            if (inputParser.isAskingForReport(text)) return _index2.default.balance.report(message, this._bot);
+            if (inputParser.isAskingForStats(text)) {
+                return _index2.default.balance.stats(message, this._bot);
             }
             if (inputParser.isAskingForBalance(text)) return _index2.default.balance.balance(message, this._bot);
             if (inputParser.isAskingForBalanceInit(text)) return _index2.default.balance.init(message, this._bot);

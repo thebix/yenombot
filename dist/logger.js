@@ -22,12 +22,6 @@ var logLevel = exports.logLevel = {
 var dateTimeString = exports.dateTimeString = function dateTimeString() {
     var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
 
-    var options = {
-        year: '2-digit', month: 'numeric', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: 'numeric',
-        hour12: false,
-        weekday: "long"
-    };
     return date.toLocaleDateString() + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":" + ("0" + date.getSeconds()).slice(-2);
 };
 
@@ -37,7 +31,7 @@ var log = exports.log = function log(text) {
     if (!text) return;
     if (_config3.default.log == logLevel.DEBUG || _config3.default.log == logLevel.INFO && (level == logLevel.INFO || level == logLevel.ERROR) || _config3.default.log == logLevel.ERROR && level == logLevel.ERROR) {
         var t = dateTimeString() + " | " + level + " | " + text;
-        console.log(t);
+        if (level == logLevel.ERROR) console.trace(t);else console.log(t);
     }
 };
 
