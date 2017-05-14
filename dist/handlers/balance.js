@@ -332,7 +332,7 @@ var Balance = function () {
                     var fields = [{
                         label: 'Дата', // Supports duplicate labels (required, else your column will be labeled [function]) 
                         value: function value(row, field, data) {
-                            return (0, _logger.getDateString)(new Date(row.date_create));
+                            return (0, _logger.dateTimeString)(new Date(row.date_create));
                         },
                         default: 'NULL' // default if value function returns null or undefined 
                     }, 'value', 'category', 'comment', {
