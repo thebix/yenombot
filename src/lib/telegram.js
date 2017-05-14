@@ -27,10 +27,12 @@ export default class Telegram { // extends TelegramBot
         //return new Promise(() => { }) //TODO: разобраться зачем
         return
     }
-    trigger(cmd = _commands.HELP, message) { //INFO: message должен быть соствлен очень внимательно
+    trigger(cmd = _commands.HELP, message, options = {}) { //INFO: message должен быть соствлен очень внимательно
         switch (cmd) {
             case _commands.BALANCE_STATS:
-                return handlers.balance.stats(message, this._bot)
+                return handlers.balance.stats(message, this._bot, options.noBalance)
+            case _commands.BALANCE_REPORT:
+                return handlers.balance.report(message, this._bot, options.noBalance)
             default:
                 log(`Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`, logLevel.ERROR)
         }

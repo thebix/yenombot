@@ -268,7 +268,7 @@ export default class Balance {
             })
     }
 
-    report(message, bot) {
+    report(message, bot, noBalance = false) {
         let file
         return history.getAll(message.chat.id)
             .then(all => {
@@ -305,6 +305,8 @@ export default class Balance {
                 return bot.sendDocument(message.chat.id, `${_config.dirStorage}repo/${file}`)
             })
             .then((data) => {
+                if (noBalance)
+                    return Promise.resolve()
                 const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
                 return this._sendBalance(message, bot, balance)
             })

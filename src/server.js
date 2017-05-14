@@ -48,7 +48,7 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
                 weekly.start({ dateTime: lib.time.getMonday(new Date(), true) })
             })
             const monthly = new Timer('monthly', type => {
-                const promises = []
+                const promises = [] 
                 Object.keys(store.getState().balance)
                     .forEach(chatId => {
                         //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
@@ -58,6 +58,15 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
                             },
                             text: `/stat 1`
                         })))
+                        promises.push(bot.trigger(_commands.BALANCE_REPORT, new Message({
+                            chat: {
+                                id: chatId,
+                                title: `monthly-${lib.time.dateString()}`
+                            },
+                            text: `/repo`,
+                        }), {
+                                noBalance: true
+                            }))
                     })
                 Promise.all(promises)
                     .then(res => log(`Ежемесячная рассылка прошла успешно.`, logLevel.INFO))
@@ -74,14 +83,10 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
             weekly.start({ dateTime: monday })
 
             const dt = new Date()
-            const nextMonth = lib.time.getChangedDateTime({ months: 1 },
+            let nextMonth = lib.time.getChangedDateTime({ months: 1 },
                 new Date(dt.getFullYear(), dt.getMonth(), 1))
             log(`Set monthly timer. Next month: ${nextMonth}`, logLevel.INFO)
             monthly.start({ dateTime: nextMonth })
-
-
-
-
             // .then((data) => {
             //     l('🤖  Listening to incoming messages')
             // })
