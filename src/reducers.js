@@ -20,8 +20,9 @@ const defaultState = {
     balance: {},
     balanceInit: {},
     paymentGroups: {},
+    nonUserPaymentGroups: {},
     users: {},
-    botBalanceMessageId: {}
+    botBalanceMessageId: {},
 }
 
 const command = (state = defaultState.command, action) => {
@@ -119,6 +120,21 @@ const botBalanceMessageId = (state = defaultState.botBalanceMessageId, action) =
     return state
 }
 
+const nonUserPaymentGroups = (state = defaultState.nonUserPaymentGroups, action) => {
+    switch (action.type) {
+        case INIT_BY_TOKEN:
+            const init = _token.initData
+            if (action.token
+                && _token.initData
+                && _token.initData[action.token]
+                && _token.initData[action.token].nonUserPaymentGroups)
+                return Object.assign({}, state, {
+                    [action.chatId]: _token.initData[action.token].nonUserPaymentGroups
+                })
+    }
+    return state
+}
+
 export default (state, action) => {
     return {
         command: command(state.command, action),
@@ -126,6 +142,7 @@ export default (state, action) => {
         paymentGroups: paymentGroups(state.paymentGroups, action),
         balanceInit: balanceInit(state.balanceInit, action),
         users: users(state.users, action),
-        botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action)
+        botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action),
+        nonUserPaymentGroups: nonUserPaymentGroups(state.nonUserPaymentGroups, action)
     }
 }
