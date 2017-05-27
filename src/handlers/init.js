@@ -4,6 +4,10 @@ import _config from '../config'
 import { l } from '../logger'
 
 import {
+    jsonSave
+} from '../actions'
+
+import {
     initByToken
 } from '../actions'
 
@@ -13,7 +17,10 @@ export default class Init {
         if (Object.keys(_token.initData).indexOf(token) == -1)
             return bot.sendMessage(message.chat.id, `Токен не найден 🤖`)
         store.dispatch(initByToken(message.chat.id, token))
-        return bot.sendMessage(message.chat.id, `Токен принят 🤖`)
 
+        const newState = store.getState() 
+        store.dispatch(jsonSave(_config.fileState, newState))
+
+        return bot.sendMessage(message.chat.id, `Токен принят 🤖`)
     }
 }
