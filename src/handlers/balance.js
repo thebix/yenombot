@@ -359,6 +359,7 @@ export default class Balance {
         let catsSumsByCurrent = {}
         const usersSumsBefore = {}
         const catsSumsBefore = {}
+        let periodsCount = {}
         let all = [] //все записи истории чата
         const periods = [] //все прошлые периоды (кроме текущего)
         // сколько потрачено за период / в среднем за прошлые
@@ -389,6 +390,7 @@ export default class Balance {
                 }
 
                 // получение за прошлые периоды
+                let periodsCountTmp = {}
                 periods.forEach(period => {
                     // сколько потрачено за период / в среднем за прошлые
                     const curUsrSums = this._getUsersSums(all, period.start, period.end)
@@ -404,11 +406,22 @@ export default class Balance {
                     if (hasCats) {
                         const curCatSums = this._getCategoriesSums(all, period.start, period.end, userId)
                         const allCatSumsKeys = Object.keys(catsSumsBefore)
+
                         Object.keys(curCatSums).forEach(key => {
+                            const curCatSum = curCatSums[key] || 0
+                            if (!periodsCountTmp[key])
+                                periodsCountTmp[key] = 1
+                            else 
+                                periodsCountTmp[key]++
+
+                            if (curCatSum > 0) {
+                                periodsCount[key] = periodsCountTmp[key]
+                            }
+
                             if (allCatSumsKeys.indexOf(key) != -1)
-                                catsSumsBefore[key] = catsSumsBefore[key] + curCatSums[key]
+                                catsSumsBefore[key] = catsSumsBefore[key] + curCatSum
                             else
-                                catsSumsBefore[key] = curCatSums[key] || 0
+                                catsSumsBefore[key] = curCatSum
                         })
                     }
                 })
@@ -438,7 +451,7 @@ export default class Balance {
                 // траты по категориям / средние траты за %период%
                 categories.forEach(cat => {
                     const cur = Math.round(catsSumsByCurrent[cat.title])
-                    const bef = Math.round(catsSumsBefore[cat.title] / periods.length)
+                    const bef = Math.round(catsSumsBefore[cat.title] / periodsCount[cat.title])
                     if (!cur || (!cur && !bef))
                         return true
                     sumsCatsText = `${sumsCatsText}\r\n${cat.title}: ${cur || 0} | ${bef || 0}` //TODO: учитывать при этом не полный интервал (первый)
