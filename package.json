@@ -11,7 +11,7 @@
   "scripts": {
     "test": "mocha --compilers js:babel-register",
     "start": "nodemon --trace-deprecation src/server.js --exec babel-node",
-    "debug": "nodemon --debug src/server.js --exec babel-node",
+    "debug": "node src/server.js",
     "build": "export NODE_ENV=production&& babel src -d dist",
     "serve": "export NODE_ENV=production&& node dist/server.js",
     "buildW": "set NODE_ENV=production&& babel src -d dist",
@@ -48,5 +48,12 @@
   "engines": {
     "node": ">= 0.6.0",
     "npm": ">= 1.0.0"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ],
+    "sourceMaps": true,
+    "retainLines": true
   }
 }
