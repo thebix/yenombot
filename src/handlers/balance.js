@@ -430,7 +430,10 @@ export default class Balance {
             .then(d => {
                 if (!hasCats) return Promise.resolve({})
                 catsSumsByCurrent = this._getCategoriesSums(all, dateStart, dateEnd, userId) // траты по категориям 
-                categories = categories.sort((cat1, cat2) => catsSumsByCurrent[cat2.title] - (catsSumsByCurrent[cat1.title]))
+                categories = categories.sort(
+                    (cat1, cat2) => {
+                        return (catsSumsByCurrent[cat2.title] || 0) - (catsSumsByCurrent[cat1.title] || 0)
+                    })
 
                 // траты по категориям / средние траты за %период%
                 categories.forEach(cat => {
