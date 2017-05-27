@@ -1,94 +1,46 @@
-'use strict';
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });var _createClass = function () {function defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}return function (Constructor, protoProps, staticProps) {if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;};}();var _nodeTelegramBotApi = require('node-telegram-bot-api');var _nodeTelegramBotApi2 = _interopRequireDefault(_nodeTelegramBotApi);
+var _token2 = require('../token');var _token3 = _interopRequireDefault(_token2);
+var _config2 = require('../config');var _config3 = _interopRequireDefault(_config2);
+var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _nodeTelegramBotApi = require('node-telegram-bot-api');
-
-var _nodeTelegramBotApi2 = _interopRequireDefault(_nodeTelegramBotApi);
-
-var _token2 = require('../token');
-
-var _token3 = _interopRequireDefault(_token2);
-
-var _config2 = require('../config');
-
-var _config3 = _interopRequireDefault(_config2);
-
-var _commands2 = require('../enums/commands');
-
-var _commands3 = _interopRequireDefault(_commands2);
-
-var _message = require('./message');
-
-var _message2 = _interopRequireDefault(_message);
-
-var _InputParser = require('./InputParser');
-
-var _InputParser2 = _interopRequireDefault(_InputParser);
-
-var _index = require('../handlers/index');
-
-var _index2 = _interopRequireDefault(_index);
+var _message = require('./message');var _message2 = _interopRequireDefault(_message);
+var _InputParser = require('./InputParser');var _InputParser2 = _interopRequireDefault(_InputParser);
+var _index = require('../handlers/index');var _index2 = _interopRequireDefault(_index);
 
 var _logger = require('../logger');
-
 var _server = require('../server');
+var _actions = require('../actions');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
 
-var _actions = require('../actions');
+var inputParser = new _InputParser2.default();var
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var inputParser = new _InputParser2.default();
-
-var Telegram = function () {
-    // extends TelegramBot
+Telegram = function () {// extends TelegramBot
     //token - если не передан, берется из token.js
-    function Telegram(token) {
-        _classCallCheck(this, Telegram);
-
+    function Telegram(token) {_classCallCheck(this, Telegram);
         var t = token ? token : _config3.default.isProduction ? _token3.default.botToken.prod : _token3.default.botToken.dev;
         this._bot = new _nodeTelegramBotApi2.default(t, { polling: true });
         this._handleText = this._handleText.bind(this);
         this._handleCallback = this._handleCallback.bind(this);
-    }
-
-    _createClass(Telegram, [{
-        key: 'listen',
-        value: function listen() {
+    }_createClass(Telegram, [{ key: 'listen', value: function listen()
+        {
             this._bot.on('text', this._handleText);
             this._bot.on('callback_query', this._handleCallback);
             //return new Promise(() => { }) //TODO: разобраться зачем
             return;
-        }
-    }, {
-        key: 'trigger',
-        value: function trigger() {
-            var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _commands3.default.HELP;
-            var message = arguments[1];
-            var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-            //INFO: message должен быть соствлен очень внимательно
+        } }, { key: 'trigger', value: function trigger()
+        {var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _commands3.default.HELP;var message = arguments[1];var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {}; //INFO: message должен быть соствлен очень внимательно
             switch (cmd) {
                 case _commands3.default.BALANCE_STATS:
                     return _index2.default.balance.stats(message, this._bot, options.noBalance);
                 case _commands3.default.BALANCE_REPORT:
                     return _index2.default.balance.report(message, this._bot, options.noBalance);
                 default:
-                    (0, _logger.log)('\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().', _logger.logLevel.ERROR);
-            }
-            throw '\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().';
-        }
-    }, {
-        key: '_handleText',
-        value: function _handleText(msg) {
-            var message = new _message2.default(_message2.default.mapMessage(msg));
-            var text = message.text;
+                    (0, _logger.log)('\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().', _logger.logLevel.ERROR);}
 
+            throw '\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().';
+        } }, { key: '_handleText', value: function _handleText(
+        msg) {
+            var message = new _message2.default(_message2.default.mapMessage(msg));var
+            text = message.text;
 
             var state = _server.store.getState();
             var prevCommand = state.command[message.chat.id];
@@ -103,28 +55,33 @@ var Telegram = function () {
                 }
             }
 
-            if (inputParser.isAskingForStart(text)) return _index2.default.balance.initIfNeed(message, this._bot);
+            if (inputParser.isAskingForStart(text))
+            return _index2.default.balance.initIfNeed(message, this._bot);
             // if (inputParser.isAskingForHelp(text))
             //     return handlers.help.getHelp(message, this._bot)
-            if (inputParser.isAskingForInitToken(text)) return _index2.default.init.initByToken(message, this._bot);
-            if (inputParser.isAskingForReport(text)) return _index2.default.balance.report(message, this._bot);
+            if (inputParser.isAskingForInitToken(text))
+            return _index2.default.init.initByToken(message, this._bot);
+            if (inputParser.isAskingForReport(text))
+            return _index2.default.balance.report(message, this._bot);
             if (inputParser.isAskingForStats(text)) {
                 return _index2.default.balance.stats(message, this._bot);
             }
-            if (inputParser.isAskingForBalance(text)) return _index2.default.balance.balance(message, this._bot);
-            if (inputParser.isAskingForBalanceInit(text)) return _index2.default.balance.init(message, this._bot);
-            if (inputParser.isAskingForBalanceChange(text)) return _index2.default.balance.change(message, this._bot);
-            if (inputParser.isAskingForCommentChange(text, prevCommand)) return _index2.default.balance.commentChange(message, this._bot);
-            if (inputParser.isAskingForEcho(text)) return _index2.default.misc.getEcho(message, this._bot);
+            if (inputParser.isAskingForBalance(text))
+            return _index2.default.balance.balance(message, this._bot);
+            if (inputParser.isAskingForBalanceInit(text))
+            return _index2.default.balance.init(message, this._bot);
+            if (inputParser.isAskingForBalanceChange(text))
+            return _index2.default.balance.change(message, this._bot);
+            if (inputParser.isAskingForCommentChange(text, prevCommand))
+            return _index2.default.balance.commentChange(message, this._bot);
+            if (inputParser.isAskingForEcho(text))
+            return _index2.default.misc.getEcho(message, this._bot);
 
             // default
             return _index2.default.help.getHelp(message, this._bot, prevCommand);
-        }
-    }, {
-        key: '_handleCallback',
-        value: function _handleCallback(callbackQuery) {
-            var data = callbackQuery.data;
-
+        } }, { key: '_handleCallback', value: function _handleCallback(
+        callbackQuery) {var
+            data = callbackQuery.data;
             data = data ? JSON.parse(data) : {};
             var message = new _message2.default(_message2.default.mapMessage(callbackQuery.message));
             var state = _server.store.getState();
@@ -147,11 +104,6 @@ var Telegram = function () {
                 return _index2.default.balance.delete(message, this._bot, data);
             }
 
+
             return _index2.default.help.getHelp(message, this._bot, data);
-        }
-    }]);
-
-    return Telegram;
-}();
-
-exports.default = Telegram;
+        } }]);return Telegram;}();exports.default = Telegram;

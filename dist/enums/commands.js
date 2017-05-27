@@ -1,9 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = {
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = {
     HELP: 1,
     ECHO: 2,
     TOKEN: 3,
@@ -14,5 +9,4 @@ exports.default = {
     BALANCE_COMMENT_CHANGE: 7,
     BALANCE_REMOVE: 8,
     BALANCE_REPORT: 9,
-    BALANCE_STATS: 10
-};
+    BALANCE_STATS: 10 };
