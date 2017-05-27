@@ -1,26 +1,14 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.timerTypes = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _logger = require("../logger");
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.timerTypes = undefined;var _createClass = function () {function defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}return function (Constructor, protoProps, staticProps) {if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;};}();var _logger = require("../logger");function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
 
 var _intervalMain = 1 * 60 * 1000;
 
 var timerTypes = exports.timerTypes = {
     NONE: "NONE",
-    MAIN: "MAIN" };
+    MAIN: "MAIN" };var
 
-var Timer = function () {
-    function Timer(type, callback) {
-        _classCallCheck(this, Timer);
 
+Timer = function () {
+    function Timer(type, callback) {_classCallCheck(this, Timer);
         if (!type || type === timerTypes.NONE) {
             (0, _logger.log)("\u0412 \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440 \u0442\u0430\u0439\u043C\u0435\u0440\u0430 \u043D\u0435 \u043F\u0435\u0440\u0435\u0434\u0430\u043D \u0442\u0438\u043F. timerTypes = " + type, _logger.logLevel.ERROR);
             return;
@@ -36,15 +24,14 @@ var Timer = function () {
         this.onCheckDateTime = this.onCheckDateTime.bind(this); //функция "триггер по дате"
         this.start = this.start.bind(this); //функция "старт таймера"
         this.isStopped = true; //Состояние таймера - выключен 
-    }
-
-    _createClass(Timer, [{
-        key: "onCheckDateTime",
-        value: function onCheckDateTime() {
-            if (this.isStopped) return;
+    }_createClass(Timer, [{ key: "onCheckDateTime", value: function onCheckDateTime()
+        {
+            if (this.isStopped)
+            return;
             var dt = new Date();
             if (!this.dateTime || dt < this.dateTime) {
-                if (this.timerId) clearInterval(this.timerId);
+                if (this.timerId)
+                clearInterval(this.timerId);
                 var interval = this.dateTime.getTime() - dt.getTime();
                 if (interval < 2000) interval = 2000;
                 this.timerId = setTimeout(this.onCheckDateTime, interval);
@@ -53,20 +40,14 @@ var Timer = function () {
             }
             this.isStopped = true;
             this.callback(this.type);
-        }
-    }, {
-        key: "onTrigger",
-        value: function onTrigger() {
-            if (this.isStopped) return;
+        } }, { key: "onTrigger", value: function onTrigger()
+        {
+            if (this.isStopped)
+            return;
             this.isStopped = true;
             this.callback(this.type);
-        }
-    }, {
-        key: "start",
-        value: function start(_ref) {
-            var interval = _ref.interval,
-                dateTime = _ref.dateTime;
-
+        } }, { key: "start", value: function start(_ref)
+        {var interval = _ref.interval,dateTime = _ref.dateTime;
             if (interval) {
                 var callback = this.callback;
                 this.isStopped = false;
@@ -78,16 +59,9 @@ var Timer = function () {
                 if (_interval < 2000) _interval = 2000;
                 this.timerId = setTimeout(this.onCheckDateTime, _interval);
             }
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
+        } }, { key: "stop", value: function stop()
+        {
             this.isStopped = true;
-            if (this.timerId) clearInterval(this.timerId);
-        }
-    }]);
-
-    return Timer;
-}();
-
-exports.default = Timer;
+            if (this.timerId)
+            clearInterval(this.timerId);
+        } }]);return Timer;}();exports.default = Timer;

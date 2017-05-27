@@ -347,7 +347,7 @@ export default class Balance {
             userId
         }))
 
-        const { users, paymentGroups } = store.getState()
+        const { users, paymentGroups, nonUserPaymentGroups } = store.getState()
         const hasCats = paymentGroups[message.chat.id]
             && Object.keys(paymentGroups[message.chat.id]).length > 0
         let sumsText = `Потрачено [в этом | в среднем]:`
@@ -359,8 +359,10 @@ export default class Balance {
         let catsSumsByCurrent = {}
         const usersSumsBefore = {}
         const catsSumsBefore = {}
+        let periodsCount = {}
         let all = [] //все записи истории чата
         const periods = [] //все прошлые периоды (кроме текущего)
+        const nonUserGroups = nonUserPaymentGroups[message.chat.id]
         // сколько потрачено за период / в среднем за прошлые
         let titleInfo = `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`
         bot.sendMessage(message.chat.id, `${titleInfo} 🤖`)
@@ -389,9 +391,10 @@ export default class Balance {
                 }
 
                 // получение за прошлые периоды
+                let periodsCountTmp = {}
                 periods.forEach(period => {
                     // сколько потрачено за период / в среднем за прошлые
-                    const curUsrSums = this._getUsersSums(all, period.start, period.end)
+                    const curUsrSums = this._getUsersSums(all, period.start, period.end, nonUserGroups)
                     const allKeys = Object.keys(usersSumsBefore)
                     Object.keys(curUsrSums).forEach(key => {
                         if (allKeys.indexOf(key) != -1)
@@ -404,11 +407,22 @@ export default class Balance {
                     if (hasCats) {
                         const curCatSums = this._getCategoriesSums(all, period.start, period.end, userId)
                         const allCatSumsKeys = Object.keys(catsSumsBefore)
+
                         Object.keys(curCatSums).forEach(key => {
-                            if (allCatSumsKeys.indexOf(key) != -1)
-                                catsSumsBefore[key] = catsSumsBefore[key] + curCatSums[key]
+                            const curCatSum = curCatSums[key] || 0
+                            if (!periodsCountTmp[key])
+                                periodsCountTmp[key] = 1
                             else
-                                catsSumsBefore[key] = curCatSums[key] || 0
+                                periodsCountTmp[key]++
+
+                            if (curCatSum > 0) {
+                                periodsCount[key] = periodsCountTmp[key]
+                            }
+
+                            if (allCatSumsKeys.indexOf(key) != -1)
+                                catsSumsBefore[key] = catsSumsBefore[key] + curCatSum
+                            else
+                                catsSumsBefore[key] = curCatSum
                         })
                     }
                 })
@@ -416,13 +430,21 @@ export default class Balance {
                 return Promise.resolve(true)
             })
             .then(initDone => {
-                usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd)  // траты в этом месяце
+                usersSumsByCurrent = this._getUsersSums(all, dateStart, dateEnd, nonUserGroups)  // траты в этом месяце
 
                 // сколько потрачено за период / в среднем за прошлые
-                Object.keys(usersSumsByCurrent).forEach(userId => {
-                    const userName = `${users[userId].firstName} ${users[userId].lastName}`
-                    const sum = Math.round(usersSumsByCurrent[userId]) || 0
-                    const bef = Math.round(usersSumsBefore[userId] / periods.length) || 0
+                Object.keys(usersSumsByCurrent).forEach(key => { //key - либо userId, либо категория из nonUserGroups
+                    let userName, perCount //кол-во периодов
+                    if(users[key]){
+                        userName = `${users[key].firstName} ${users[key].lastName}`
+                        perCount = periods.length // кол-во периодов для юзера - все
+                    } else {
+                        userName = key //название категории из nonUserGroups
+                        perCount = periodsCount[key] //кол-во периодов для каждой категории свое
+                    }
+
+                    const sum = Math.round(usersSumsByCurrent[key]) || 0
+                    const bef = Math.round(usersSumsBefore[key] / perCount) || 0
                     sumsText = `${sumsText}\r\n${userName}: ${sum} | ${bef}` //TODO: учитывать при этом не полный интервал (первый)
                 })
                 return bot.sendMessage(message.chat.id, `${sumsText} 🤖`)
@@ -430,12 +452,15 @@ export default class Balance {
             .then(d => {
                 if (!hasCats) return Promise.resolve({})
                 catsSumsByCurrent = this._getCategoriesSums(all, dateStart, dateEnd, userId) // траты по категориям 
-                categories = categories.sort((cat1, cat2) => catsSumsByCurrent[cat2.title] - (catsSumsByCurrent[cat1.title]))
+                categories = categories.sort(
+                    (cat1, cat2) => {
+                        return (catsSumsByCurrent[cat2.title] || 0) - (catsSumsByCurrent[cat1.title] || 0)
+                    })
 
                 // траты по категориям / средние траты за %период%
                 categories.forEach(cat => {
                     const cur = Math.round(catsSumsByCurrent[cat.title])
-                    const bef = Math.round(catsSumsBefore[cat.title] / periods.length)
+                    const bef = Math.round(catsSumsBefore[cat.title] / periodsCount[cat.title])
                     if (!cur || (!cur && !bef))
                         return true
                     sumsCatsText = `${sumsCatsText}\r\n${cat.title}: ${cur || 0} | ${bef || 0}` //TODO: учитывать при этом не полный интервал (первый)
@@ -489,7 +514,8 @@ export default class Balance {
     }
 
     // сколько потрачено за период / в среднем за прошлые
-    _getUsersSums(all = [], dateStart = new Date(), dateEnd = new Date()) {
+    _getUsersSums(all = [], dateStart = new Date(), dateEnd = new Date(), nonUserPaymentGroups = []
+    ) {
         const dateStartTime = dateStart.getTime()
         const dateEndTime = dateEnd.getTime()
 
@@ -501,7 +527,33 @@ export default class Balance {
             current.map(item => item.user_id)))
             .forEach(userId => {
                 const sum = current
-                    .filter(item => item.user_id == userId)
+                    .filter(item => item.user_id == userId
+                        && nonUserPaymentGroups.indexOf(item.category) == -1)
+                    .reduce((acc, val) => {
+                        if (isNaN(val.value))
+                            return acc
+                        return acc + val.value
+                    }, 0)
+                result[userId] = sum
+            })
+
+        nonUserPaymentGroups.forEach(cat => {
+            const sum = current
+                .filter(item => item.category === cat)
+                .reduce((acc, val) => {
+                    if (isNaN(val.value))
+                        return acc
+                    return acc + val.value
+                }, 0)
+            result[cat] = sum
+        })
+
+        Array.from(new Set( //http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            current.map(item => item.user_id)))
+            .forEach(userId => {
+                const sum = current
+                    .filter(item => item.user_id == userId
+                        && nonUserPaymentGroups.indexOf(item.category) == -1)
                     .reduce((acc, val) => {
                         if (isNaN(val.value))
                             return acc

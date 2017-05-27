@@ -27,7 +27,8 @@ export default {
             }, {
                 title: 'Cat 2',
                 id: '2'
-            }]
+            }],
+            nonUserPaymentGroups: ['Cat 2']
         }
     }
      
