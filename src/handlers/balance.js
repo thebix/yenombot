@@ -62,8 +62,7 @@ export default class Balance {
         try {
             text = parser.parse(text).evaluate()
         } catch (ex) {
-            bot.sendMessage(message.chat.id, `Не понял выражение 🤖`)
-            return
+            return bot.sendMessage(message.chat.id, `Не понял выражение 🤖`)
         }
 
         const period = new Date().getMonth()
@@ -272,9 +271,6 @@ export default class Balance {
         let file
         return history.getAll(message.chat.id)
             .then(all => {
-                // if (!all || all.constructor !== Array)
-                //     all = []
-
                 all = all.filter(x => !x.date_delete).sort((a, b) => b.id - a.id)
 
                 const { users } = store.getState()
@@ -310,7 +306,7 @@ export default class Balance {
                 const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
                 return this._sendBalance(message, bot, balance)
             })
-            .catch(ex => log(ex, logLevel.ERROR))
+            .catch(ex => log(`chatId='${message.chat.id}', ex=${ex}`, logLevel.ERROR))
     }
 
     stats(message, bot) {
@@ -435,7 +431,7 @@ export default class Balance {
                 // сколько потрачено за период / в среднем за прошлые
                 Object.keys(usersSumsByCurrent).forEach(key => { //key - либо userId, либо категория из nonUserGroups
                     let userName, perCount //кол-во периодов
-                    if(users[key]){
+                    if (users[key]) {
                         userName = `${users[key].firstName} ${users[key].lastName}`
                         perCount = periods.length // кол-во периодов для юзера - все
                     } else {
@@ -488,7 +484,7 @@ export default class Balance {
                 const balance = store.getState().balance[message.chat.id].balance //TODO: нужна проверка, что баланс этого периода
                 return this._sendBalance(message, bot, balance)
             })
-            .catch(ex => log(ex, logLevel.ERROR))
+            .catch(ex => log(`chatId='${message.chat.id}', ex=${ex}`, logLevel.ERROR))
     }
 
     _getCategoriesPercents(catsSums) {
