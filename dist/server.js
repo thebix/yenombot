@@ -30,28 +30,6 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
         var bot = new _telegram2.default();
         bot.listen();
 
-        //INFO: for test
-        // const daily = new Timer('daily', type => {
-        //     const promises = []
-        //     Object.keys(store.getState().balance)
-        //         .forEach(chatId => {
-        //             //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
-        //             promises.push(bot.trigger(_commands.BALANCE_STATS, new Message({
-        //                 chat: {
-        //                     id: chatId
-        //                 },
-        //                 text: `/stat`
-        //             })))
-        //         })
-        //     Promise.all(promises)
-        //         .then(res => log(`Ежедневная рассылка прошла успешно.`, logLevel.INFO))
-        //         .catch(ex => log(`Ежедневная рассылка прошла с ошибкой. ${ex}`, logLevel.ERROR))
-        //     const dt = new Date()
-        //     let nextDay = lib.time.getChangedDateTime({ days: 1, minutes: 23 },
-        //         new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()))
-        //     daily.start({ dateTime: nextDay })
-        // })
-
         var weekly = new _timer2.default('weekly', function (type) {
             var promises = [];
             Object.keys(store.getState().balance).
@@ -61,14 +39,14 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
                     chat: {
                         id: chatId },
 
-                    text: '/stat mo' })));
+                    text: '/stat mo su' })));
 
             });
             Promise.all(promises).
             then(function (res) {return (0, _logger.log)('\u0415\u0436\u0435\u043D\u0435\u0434\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.', _logger.logLevel.INFO);}).
             catch(function (ex) {return (0, _logger.log)('\u0415\u0436\u0435\u043D\u0435\u0434\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0441 \u043E\u0448\u0438\u0431\u043A\u043E\u0439. ' + ex, _logger.logLevel.ERROR);});
             weekly.start({
-                dateTime: _index2.default.time.getChangedDateTime({ minutes: 23 },
+                dateTime: _index2.default.time.getChangedDateTime({ seconds: 23 },
                 _index2.default.time.getMonday(new Date(), true)) });
 
         });
@@ -81,8 +59,8 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
                     chat: {
                         id: chatId },
 
-                    text: '/stat 1' })));
-
+                    text: '/stat 1.' + new Date().getMonth() // prev month
+                })));
                 promises.push(bot.trigger(_commands3.default.BALANCE_REPORT, new _message2.default({
                     chat: {
                         id: chatId,
@@ -97,33 +75,22 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
             then(function (res) {return (0, _logger.log)('\u0415\u0436\u0435\u043C\u0435\u0441\u044F\u0447\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.', _logger.logLevel.INFO);}).
             catch(function (ex) {return (0, _logger.log)('\u0415\u0436\u0435\u043C\u0435\u0441\u044F\u0447\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0441 \u043E\u0448\u0438\u0431\u043A\u043E\u0439. ' + ex, _logger.logLevel.ERROR);});
             var dt = new Date();
-            var nextMonth = _index2.default.time.getChangedDateTime({ months: 1, minutes: 23 },
+            var nextMonth = _index2.default.time.getChangedDateTime({ months: 1, seconds: 23 },
             new Date(dt.getFullYear(), dt.getMonth(), 1));
             monthly.start({ dateTime: nextMonth });
         });
 
         (0, _logger.log)('Set timers...', _logger.logLevel.INFO);
-        var monday = _index2.default.time.getChangedDateTime({ minutes: -7 },
+        var monday = _index2.default.time.getChangedDateTime({ seconds: 23 },
         _index2.default.time.getMonday(new Date(), true));
         (0, _logger.log)('Set weekly timer. Next monday: ' + monday, _logger.logLevel.INFO);
         weekly.start({ dateTime: monday });
 
         var dt = new Date();
-        var nextMonth = _index2.default.time.getChangedDateTime({ months: 1, minutes: -7 },
+        var nextMonth = _index2.default.time.getChangedDateTime({ months: 1, seconds: 23 },
         new Date(dt.getFullYear(), dt.getMonth(), 1));
         (0, _logger.log)('Set monthly timer. Next month: ' + nextMonth, _logger.logLevel.INFO);
         monthly.start({ dateTime: nextMonth });
-
-        //INFO: for test
-        // let nextDay = lib.time.getChangedDateTime({ days: 1, hours: -16 },
-        //     new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()))
-        // log(`Set daily timer. Next day: ${nextDay}`, logLevel.INFO)
-        // daily.start({ dateTime: nextDay })
-
-        // .then((data) => {
-        //     l('🤖  Listening to incoming messages')
-        // })
-        // .catch(ex => log(ex, logLevel.ERROR))
     }).
     catch(function (x) {
         (0, _logger.log)('\u041E\u0448\u0438\u0431\u043A\u0430 \u0447\u0442\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u0430 \u043F\u0440\u043E\u0448\u043B\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F. err = ' + x, _logger.logLevel.ERROR);
