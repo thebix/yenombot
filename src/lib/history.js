@@ -1,28 +1,29 @@
-import { l, log, logLevel } from '../logger'
+import { log, logLevel } from '../logger'
 import FileSystem from './filesystem'
 
 export default class History {
-    constructor(path = './', fileTemplate = 'hist-${id}.json') {
-        this._path = path
-        if (this._path && this._path.length > 0 && this._path[this._path.length - 1] !== '/') {
-            this._path = `${this._path}/`
+    constructor(path = './', fileTemplate = 'hist-$[id].json') {
+        this.path = path
+        if (this.path && this.path.length > 0 && this.path[this.path.length - 1] !== '/') {
+            this.path = `${this.path}/`
         }
-        this._fileTemplate = fileTemplate
+        this.fileTemplate = fileTemplate
 
         this.getById = this.getById.bind(this)
         this.setById = this.setById.bind(this)
         this.getAll = this.getAll.bind(this)
 
-        this._getFilePath = this._getFilePath.bind(this)
+        this.getFilePath = this.getFilePath.bind(this)
     }
     create(value, templateId = null) {
-        if (!value.id) throw 'Идентификатор обязателен для истории'
-        if (!value.user_id) throw 'user_id обязателен для истории'
-        if (!value.value) throw 'value обязателен для истории'
-        if (!value.date_create) throw 'date_create обязателен для истории'
-        const file = this._getFilePath(templateId)
+        if (!value.id) throw new Error('Идентификатор обязателен для истории')
+        if (!value.user_id) throw new Error('user_id обязателен для истории')
+        if (!value.value) throw new Error('value обязателен для истории')
+        if (!value.date_create) throw new Error('date_create обязателен для истории')
+        const file = this.getFilePath(templateId)
         return this.getAll(templateId)
-            .then(all => {
+            .then(data => {
+                let all = data
                 if (!all || all.constructor !== Array)
                     all = []
                 all.push(value)
@@ -32,10 +33,11 @@ export default class History {
     }
     getById(id, templateId = null) {
         return this.getAll(templateId)
-            .then(all => {
+            .then(data => {
+                let all = data
                 if (!all || all.constructor !== Array)
                     all = []
-                let res = all.filter(item => item.id == id)
+                let res = all.filter(item => item.id === id)
                 if (res && res.length > 0) res = res[0]
                 else res = null
                 return Promise.resolve(res)
@@ -43,11 +45,11 @@ export default class History {
     }
     setById(id, newValue, templateId = null) {
         return this.getAll(templateId)
-            .then(all => {
-
+            .then(data => {
+                let all = data
                 if (!all || all.constructor !== Array)
                     all = []
-                let item = all.filter(item => item.id == id)
+                let item = all.filter(itm => itm.id === id)
                 if (item && item.length > 0) item = item[0]
 
                 if (newValue.value !== undefined)
@@ -61,36 +63,34 @@ export default class History {
                 if (newValue.date_delete !== undefined)
                     item.date_delete = newValue.date_delete
 
-                const file = this._getFilePath(templateId)
+                const file = this.getFilePath(templateId)
                 return FileSystem.saveJson(file, all)
-                    .then(data => Promise.resolve(item))
-
+                    .then(() => Promise.resolve(item))
             }).catch(err => Promise.reject(err))
-
     }
     getAll(templateId = null) {
-        const path = this._getFilePath(templateId)
+        const path = this.getFilePath(templateId)
 
-        if (FileSystem.isDirExists(this._path, true)
+        if (FileSystem.isDirExists(this.path, true)
             && FileSystem.isFileExists(path, true, null, '[]')) {
             return FileSystem.readJson(path)
-                .then(all => {
+                .then(data => {
+                    let all = data
                     if (!all || all.constructor !== Array) {
                         all = []
-                        log(`Для '${templateId}' не удалось нормально прочитать файл '${path}'`)
+                        log(`Для '${templateId}' не удалось нормально прочитать файл '${path}'`, logLevel.ERROR)
                     }
                     return Promise.resolve(all.sort((i1, i2) => i2.id - i1.id))
                 })
                 .catch(ex => Promise.reject(`Для '${templateId}' не удалось нормально прочитать файл '${path}', ex = '${ex}'`))
-            // return FileSystem.readJson(path)
         }
         return Promise.reject('Problem with file access')
     }
-    _getFilePath(templateId = null) {
+    getFilePath(templateId = null) {
         const file = templateId
-            ? `${this._fileTemplate.replace('${id}', templateId)}`
-            : this._fileTemplate
-        return `${this._path}${file}`
+            ? `${this.fileTemplate.replace('$[id]', templateId)}`
+            : this.fileTemplate
+        return `${this.path}${file}`
     }
 }
 
@@ -105,7 +105,8 @@ export default class History {
 //     'comment': ''
 // }
 // class HistoryItem {
-//     constructor({ id, user_id, value, category = null, comment = null, date_create = null, date_edit = null, date_delete = null }) {
+//     constructor({ id, user_id, value, category = null, comment = null, date_create = null,
+//                      date_edit = null, date_delete = null }) {
 //         if (!id) throw 'Идентификатор обязателен для истории'
 //         if (!user_id) throw 'user_id обязателен для истории'
 //         if (!value) throw 'value обязателен для истории'

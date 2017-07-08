@@ -28,12 +28,26 @@ module.exports = {
         // a => ()
         "arrow-parens": ["error", "as-needed"],
 
+        // let a, b
+        "one-var": "off",
+
         // https://medium.freecodecamp.org/adding-some-air-to-the-airbnb-style-guide-3df40e31c57a
         // code arrangement matter
         "no-use-before-define": ["error", { "functions": false }],
 
         // keep it simple
         "complexity": ["warn", 10],
+
+        // only arithmetic operations could be mixed
+        "no-mixed-operators": ["error", {
+            "groups": [
+                // ["+", "-", "*", "/", "%", "**"],
+                ["&", "|", "^", "~", "<<", ">>", ">>>"],
+                ["==", "!=", "===", "!==", ">", ">=", "<", "<="],
+                ["&&", "||"],
+                ["in", "instanceof"]
+            ]
+        }],
 
         // react
         // "react/prefer-es6-class": 0,

@@ -1,5 +1,4 @@
 import FileSystem from './lib/filesystem'
-import { l } from './logger'
 
 export const BOT_CMD = 'BOT_CMD'
 export const BOT_CMD_CLEAR = 'BOT_CMD_CLEAR'
@@ -21,169 +20,128 @@ export const FS_JSON_WRITE_DONE = 'FS_JSON_WRITE_DONE'
 
 export const USER_ADD = 'USER_ADD'
 
-export const botCmd = (chatId, command, pars = {}) => {
-    return {
-        type: BOT_CMD,
-        chatId,
-        command,
-        pars
-    }
-}
+export const botCmd = (chatId, command, pars = {}) => ({
+    type: BOT_CMD,
+    chatId,
+    command,
+    pars
+})
 
-export const botCmdClear = (chatId) => {
-    return {
-        type: BOT_CMD_CLEAR,
-        chatId
-    }
-}
+export const botCmdClear = chatId => ({
+    type: BOT_CMD_CLEAR,
+    chatId
+})
 
-export const setBotBalanceMessageId = (chatId, messageId) => {
-    return {
-        type: BOT_BALANCE_MESSAGE_ID,
-        messageId,
-        chatId
-    }
-}
+export const setBotBalanceMessageId = (chatId, messageId) => ({
+    type: BOT_BALANCE_MESSAGE_ID,
+    messageId,
+    chatId
+})
 
+export const initByToken = (chatId, token) => ({
+    type: INIT_BY_TOKEN,
+    chatId,
+    token
+})
 
-export const initByToken = (chatId, token) => {
-    return {
-        type: INIT_BY_TOKEN,
-        chatId,
-        token
-    }
-}
+export const balanceInit = (chatId, period) => ({
+    type: BALANCE_INIT,
+    chatId,
+    period
+})
 
+export const balanceChange = (chatId, period, sub) => ({
+    type: BALANCE_CHANGE,
+    chatId,
+    period,
+    sub
+})
 
-export const balanceInit = (chatId, period) => {
-    return {
-        type: BALANCE_INIT,
-        chatId,
-        period
-    }
-}
+const fileReadRequest = file => ({
+    type: FS_FILE_READ,
+    file
+})
 
-export const balanceChange = (chatId, period, sub) => {
-    return {
-        type: BALANCE_CHANGE,
-        chatId,
-        period,
-        sub
+const fileReadDone = (file, data) => ({
+    type: FS_FILE_READ_DONE,
+    file,
+    data
+})
 
-    }
-}
-
-
-const fileReadRequest = (file) => {
-    return {
-        type: FS_FILE_READ
-    }
-}
-
-const fileReadDone = (file, data) => {
-    return {
-        type: FS_FILE_READ_DONE,
-        file,
-        data
-    }
-}
-
-export const fileRead = (file) => {
-    return dispatch => {
-        dispatch(fileReadRequest(file))
-        return FileSystem.getFile(file)
+export const fileRead = file => dispatch => {
+    dispatch(fileReadRequest(file))
+    return FileSystem.getFile(file)
             .then(data => dispatch(fileReadDone(file, data)))
-            .catch(err => {
-                //TODO: обработка ошибки
+            .catch(() => {
+                // TODO: обработка ошибки
             })
-    }
 }
 
-const fileSaveRequest = (file, data) => {
-    return {
-        type: FS_FILE_WRITE,
-        file,
-        data
-    }
-}
+const fileSaveRequest = (file, data) => ({
+    type: FS_FILE_WRITE,
+    file,
+    data
+})
 
-const fileSaveDone = (file) => {
-    return {
-        type: FS_FILE_WRITE_DONE,
-        file
-    }
-}
+const fileSaveDone = file => ({
+    type: FS_FILE_WRITE_DONE,
+    file
+})
 
-export const fileSave = (file, data, type) => {
-    return dispatch => {
-        dispatch(fileSaveRequest(file, data))
-        return FileSystem.saveFile(file, data)
-            .then(data => dispatch(fileSaveDone(file)))
-            .catch(err => {
-                //TODO: обработка ошибки
+export const fileSave = (file, data) => dispatch => {
+    dispatch(fileSaveRequest(file, data))
+    return FileSystem.saveFile(file, data)
+            .then(() => dispatch(fileSaveDone(file)))
+            .catch(() => {
+                // TODO: обработка ошибки
             })
-    }
 }
 
-const jsonReadRequest = (file, id) => {
-    return {
-        type: FS_JSON_READ
-    }
-}
+const jsonReadRequest = (file, id) => ({
+    type: FS_JSON_READ,
+    id
+})
 
-const jsonReadDone = (file, id, data) => {
-    return {
-        type: FS_JSON_READ_DONE,
-        id,
-        file,
-        data
-    }
-}
+const jsonReadDone = (file, id, data) => ({
+    type: FS_JSON_READ_DONE,
+    id,
+    file,
+    data
+})
 
-export const jsonRead = (file, id) => {
-    return dispatch => {
-        dispatch(jsonReadRequest(file, id))
-        return FileSystem.getJson(file)
+export const jsonRead = (file, id) => dispatch => {
+    dispatch(jsonReadRequest(file, id))
+    return FileSystem.getJson(file)
             .then(data => dispatch(jsonReadDone(file, id, data)))
-            .catch(err => {
-                //TODO: обработка ошибки
+            .catch(() => {
+                // TODO: обработка ошибки
             })
-    }
 }
 
-const jsonSaveRequest = (file, data) => {
-    return {
-        type: FS_JSON_WRITE,
-        file,
-        data
-    }
-}
+const jsonSaveRequest = (file, data) => ({
+    type: FS_JSON_WRITE,
+    file,
+    data
+})
 
-const jsonSaveDone = (file) => {
-    return {
-        type: FS_JSON_WRITE_DONE,
-        file
-    }
-}
+const jsonSaveDone = file => ({
+    type: FS_JSON_WRITE_DONE,
+    file
+})
 
-export const jsonSave = (file, data) => {
-    return dispatch => {
-        dispatch(jsonSaveRequest(file, data))
-        return FileSystem.saveJson(file, data)
-            .then(data => dispatch(jsonSaveDone(file)))
-            .catch(err => {
-                //TODO: обработка ошибки
+export const jsonSave = (file, data) => dispatch => {
+    dispatch(jsonSaveRequest(file, data))
+    return FileSystem.saveJson(file, data)
+            .then(() => dispatch(jsonSaveDone(file)))
+            .catch(() => {
+                // TODO: обработка ошибки
             })
-    }
 }
 
-
-export const userAdd = ({id, firstName, lastName, username}) => {
-    return {
-        type: USER_ADD,
-        id,
-        firstName,
-        lastName,
-        username
-    }
-}
+export const userAdd = ({ id, firstName, lastName, username }) => ({
+    type: USER_ADD,
+    id,
+    firstName,
+    lastName,
+    username
+})
