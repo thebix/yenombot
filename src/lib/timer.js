@@ -1,10 +1,8 @@
-import { l, log, logLevel } from '../logger'
-
-const _intervalMain = 1 * 60 * 1000
+import { log, logLevel } from '../logger'
 
 export const timerTypes = {
-    NONE: "NONE",
-    MAIN: "MAIN",   //"Главный короткий (мин)",
+    NONE: 'NONE',
+    MAIN: 'MAIN',   //"Главный короткий (мин)",
 }
 
 export default class Timer {
@@ -14,16 +12,16 @@ export default class Timer {
             return
         }
         if (!callback || typeof callback !== 'function') {
-            log(`В конструктор таймера не передана колбэк функция.`, logLevel.ERROR)
+            log('В конструктор таймера не передана колбэк функция.', logLevel.ERROR)
             return
         }
-        this.type = type //тип таймера
-        this.timerId = null //выключение таймера по id
-        this.callback = callback //функция "триггер таймера"
+        this.type = type // тип таймера
+        this.timerId = null // выключение таймера по id
+        this.callback = callback // функция "триггер таймера"
         this.onTrigger = this.onTrigger.bind(this) // функция "триггер по интервалу"
-        this.onCheckDateTime = this.onCheckDateTime.bind(this) //функция "триггер по дате"
-        this.start = this.start.bind(this) //функция "старт таймера"
-        this.isStopped = true //Состояние таймера - выключен 
+        this.onCheckDateTime = this.onCheckDateTime.bind(this) // функция "триггер по дате"
+        this.start = this.start.bind(this) // функция "старт таймера"
+        this.isStopped = true // Состояние таймера - выключен
     }
     onCheckDateTime() {
         if (this.isStopped)
@@ -49,15 +47,14 @@ export default class Timer {
     }
     start({ interval, dateTime }) {
         if (interval) {
-            let callback = this.callback
             this.isStopped = false
             this.timerId = setTimeout(this.onTrigger, interval * 1000)
         } else if (dateTime) {
             this.dateTime = dateTime
             this.isStopped = false
-            let interval = this.dateTime.getTime() - (new Date()).getTime()
-            if (interval < 2000) interval = 2000
-            this.timerId = setTimeout(this.onCheckDateTime, interval)
+            let intrvl = this.dateTime.getTime() - (new Date()).getTime()
+            if (intrvl < 2000) intrvl = 2000
+            this.timerId = setTimeout(this.onCheckDateTime, intrvl)
         }
     }
     stop() {
@@ -65,4 +62,4 @@ export default class Timer {
         if (this.timerId)
             clearInterval(this.timerId)
     }
-} 
+}

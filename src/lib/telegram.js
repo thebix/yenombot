@@ -7,38 +7,38 @@ import Message from './message'
 import InputParser from './InputParser'
 import handlers from '../handlers/index'
 
-import { l, log, logLevel } from '../logger'
+import { log, logLevel } from '../logger'
 import { store } from '../server'
 import { userAdd } from '../actions'
 
 const inputParser = new InputParser()
 
 export default class Telegram { // extends TelegramBot
-    //token - если не передан, берется из token.js
+    // token - если не передан, берется из token.js
     constructor(token) {
-        const t = token ? token : _config.isProduction ? _token.botToken.prod : _token.botToken.dev
-        this._bot = new TelegramBot(t, { polling: true })
-        this._handleText = this._handleText.bind(this)
-        this._handleCallback = this._handleCallback.bind(this)
+        const t = token || _config.isProduction ? _token.botToken.prod : _token.botToken.dev
+        this.bot = new TelegramBot(t, { polling: true })
+        this.handleText = this.handleText.bind(this)
+        this.handleCallback = this.handleCallback.bind(this)
     }
     listen() {
-        this._bot.on('text', this._handleText)
-        this._bot.on('callback_query', this._handleCallback);
-        //return new Promise(() => { }) //TODO: разобраться зачем
-        return
+        this.bot.on('text', this.handleText)
+        this.bot.on('callback_query', this.handleCallback);
+        // return new Promise(() => { }) //TODO: разобраться зачем
     }
-    trigger(cmd = _commands.HELP, message, options = {}) { //INFO: message должен быть соствлен очень внимательно
+    // INFO: message должен быть соствлен очень внимательно
+    trigger(cmd = _commands.HELP, message, options = {}) {
         switch (cmd) {
             case _commands.BALANCE_STATS:
-                return handlers.balance.stats(message, this._bot, options.noBalance)
+                return handlers.balance.stats(message, this.bot, options.noBalance)
             case _commands.BALANCE_REPORT:
-                return handlers.balance.report(message, this._bot, options.noBalance)
+                return handlers.balance.report(message, this.bot, options.noBalance)
             default:
                 log(`Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`, logLevel.ERROR)
         }
-        throw `Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`
+        throw new Error(`Необработанная команда '${cmd}' боту при вызове Telegram.trigger().`)
     }
-    _handleText(msg) {
+    handleText(msg) {
         const message = new Message(Message.mapMessage(msg))
         const { text } = message
 
@@ -51,36 +51,36 @@ export default class Telegram { // extends TelegramBot
 
         if (!_config.isProduction) {
             if (!inputParser.isDeveloper(message.from)) {
-                return handlers.auth.getNeedDevStatus(message, this._bot)
+                return handlers.auth.getNeedDevStatus(message, this.bot)
             }
         }
 
         if (inputParser.isAskingForStart(text))
-            return handlers.balance.initIfNeed(message, this._bot)
+            return handlers.balance.initIfNeed(message, this.bot)
         // if (inputParser.isAskingForHelp(text))
-        //     return handlers.help.getHelp(message, this._bot)
+        //     return handlers.help.getHelp(message, this.bot)
         if (inputParser.isAskingForInitToken(text))
-            return handlers.init.initByToken(message, this._bot)
+            return handlers.init.initByToken(message, this.bot)
         if (inputParser.isAskingForReport(text))
-            return handlers.balance.report(message, this._bot)
+            return handlers.balance.report(message, this.bot)
         if (inputParser.isAskingForStats(text)) {
-            return handlers.balance.stats(message, this._bot)
+            return handlers.balance.stats(message, this.bot)
         }
         if (inputParser.isAskingForBalance(text))
-            return handlers.balance.balance(message, this._bot)
+            return handlers.balance.balance(message, this.bot)
         if (inputParser.isAskingForBalanceInit(text))
-            return handlers.balance.init(message, this._bot)
+            return handlers.balance.init(message, this.bot)
         if (inputParser.isAskingForBalanceChange(text))
-            return handlers.balance.change(message, this._bot)
+            return handlers.balance.change(message, this.bot)
         if (inputParser.isAskingForCommentChange(text, prevCommand))
-            return handlers.balance.commentChange(message, this._bot)
+            return handlers.balance.commentChange(message, this.bot)
         if (inputParser.isAskingForEcho(text))
-            return handlers.misc.getEcho(message, this._bot)
+            return handlers.misc.getEcho(message, this.bot)
 
         // default
-        return handlers.help.getHelp(message, this._bot, prevCommand)
+        return handlers.help.getHelp(message, this.bot, prevCommand)
     }
-    _handleCallback(callbackQuery) {
+    handleCallback(callbackQuery) {
         let { data } = callbackQuery
         data = data ? JSON.parse(data) : {}
         const message = new Message(Message.mapMessage(callbackQuery.message))
@@ -89,24 +89,21 @@ export default class Telegram { // extends TelegramBot
 
         if (!_config.isProduction) {
             if (!inputParser.isDeveloper(message.chat.id)) {
-                this._bot.answerCallbackQuery(callbackQuery.id, "No dev access", false);
-                return handlers.auth.getNeedDevStatus(message, this._bot)
+                this.bot.answerCallbackQuery(callbackQuery.id, 'No dev access', false);
+                return handlers.auth.getNeedDevStatus(message, this.bot)
             }
         }
 
         // default
-        this._bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
+        this.bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
 
         if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
-            return handlers.balance.categoryChange(message, this._bot, data)
+            return handlers.balance.categoryChange(message, this.bot, data)
         }
         if (inputParser.isAskingForBalanceDelete(message, prevCommand, data)) {
-            return handlers.balance.delete(message, this._bot, data)
+            return handlers.balance.delete(message, this.bot, data)
         }
 
-
-        return handlers.help.getHelp(message, this._bot, data)
+        return handlers.help.getHelp(message, this.bot, data)
     }
-
-
 }
