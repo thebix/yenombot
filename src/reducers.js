@@ -1,7 +1,5 @@
 import _token from './token'
 
-import { l } from './logger'
-
 import {
     BOT_CMD,
     BOT_CMD_CLEAR,
@@ -35,6 +33,7 @@ const command = (state = defaultState.command, action) => {
             return Object.assign({}, state, {
                 [action.chatId]: ''
             })
+        default:
     }
     return state
 }
@@ -42,24 +41,24 @@ const command = (state = defaultState.command, action) => {
 const balance = (state = defaultState.balance, action, balanceInit = state.balanceInit) => {
     const initBalance = balanceInit ? balanceInit[action.chatId] || 0 : 0
     switch (action.type) {
-        case BALANCE_INIT: {
+        case BALANCE_INIT:
             return Object.assign({}, state, {
                 [action.chatId]: {
                     period: action.period,
                     balance: initBalance
                 }
             })
-        }
         case BALANCE_CHANGE:
-            const balance = Object.keys(state).some(x => x == action.chatId)
+            const bal = Object.keys(state).some(x => x === `${action.chatId}`)
                 ? state[action.chatId].balance - action.sub
                 : initBalance - action.sub
             return Object.assign({}, state, {
                 [action.chatId]: {
                     period: action.period,
-                    balance
+                    balance: bal
                 }
             })
+        default:
     }
     return state
 }
@@ -75,7 +74,8 @@ const paymentGroups = (state = defaultState.paymentGroups, action) => {
                 return Object.assign({}, state, {
                     [action.chatId]: _token.initData[action.token].paymentGroups
                 })
-
+            break;
+        default:
     }
     return state
 }
@@ -90,7 +90,8 @@ const balanceInit = (state = defaultState.balanceInit, action) => {
                 return Object.assign({}, state, {
                     [action.chatId]: _token.initData[action.token].balanceInit
                 })
-
+            break
+        default:
     }
     return state
 }
@@ -106,6 +107,7 @@ const users = (state = defaultState.users, action) => {
                     id: action.id
                 }
             })
+        default:
     }
     return state
 }
@@ -116,6 +118,7 @@ const botBalanceMessageId = (state = defaultState.botBalanceMessageId, action) =
             return Object.assign({}, state, {
                 [action.chatId]: action.messageId
             })
+        default:
     }
     return state
 }
@@ -123,7 +126,6 @@ const botBalanceMessageId = (state = defaultState.botBalanceMessageId, action) =
 const nonUserPaymentGroups = (state = defaultState.nonUserPaymentGroups, action) => {
     switch (action.type) {
         case INIT_BY_TOKEN:
-            const init = _token.initData
             if (action.token
                 && _token.initData
                 && _token.initData[action.token]
@@ -131,18 +133,18 @@ const nonUserPaymentGroups = (state = defaultState.nonUserPaymentGroups, action)
                 return Object.assign({}, state, {
                     [action.chatId]: _token.initData[action.token].nonUserPaymentGroups
                 })
+            break;
+        default:
     }
     return state
 }
 
-export default (state, action) => {
-    return {
-        command: command(state.command, action),
-        balance: balance(state.balance, action, state.balanceInit),
-        paymentGroups: paymentGroups(state.paymentGroups, action),
-        balanceInit: balanceInit(state.balanceInit, action),
-        users: users(state.users, action),
-        botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action),
-        nonUserPaymentGroups: nonUserPaymentGroups(state.nonUserPaymentGroups, action)
-    }
-}
+export default (state, action) => ({
+    command: command(state.command, action),
+    balance: balance(state.balance, action, state.balanceInit),
+    paymentGroups: paymentGroups(state.paymentGroups, action),
+    balanceInit: balanceInit(state.balanceInit, action),
+    users: users(state.users, action),
+    botBalanceMessageId: botBalanceMessageId(state.botBalanceMessageId, action),
+    nonUserPaymentGroups: nonUserPaymentGroups(state.nonUserPaymentGroups, action)
+})

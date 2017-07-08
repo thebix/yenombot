@@ -1,6 +1,6 @@
 {
   "name": "yenombot",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "group stats",
   "keywords": [
     "telegram",
@@ -31,7 +31,12 @@
     "babel-cli": "^6.18.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-stage-2": "^6.18.0",
-    "babel-register": "^6.18.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.1",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "5.0.1",
+    "eslint-plugin-react": "^7.0.1",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
     "forever": "~0.15.3"
@@ -42,7 +47,8 @@
     "jsonfile": "^2.4.0",
     "node-telegram-bot-api": "^0.27.0",
     "redux": "^3.6.0",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "babel-register": "^6.18.0"
   },
   "private": true,
   "engines": {

@@ -4,7 +4,7 @@ import FileSystem from './lib/filesystem'
 import History from './lib/history'
 import Message from './lib/message'
 
-import { l, log, logLevel } from './logger'
+import { log, logLevel } from './logger'
 import _config from './config'
 import _commands from './enums/commands'
 import lib from './lib/index'
@@ -19,42 +19,42 @@ const enhancer = compose(
     applyMiddleware(thunkMiddleware)
 )
 export let store = null
-export const history = new History(_config.dirStorage, 'balance-hist-${id}.json')
+export const history = new History(_config.dirStorage, 'balance-hist-$[id].json')
 
 if (FileSystem.isDirExists(_config.dirStorage, true)
-    && FileSystem.isFileExists(_config.fileState, true, false, '{}')) { //TODO: починить варнинг
+    && FileSystem.isFileExists(_config.fileState, true, false, '{}')) { // TODO: починить варнинг
     FileSystem.readJson(_config.fileState)
-        .then(state => {
-            state = state || {}
+        .then(stateFromFile => {
+            const state = stateFromFile || {}
             store = createStore(appReducer, state, enhancer)
             const bot = new Telegram()
             bot.listen()
 
-            const weekly = new Timer('weekly', type => {
+            const weekly = new Timer('weekly', () => {
                 const promises = []
                 Object.keys(store.getState().balance)
                     .forEach(chatId => {
-                        //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
+                        // INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
                         promises.push(bot.trigger(_commands.BALANCE_STATS, new Message({
                             chat: {
                                 id: chatId
                             },
-                            text: `/stat mo su`
+                            text: '/stat mo su'
                         })))
                     })
                 Promise.all(promises)
-                    .then(res => log(`Еженедельная рассылка прошла успешно.`, logLevel.INFO))
+                    .then(() => log('Еженедельная рассылка прошла успешно.', logLevel.INFO))
                     .catch(ex => log(`Еженедельная рассылка прошла с ошибкой. ${ex}`, logLevel.ERROR))
                 weekly.start({
                     dateTime: lib.time.getChangedDateTime({ seconds: 23 },
                         lib.time.getMonday(new Date(), true))
                 })
             })
-            const monthly = new Timer('monthly', type => {
+            const monthly = new Timer('monthly', () => {
                 const promises = []
                 Object.keys(store.getState().balance)
                     .forEach(chatId => {
-                        //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
+                        // INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
                         promises.push(bot.trigger(_commands.BALANCE_STATS, new Message({
                             chat: {
                                 id: chatId
@@ -66,13 +66,13 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
                                 id: chatId,
                                 title: `monthly-${lib.time.dateString()}`
                             },
-                            text: `/repo`,
+                            text: '/repo',
                         }), {
-                                noBalance: true
-                            }))
+                            noBalance: true
+                        }))
                     })
                 Promise.all(promises)
-                    .then(res => log(`Ежемесячная рассылка прошла успешно.`, logLevel.INFO))
+                    .then(() => log('Ежемесячная рассылка прошла успешно.', logLevel.INFO))
                     .catch(ex => log(`Ежемесячная рассылка прошла с ошибкой. ${ex}`, logLevel.ERROR))
                 const dt = new Date()
                 const nextMonth = lib.time.getChangedDateTime({ months: 1, seconds: 23 },
@@ -81,13 +81,13 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
             })
 
             log('Set timers...', logLevel.INFO)
-            let monday = lib.time.getChangedDateTime({ seconds: 23 },
+            const monday = lib.time.getChangedDateTime({ seconds: 23 },
                 lib.time.getMonday(new Date(), true))
             log(`Set weekly timer. Next monday: ${monday}`, logLevel.INFO)
             weekly.start({ dateTime: monday })
 
             const dt = new Date()
-            let nextMonth = lib.time.getChangedDateTime({ months: 1, seconds: 23 },
+            const nextMonth = lib.time.getChangedDateTime({ months: 1, seconds: 23 },
                 new Date(dt.getFullYear(), dt.getMonth(), 1))
             log(`Set monthly timer. Next month: ${nextMonth}`, logLevel.INFO)
             monthly.start({ dateTime: nextMonth })
@@ -96,5 +96,3 @@ if (FileSystem.isDirExists(_config.dirStorage, true)
             log(`Ошибка чтения файла прошлого состояния. err = ${x}`, logLevel.ERROR)
         })
 }
-
-
