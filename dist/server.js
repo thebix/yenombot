@@ -19,22 +19,22 @@ var enhancer = (0, _redux.compose)(
 (0, _redux.applyMiddleware)(_reduxThunk2.default));
 
 var store = exports.store = null;
-var history = exports.history = new _history2.default(_config3.default.dirStorage, 'balance-hist-${id}.json');
+var history = exports.history = new _history2.default(_config3.default.dirStorage, 'balance-hist-$[id].json');
 
 if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) &&
-_filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')) {//TODO: починить варнинг
+_filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')) {// TODO: починить варнинг
     _filesystem2.default.readJson(_config3.default.fileState).
-    then(function (state) {
-        state = state || {};
+    then(function (stateFromFile) {
+        var state = stateFromFile || {};
         exports.store = store = (0, _redux.createStore)(_reducers2.default, state, enhancer);
         var bot = new _telegram2.default();
         bot.listen();
 
-        var weekly = new _timer2.default('weekly', function (type) {
+        var weekly = new _timer2.default('weekly', function () {
             var promises = [];
             Object.keys(store.getState().balance).
             forEach(function (chatId) {
-                //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
+                // INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
                 promises.push(bot.trigger(_commands3.default.BALANCE_STATS, new _message2.default({
                     chat: {
                         id: chatId },
@@ -43,18 +43,18 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
 
             });
             Promise.all(promises).
-            then(function (res) {return (0, _logger.log)('\u0415\u0436\u0435\u043D\u0435\u0434\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.', _logger.logLevel.INFO);}).
+            then(function () {return (0, _logger.log)('Еженедельная рассылка прошла успешно.', _logger.logLevel.INFO);}).
             catch(function (ex) {return (0, _logger.log)('\u0415\u0436\u0435\u043D\u0435\u0434\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0441 \u043E\u0448\u0438\u0431\u043A\u043E\u0439. ' + ex, _logger.logLevel.ERROR);});
             weekly.start({
                 dateTime: _index2.default.time.getChangedDateTime({ seconds: 23 },
                 _index2.default.time.getMonday(new Date(), true)) });
 
         });
-        var monthly = new _timer2.default('monthly', function (type) {
+        var monthly = new _timer2.default('monthly', function () {
             var promises = [];
             Object.keys(store.getState().balance).
             forEach(function (chatId) {
-                //INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
+                // INFO: при большом количестве чатов тут будет жопа, надо слать бандлами
                 promises.push(bot.trigger(_commands3.default.BALANCE_STATS, new _message2.default({
                     chat: {
                         id: chatId },
@@ -72,7 +72,7 @@ _filesystem2.default.isFileExists(_config3.default.fileState, true, false, '{}')
 
             });
             Promise.all(promises).
-            then(function (res) {return (0, _logger.log)('\u0415\u0436\u0435\u043C\u0435\u0441\u044F\u0447\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.', _logger.logLevel.INFO);}).
+            then(function () {return (0, _logger.log)('Ежемесячная рассылка прошла успешно.', _logger.logLevel.INFO);}).
             catch(function (ex) {return (0, _logger.log)('\u0415\u0436\u0435\u043C\u0435\u0441\u044F\u0447\u043D\u0430\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u043E\u0448\u043B\u0430 \u0441 \u043E\u0448\u0438\u0431\u043A\u043E\u0439. ' + ex, _logger.logLevel.ERROR);});
             var dt = new Date();
             var nextMonth = _index2.default.time.getChangedDateTime({ months: 1, seconds: 23 },

@@ -8,7 +8,7 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
             return new Promise(function (resolve, reject) {
                 _fs2.default.readFile(file, function (err, data) {
                     if (err) return reject(err);
-                    resolve(data);
+                    return resolve(data);
                 });
             });
         } }, { key: 'saveFile', value: function saveFile(
@@ -16,7 +16,7 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
             return new Promise(function (resolve, reject) {
                 _fs2.default.writeFile(file, data, function (err) {
                     if (err) return reject(err);
-                    resolve();
+                    return resolve();
                 });
             });
         } }, { key: 'appendFile', value: function appendFile(
@@ -24,7 +24,7 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
             return new Promise(function (resolve, reject) {
                 _fs2.default.appendFile(file, data, function (err) {
                     if (err) return reject(err);
-                    resolve();
+                    return resolve();
                 });
             });
         } }, { key: 'readJson', value: function readJson(
@@ -33,7 +33,7 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
             return new Promise(function (resolve, reject) {
                 _jsonfile2.default.readFile(file, function (err, data) {
                     if (err) return reject(err);
-                    resolve(data);
+                    return resolve(data);
                 });
             });
         } }, { key: 'saveJson', value: function saveJson(
@@ -41,34 +41,34 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
             return new Promise(function (resolve, reject) {
                 _jsonfile2.default.writeFile(file, data, function (err) {
                     if (err) return reject(err);
-                    resolve();
+                    return resolve();
                 });
             });
         }
 
-        //TODO: переименовать в sync
-
-
-
-
-
-
-
-
-
-
-
-
-        //TODO: переименовать в sync
-    }]);return FileSystem;}();FileSystem.isFileExists = function (path) {var isMakeIfNot = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;var isLogErrIfNot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;var data = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';if (!_fs2.default.existsSync(path)) {if (isLogErrIfNot) {(0, _logger.log)('\u0414\u0438\u0440\u0435\u043A\u0442\u043E\u0440\u0438\u044F \u0438\u043B\u0438 \u0444\u0430\u0439\u043B \u0441 \u043F\u0443\u0442\u0435\u043C \'' + path + '\' \u043D\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442. ' + (isMakeIfNot ? 'Создаем' : 'Не создаем'), logLevel.ERROR);}if (!isMakeIfNot) {return false;}_fs2.default.writeFileSync(path, data);}return true;};FileSystem.isDirExists = function (path) {var isMakeIfNot = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;var isLogErrIfNot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    if (!_fs2.default.existsSync(path)) {
-        if (isLogErrIfNot) {
-            (0, _logger.log)('\u0414\u0438\u0440\u0435\u043A\u0442\u043E\u0440\u0438\u044F \u0438\u043B\u0438 \u0444\u0430\u0439\u043B \u0441 \u043F\u0443\u0442\u0435\u043C \'' + path + '\' \u043D\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442. ' + (isMakeIfNot ? 'Создаем' : 'Не создаем'), logLevel.ERROR);
+        // TODO: переименовать в sync
+    }, { key: 'isFileExists', value: function isFileExists(path) {var isMakeIfNot = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;var isLogErrIfNot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;var data = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+            if (!_fs2.default.existsSync(path)) {
+                if (isLogErrIfNot) {
+                    (0, _logger.log)('\u0414\u0438\u0440\u0435\u043A\u0442\u043E\u0440\u0438\u044F \u0438\u043B\u0438 \u0444\u0430\u0439\u043B \u0441 \u043F\u0443\u0442\u0435\u043C \'' + path + '\' \u043D\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442. ' + (isMakeIfNot ? 'Создаем' : 'Не создаем'), _logger.logLevel.ERROR);
+                }
+                if (!isMakeIfNot) {
+                    return false;
+                }
+                _fs2.default.writeFileSync(path, data);
+            }
+            return true;
         }
-        if (!isMakeIfNot) {
-            return false;
-        }
-        _fs2.default.mkdirSync(path);
-    }
-    return true;
-};exports.default = FileSystem;
+        // TODO: переименовать в sync
+    }, { key: 'isDirExists', value: function isDirExists(path) {var isMakeIfNot = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;var isLogErrIfNot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+            if (!_fs2.default.existsSync(path)) {
+                if (isLogErrIfNot) {
+                    (0, _logger.log)('\u0414\u0438\u0440\u0435\u043A\u0442\u043E\u0440\u0438\u044F \u0438\u043B\u0438 \u0444\u0430\u0439\u043B \u0441 \u043F\u0443\u0442\u0435\u043C \'' + path + '\' \u043D\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442. ' + (isMakeIfNot ? 'Создаем' : 'Не создаем'), _logger.logLevel.ERROR);
+                }
+                if (!isMakeIfNot) {
+                    return false;
+                }
+                _fs2.default.mkdirSync(path);
+            }
+            return true;
+        } }]);return FileSystem;}();exports.default = FileSystem;

@@ -3,24 +3,23 @@ var _actions = require('../actions');
 var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var
 
 Help = function () {function Help() {_classCallCheck(this, Help);}_createClass(Help, [{ key: 'getHelp', value: function getHelp(
-
         message, bot, route) {
             _server.store.dispatch((0, _actions.botCmd)(message.chat.id, _commands3.default.HELP));
-            if (!route || route == 'help') {
-                bot.sendMessage(message.chat.id, '\u0412\u044B\u0431\u0435\u0440\u0438 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044E \uD83E\uDD16', {
+            if (!route || route === 'help') {
+                bot.sendMessage(message.chat.id, 'Выбери категорию 🤖', {
                     reply_markup: JSON.stringify({
                         inline_keyboard: [
                         [
                         {
-                            text: '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 1',
+                            text: 'Категория 1',
                             callback_data: 'help/sub1' },
                         {
-                            text: '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 2',
+                            text: 'Категория 2',
                             callback_data: 'help/sub2' }],
 
 
                         [{
-                            text: '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 3',
+                            text: 'Категория 3',
                             callback_data: 'help/sub3' }]] }) });
 
 
@@ -34,7 +33,7 @@ Help = function () {function Help() {_classCallCheck(this, Help);}_createClass(H
                     inline_keyboard: [
                     [
                     {
-                        text: '\u041D\u0430\u0437\u0430\u0434',
+                        text: 'Назад',
                         callback_data: 'help' }]] }) };
 
 
@@ -43,14 +42,14 @@ Help = function () {function Help() {_classCallCheck(this, Help);}_createClass(H
 
             switch (route) {
                 case 'help/sub1':
-                    bot.sendMessage(message.chat.id, '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 1 \u0445\u0435\u043B\u043F \uD83E\uDD16', buttonBack);
+                    bot.sendMessage(message.chat.id, 'Категория 1 хелп 🤖', buttonBack);
                     return;
                 case 'help/sub2':
-                    bot.sendMessage(message.chat.id, '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 2 \u0445\u0435\u043B\u043F \uD83E\uDD16', buttonBack);
+                    bot.sendMessage(message.chat.id, 'Категория 2 хелп 🤖', buttonBack);
                     return;
                 case 'help/sub3':
-                    bot.sendMessage(message.chat.id, '\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F 3 \u0445\u0435\u043B\u043F \uD83E\uDD16', buttonBack);
-                    return;}
+                    bot.sendMessage(message.chat.id, 'Категория 3 хелп 🤖', buttonBack);
+                    break;
+                default:}
 
-            return;
         } }]);return Help;}();exports.default = Help;

@@ -4,7 +4,7 @@ var isProduction = process.env.NODE_ENV === 'production';exports.default =
 
 {
     isProduction: isProduction,
-    log: isProduction ? "INFO" : "DEBUG",
+    log: isProduction ? 'INFO' : 'DEBUG',
     developers: _token3.default.developers,
     dirStorage: __dirname + '/storage/',
     fileState: __dirname + '/storage/state.json' };

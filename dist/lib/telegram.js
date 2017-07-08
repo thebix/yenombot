@@ -14,30 +14,30 @@ var _actions = require('../actions');function _interopRequireDefault(obj) {retur
 var inputParser = new _InputParser2.default();var
 
 Telegram = function () {// extends TelegramBot
-    //token - если не передан, берется из token.js
+    // token - если не передан, берется из token.js
     function Telegram(token) {_classCallCheck(this, Telegram);
-        var t = token ? token : _config3.default.isProduction ? _token3.default.botToken.prod : _token3.default.botToken.dev;
-        this._bot = new _nodeTelegramBotApi2.default(t, { polling: true });
-        this._handleText = this._handleText.bind(this);
-        this._handleCallback = this._handleCallback.bind(this);
+        var t = token || _config3.default.isProduction ? _token3.default.botToken.prod : _token3.default.botToken.dev;
+        this.bot = new _nodeTelegramBotApi2.default(t, { polling: true });
+        this.handleText = this.handleText.bind(this);
+        this.handleCallback = this.handleCallback.bind(this);
     }_createClass(Telegram, [{ key: 'listen', value: function listen()
         {
-            this._bot.on('text', this._handleText);
-            this._bot.on('callback_query', this._handleCallback);
-            //return new Promise(() => { }) //TODO: разобраться зачем
-            return;
-        } }, { key: 'trigger', value: function trigger()
-        {var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _commands3.default.HELP;var message = arguments[1];var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {}; //INFO: message должен быть соствлен очень внимательно
+            this.bot.on('text', this.handleText);
+            this.bot.on('callback_query', this.handleCallback);
+            // return new Promise(() => { }) //TODO: разобраться зачем
+        }
+        // INFO: message должен быть соствлен очень внимательно
+    }, { key: 'trigger', value: function trigger() {var cmd = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _commands3.default.HELP;var message = arguments[1];var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
             switch (cmd) {
                 case _commands3.default.BALANCE_STATS:
-                    return _index2.default.balance.stats(message, this._bot, options.noBalance);
+                    return _index2.default.balance.stats(message, this.bot, options.noBalance);
                 case _commands3.default.BALANCE_REPORT:
-                    return _index2.default.balance.report(message, this._bot, options.noBalance);
+                    return _index2.default.balance.report(message, this.bot, options.noBalance);
                 default:
                     (0, _logger.log)('\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().', _logger.logLevel.ERROR);}
 
-            throw '\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().';
-        } }, { key: '_handleText', value: function _handleText(
+            throw new Error('\u041D\u0435\u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0430 \'' + cmd + '\' \u0431\u043E\u0442\u0443 \u043F\u0440\u0438 \u0432\u044B\u0437\u043E\u0432\u0435 Telegram.trigger().');
+        } }, { key: 'handleText', value: function handleText(
         msg) {
             var message = new _message2.default(_message2.default.mapMessage(msg));var
             text = message.text;
@@ -51,35 +51,35 @@ Telegram = function () {// extends TelegramBot
 
             if (!_config3.default.isProduction) {
                 if (!inputParser.isDeveloper(message.from)) {
-                    return _index2.default.auth.getNeedDevStatus(message, this._bot);
+                    return _index2.default.auth.getNeedDevStatus(message, this.bot);
                 }
             }
 
             if (inputParser.isAskingForStart(text))
-            return _index2.default.balance.initIfNeed(message, this._bot);
+            return _index2.default.balance.initIfNeed(message, this.bot);
             // if (inputParser.isAskingForHelp(text))
-            //     return handlers.help.getHelp(message, this._bot)
+            //     return handlers.help.getHelp(message, this.bot)
             if (inputParser.isAskingForInitToken(text))
-            return _index2.default.init.initByToken(message, this._bot);
+            return _index2.default.init.initByToken(message, this.bot);
             if (inputParser.isAskingForReport(text))
-            return _index2.default.balance.report(message, this._bot);
+            return _index2.default.balance.report(message, this.bot);
             if (inputParser.isAskingForStats(text)) {
-                return _index2.default.balance.stats(message, this._bot);
+                return _index2.default.balance.stats(message, this.bot);
             }
             if (inputParser.isAskingForBalance(text))
-            return _index2.default.balance.balance(message, this._bot);
+            return _index2.default.balance.balance(message, this.bot);
             if (inputParser.isAskingForBalanceInit(text))
-            return _index2.default.balance.init(message, this._bot);
+            return _index2.default.balance.init(message, this.bot);
             if (inputParser.isAskingForBalanceChange(text))
-            return _index2.default.balance.change(message, this._bot);
+            return _index2.default.balance.change(message, this.bot);
             if (inputParser.isAskingForCommentChange(text, prevCommand))
-            return _index2.default.balance.commentChange(message, this._bot);
+            return _index2.default.balance.commentChange(message, this.bot);
             if (inputParser.isAskingForEcho(text))
-            return _index2.default.misc.getEcho(message, this._bot);
+            return _index2.default.misc.getEcho(message, this.bot);
 
             // default
-            return _index2.default.help.getHelp(message, this._bot, prevCommand);
-        } }, { key: '_handleCallback', value: function _handleCallback(
+            return _index2.default.help.getHelp(message, this.bot, prevCommand);
+        } }, { key: 'handleCallback', value: function handleCallback(
         callbackQuery) {var
             data = callbackQuery.data;
             data = data ? JSON.parse(data) : {};
@@ -89,21 +89,20 @@ Telegram = function () {// extends TelegramBot
 
             if (!_config3.default.isProduction) {
                 if (!inputParser.isDeveloper(message.chat.id)) {
-                    this._bot.answerCallbackQuery(callbackQuery.id, "No dev access", false);
-                    return _index2.default.auth.getNeedDevStatus(message, this._bot);
+                    this.bot.answerCallbackQuery(callbackQuery.id, 'No dev access', false);
+                    return _index2.default.auth.getNeedDevStatus(message, this.bot);
                 }
             }
 
             // default
-            this._bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
+            this.bot.answerCallbackQuery(callbackQuery.id, 'Команда получена', false);
 
             if (inputParser.isAskingForCategoryChange(message, prevCommand, data)) {
-                return _index2.default.balance.categoryChange(message, this._bot, data);
+                return _index2.default.balance.categoryChange(message, this.bot, data);
             }
             if (inputParser.isAskingForBalanceDelete(message, prevCommand, data)) {
-                return _index2.default.balance.delete(message, this._bot, data);
+                return _index2.default.balance.delete(message, this.bot, data);
             }
 
-
-            return _index2.default.help.getHelp(message, this._bot, data);
+            return _index2.default.help.getHelp(message, this.bot, data);
         } }]);return Telegram;}();exports.default = Telegram;
