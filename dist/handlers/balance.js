@@ -360,7 +360,7 @@ Balance = function () {
             bot.sendMessage(message.chat.id, titleInfo + ' \uD83E\uDD16').
             then(function () {return _server.history.getAll(message.chat.id);}).
             then(function (data) {//
-                all = data;
+                all = data ? data.filter(function (item) {return !item.date_delete;}) : [];
                 if (!all || all.length === 0)
                 return bot.sendMessage(message.chat.id, 'Нет истории. 🤖');
 

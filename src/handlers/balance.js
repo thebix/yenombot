@@ -360,7 +360,7 @@ export default class Balance {
         bot.sendMessage(message.chat.id, `${titleInfo} 🤖`)
             .then(() => history.getAll(message.chat.id))
             .then(data => { //
-                all = data
+                all = data ? data.filter(item => !item.date_delete) : []
                 if (!all || all.length === 0)
                     return bot.sendMessage(message.chat.id, 'Нет истории. 🤖')
 
