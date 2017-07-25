@@ -34,6 +34,21 @@ export default {
      
 }
 ```
+## deploy
+```
+ssh prod@127.0.0.1
+sudo forever stop yenombot
+exit
+git merge --no-ff feature develop
+./deploy release 0.1.2
+```
+test locally
+```
+./deploy.sh release 0.1.2 continue
+ssh prod@127.0.0.1
+sudo forever start yenombot
+exit
+```
 
 ## prod
 ```
