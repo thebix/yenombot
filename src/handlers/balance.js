@@ -7,10 +7,12 @@ import {
     setBotBalanceMessageId
 } from '../actions'
 import _commands from '../enums/commands'
-import FileSystem from '../lib/filesystem'
+import FileSystem from '../lib/lib/fs'   // TODO: should be refactored
 import lib from '../lib/index'
 
 import { log, logLevel, dateTimeString } from '../logger'
+
+const fileSystem = new FileSystem()
 
 export default class Balance {
     constructor() {
@@ -262,7 +264,8 @@ export default class Balance {
     }
 
     report(message, bot, noBalance = false) {
-        let file
+        let file,
+            csv
         return history.getAll(message.chat.id)
             .then(archive => {
                 const all = archive.filter(x => !x.date_delete).sort((a, b) => b.id - a.id)
@@ -281,16 +284,44 @@ export default class Balance {
                     default: 'NULL' // default if value Îfunction returns null or undefined
                 }, 'id'];
                 const fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id']
-                const csv = json2csv({ data: all, fields, fieldNames });
-                if (FileSystem.isDirExists(_config.dirStorage, true)
-                    && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
-                    file = `repo-${message.chat.title}.csv`
-
-                    return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
-                }
-                return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
+                csv = json2csv({ data: all, fields, fieldNames });
+                return fileSystem.isExists(_config.dirStorage)
+                    .then(() => true)
+                    .catch(() => {
+                        return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
+                    })
             })
-            .then(() => bot.sendDocument(message.chat.id, `${_config.dirStorage}repo/${file}`))
+            .then(isExists => {
+                if (isExists !== true)
+                    return false
+                return fileSystem.isExists(`${_config.dirStorage}repo`)
+                    .then(() => true)
+                    .catch(() => {
+                        return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
+                    })
+            })
+            .then(isExists => {
+                if (isExists !== true)
+                    return false
+                file = `repo-${message.chat.title}.csv`
+                return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
+            })
+
+
+
+            //     if (FileSystem.isDirExists(_config.dirStorage, true)
+            //         && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
+            //         file = `repo-${message.chat.title}.csv`
+
+            //         return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
+            //     }
+            //     return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
+            // })
+            .then(isExists => {
+                if (isExists !== true)
+                    return false
+                return bot.sendDocument(message.chat.id, `${_config.dirStorage}repo/${file}`)
+            })
             .then(() => {
                 if (noBalance)
                     return Promise.resolve()
