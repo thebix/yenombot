@@ -1,17 +1,17 @@
 import { createStore, compose, applyMiddleware } from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import FileSystem from './lib/filesystem'
-import History from './lib/history'
-import Message from './lib/message'
+import History from './telegram/history'
+import Message from './telegram/message'
 
 import { log, logLevel } from './logger'
 import _config from './config'
 import _commands from './enums/commands'
-import lib from './lib/index'
+import lib from './lib/root'
 
-import Timer from './lib/timer'
+import Timer from './telegram/timer'
 import appReducer from './reducers'
-import Telegram from './lib/telegram'
+import Telegram from './telegram/telegram'
 
 log('Start bot', logLevel.INFO)
 
