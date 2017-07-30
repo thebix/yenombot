@@ -1,5 +1,7 @@
 import { log, logLevel } from '../logger'
-import FileSystem from './filesystem'
+import FileSystem from '../lib/lib/fs'   // TODO: should be refactored
+
+const fileSystem = new FileSystem()
 
 export default class History {
     constructor(path = './', fileTemplate = 'hist-$[id].json') {
@@ -27,7 +29,7 @@ export default class History {
                 if (!all || all.constructor !== Array)
                     all = []
                 all.push(value)
-                return FileSystem.saveJson(file, all)
+                return fileSystem.saveJson(file, all)
             })
             .catch(err => Promise.reject(err))
     }
@@ -64,27 +66,26 @@ export default class History {
                     item.date_delete = newValue.date_delete
 
                 const file = this.getFilePath(templateId)
-                return FileSystem.saveJson(file, all)
+                return fileSystem.saveJson(file, all)
                     .then(() => Promise.resolve(item))
             }).catch(err => Promise.reject(err))
     }
     getAll(templateId = null) {
         const path = this.getFilePath(templateId)
 
-        if (FileSystem.isDirExists(this.path, true)
-            && FileSystem.isFileExists(path, true, null, '[]')) {
-            return FileSystem.readJson(path)
-                .then(data => {
-                    let all = data
-                    if (!all || all.constructor !== Array) {
-                        all = []
-                        log(`Для '${templateId}' не удалось нормально прочитать файл '${path}'`, logLevel.ERROR)
-                    }
-                    return Promise.resolve(all.sort((i1, i2) => i2.id - i1.id))
-                })
-                .catch(ex => Promise.reject(`Для '${templateId}' не удалось нормально прочитать файл '${path}', ex = '${ex}'`))
-        }
-        return Promise.reject('Problem with file access')
+        return fileSystem.isExists(this.path)
+            .then(() => fileSystem.isExists(path))
+            .then(() => FileSystem.readJson(path))
+            .then(data => {
+                let all = data
+                if (!all || all.constructor !== Array) {
+                    all = []
+                    log(`Для '${templateId}' не удалось нормально прочитать файл '${path}'`, logLevel.ERROR)
+                }
+                return Promise.resolve(all.sort((i1, i2) => i2.id - i1.id))
+            })
+            .catch(ex => Promise.reject(`Для '${templateId}' не удалось нормально прочитать файл '${path}', ex = '${ex}'`))
+        // return Promise.reject('Problem with file access')
     }
     getFilePath(templateId = null) {
         const file = templateId

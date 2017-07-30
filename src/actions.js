@@ -1,4 +1,6 @@
-import FileSystem from './lib/filesystem'
+import FileSystem from './lib/lib/fs'   // TODO: should be refactored
+
+const fileSystem = new FileSystem()
 
 export const BOT_CMD = 'BOT_CMD'
 export const BOT_CMD_CLEAR = 'BOT_CMD_CLEAR'
@@ -70,11 +72,11 @@ const fileReadDone = (file, data) => ({
 
 export const fileRead = file => dispatch => {
     dispatch(fileReadRequest(file))
-    return FileSystem.getFile(file)
-            .then(data => dispatch(fileReadDone(file, data)))
-            .catch(() => {
-                // TODO: обработка ошибки
-            })
+    return fileSystem.getFile(file)
+        .then(data => dispatch(fileReadDone(file, data)))
+        .catch(() => {
+            // TODO: обработка ошибки
+        })
 }
 
 const fileSaveRequest = (file, data) => ({
@@ -90,11 +92,11 @@ const fileSaveDone = file => ({
 
 export const fileSave = (file, data) => dispatch => {
     dispatch(fileSaveRequest(file, data))
-    return FileSystem.saveFile(file, data)
-            .then(() => dispatch(fileSaveDone(file)))
-            .catch(() => {
-                // TODO: обработка ошибки
-            })
+    return fileSystem.saveFile(file, data)
+        .then(() => dispatch(fileSaveDone(file)))
+        .catch(() => {
+            // TODO: обработка ошибки
+        })
 }
 
 const jsonReadRequest = (file, id) => ({
@@ -111,11 +113,11 @@ const jsonReadDone = (file, id, data) => ({
 
 export const jsonRead = (file, id) => dispatch => {
     dispatch(jsonReadRequest(file, id))
-    return FileSystem.getJson(file)
-            .then(data => dispatch(jsonReadDone(file, id, data)))
-            .catch(() => {
-                // TODO: обработка ошибки
-            })
+    return fileSystem.getJson(file)
+        .then(data => dispatch(jsonReadDone(file, id, data)))
+        .catch(() => {
+            // TODO: обработка ошибки
+        })
 }
 
 const jsonSaveRequest = (file, data) => ({
@@ -131,11 +133,11 @@ const jsonSaveDone = file => ({
 
 export const jsonSave = (file, data) => dispatch => {
     dispatch(jsonSaveRequest(file, data))
-    return FileSystem.saveJson(file, data)
-            .then(() => dispatch(jsonSaveDone(file)))
-            .catch(() => {
-                // TODO: обработка ошибки
-            })
+    return fileSystem.saveJson(file, data)
+        .then(() => dispatch(jsonSaveDone(file)))
+        .catch(() => {
+            // TODO: обработка ошибки
+        })
 }
 
 export const userAdd = ({ id, firstName, lastName, username }) => ({
