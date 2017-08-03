@@ -14,8 +14,10 @@
     "debug": "node src/server.js",
     "build": "export NODE_ENV=production&& babel src -d dist",
     "serve": "export NODE_ENV=production&& node dist/server.js",
-    "buildW": "set NODE_ENV=production&& babel src -d dist",
-    "serveW": "set NODE_ENV=production&& node dist/server.js"
+    "wwwBuild": "webpack --config webpack.production.config.js --progress --profile --colors",
+    "wwwStart": "export NODE_ENV=reactDebug&&webpack-dev-server --progress --profile --colors",
+    "wwwLint": "eslint --ext js --ext jsx src || exit 0",
+    "wwwDev": " webpack-dashboard -- webpack-dev-server --progress --profile --colors"
   },
   "repository": {
     "type": "git",
@@ -35,7 +37,7 @@
     "eslint-config-airbnb": "^15.0.1",
     "eslint-config-airbnb-base": "^11.2.0",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "5.0.1",
+    "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-react": "^7.0.1",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
@@ -49,7 +51,7 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "babel-register": "^6.18.0",
-    "rx":"~4.1.0"
+    "rx": "~4.1.0"
   },
   "private": true,
   "engines": {

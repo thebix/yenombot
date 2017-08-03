@@ -8,6 +8,7 @@ import _config from './config'
 import _commands from './enums/commands'
 import lib from './lib/root'
 import FileSystem from './lib/lib/fs'   // TODO: should be refactored
+import { RESPONSE_STATUS } from './lib/lib/www-server'
 
 import Timer from './telegram/timer'
 import appReducer from './reducers'
@@ -101,3 +102,18 @@ fileSystem.isExists(_config.dirStorage)
     .catch(() => {
         log(`Directory ${_config.dirStorage} or file ${_config.fileState} with content or [] not exist`, logLevel.ERROR)
     })
+
+lib.www.response.subscribe(serverData => {
+    const { data, status } = serverData
+    switch (status) {
+        case RESPONSE_STATUS.HTTP_200:
+            break
+        case RESPONSE_STATUS.HTTP_404:
+            data.response.writeHead(200, { 'Content-Type': 'text/plain' })
+            data.response.write('404 Not Found\n')
+            data.response.end()
+            break
+        default:
+        // no-op
+    }
+})

@@ -31,13 +31,6 @@ module.exports = {
         // let a, b
         "one-var": "off",
 
-        // https://medium.freecodecamp.org/adding-some-air-to-the-airbnb-style-guide-3df40e31c57a
-        // code arrangement matter
-        "no-use-before-define": ["error", { "functions": false }],
-
-        // keep it simple
-        "complexity": ["warn", 10],
-
         // only arithmetic operations could be mixed
         "no-mixed-operators": ["error", {
             "groups": [
@@ -49,6 +42,13 @@ module.exports = {
             ]
         }],
 
+        // https://medium.freecodecamp.org/adding-some-air-to-the-airbnb-style-guide-3df40e31c57a
+        // code arrangement matter
+        "no-use-before-define": ["error", { "functions": false }],
+
+        // keep it simple
+        "complexity": ["warn", 10],
+
         // react
         // "react/prefer-es6-class": 0,
         // "react/jsx-filename-extension": 0,
@@ -56,12 +56,6 @@ module.exports = {
         // "react/jsx-indent": [ 2, 4 ]
     },
     "plugins": [
-        "import",
-        "react"
-    ],
-    "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
-        }
-    }
+        "import"
+    ]
 };
