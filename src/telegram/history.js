@@ -75,7 +75,7 @@ export default class History {
 
         return fileSystem.isExists(this.path)
             .then(() => fileSystem.isExists(path))
-            .then(() => FileSystem.readJson(path))
+            .then(() => fileSystem.readJson(path))
             .then(data => {
                 let all = data
                 if (!all || all.constructor !== Array) {
