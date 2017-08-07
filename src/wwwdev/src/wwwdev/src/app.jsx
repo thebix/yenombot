@@ -9,11 +9,11 @@ export default class App extends Component {
     render() {
         return (
             <div>
-                <Header />
+                {/* <Header /> */}
                 <div id="content">
                     <History />
                 </div>
-                <Footer />
+                {/* <Footer /> */}
             </div>
         )
     }

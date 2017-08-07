@@ -12,12 +12,8 @@
     "test": "mocha --compilers js:babel-register",
     "start": "nodemon --trace-deprecation src/server.js --exec babel-node",
     "debug": "node src/server.js",
-    "build": "export NODE_ENV=production&& babel src -d dist",
-    "serve": "export NODE_ENV=production&& node dist/server.js",
-    "wwwBuild": "webpack --config webpack.production.config.js --progress --profile --colors",
-    "wwwStart": "export NODE_ENV=reactDebug&&webpack-dev-server --progress --profile --colors",
-    "wwwLint": "eslint --ext js --ext jsx src || exit 0",
-    "wwwDev": " webpack-dashboard -- webpack-dev-server --progress --profile --colors"
+    "build": "cd src/wwwdev && npm install && npm run build && cd ../.. && export NODE_ENV=production&& babel --ignore node_modules,storage src -d dist",
+    "serve": "export NODE_ENV=production&& node dist/server.js"
   },
   "repository": {
     "type": "git",
@@ -51,7 +47,7 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "babel-register": "^6.18.0",
-    "rx": "~4.1.0"
+    "rxjs": "~5.4.2"
   },
   "private": true,
   "engines": {

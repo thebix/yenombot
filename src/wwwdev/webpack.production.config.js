@@ -20,7 +20,7 @@ module.exports = {
     ],
     output: {
         publicPath: './',
-        path: path.join(__dirname, 'wwwroot'),
+        path: path.join(__dirname, '../../wwwroot'),
         filename: '[chunkhash].js'
     },
     resolve: {
