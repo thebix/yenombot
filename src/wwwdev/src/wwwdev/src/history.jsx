@@ -9,8 +9,7 @@ import {
     historyFetch,
     historySkipAction
 } from './actions'
-// TODO: should use upper package module
-import Time from '../../lib/lib/time' // INFO: bad reference
+import Time from '../../../../lib/lib/time' // INFO: bad reference
 
 const timeLib = new Time()
 

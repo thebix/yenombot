@@ -12,6 +12,7 @@ const defaultState = {
     users: {}
 }
 
+// TODO: chat selector
 const historyId = () => -211718771
 
 const historyData = (state = defaultState.historyData, action) => {
