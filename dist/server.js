@@ -26,13 +26,14 @@ var history = exports.history = new _history2.default(_config3.default.dirStorag
 
 var fileSystem = new _fs2.default();
 
-var HISTORY_PAGE_COUNT = 50;
+var HISTORY_PAGE_COUNT = 150;
 
 // TODO: extenal library
 var parseUrlParams = function parseUrlParams(urlWithParams) {
+    var uri = decodeURI(urlWithParams);
     var res = {};
-    if (urlWithParams.indexOf('?') === -1) return res;
-    urlWithParams.split('?')[1].split('&').forEach(function (pairItem) {
+    if (uri.indexOf('?') === -1) return res;
+    uri.split('?')[1].split('&').forEach(function (pairItem) {
         var pair = pairItem.split('=');
         if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
             res[pair[0]] = pair[1];
@@ -42,12 +43,8 @@ var parseUrlParams = function parseUrlParams(urlWithParams) {
 };
 
 fileSystem.isExists(_config3.default.dirStorage).
-then(function () {
-    return fileSystem.isExists(_config3.default.fileState);
-}).
-then(function () {
-    return fileSystem.readJson(_config3.default.fileState);
-}).
+then(function () {return fileSystem.isExists(_config3.default.fileState);}).
+then(function () {return fileSystem.readJson(_config3.default.fileState);}).
 then(function (stateFromFile) {
     var state = stateFromFile || {};
     exports.store = store = (0, _redux.createStore)(_reducers2.default, state, enhancer);
@@ -121,45 +118,77 @@ then(function (stateFromFile) {
         var uri = _url2.default.parse(data.request.url).pathname;
         switch (uri) {
             case '/api/historyGet':
-                if (data.request.method !== 'POST') {
-                    data.response.writeHead(404, { 'Content-Type': 'text/plain' });
-                    data.response.end();
-                    break;
+                {
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                        data.response.end();
+                        break;
+                    }
+                    var params = parseUrlParams(data.request.url);var
+                    id = params.id,categories = params.categories,users = params.users,dateStart = params.dateStart,dateEnd = params.dateEnd;
+                    var skipParam = params.skip || 0;
+                    var skip = +skipParam;
+                    history.getAll(id).
+                    then(function (items) {
+                        data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                        var cats = categories ? categories.split(',') : [];
+                        var usrs = users ? users.split(',') : [];
+                        var dtStart = dateStart ? new Date(+dateStart) : null;
+                        var dtEnd = dateEnd ? new Date(+dateEnd) : null;
+                        var elements = items.
+                        filter(function (item) {return (cats.length === 0 || cats.indexOf(item.category) > -1) && (
+                            usrs.length === 0 || usrs.indexOf('' + item.user_id) > -1) && (
+                            !dtStart || dtStart.getTime() <= new Date(item.date_create).getTime()) && (
+                            !dtEnd || dtEnd.getTime() > new Date(item.date_create).getTime());}).
+                        sort(function (a, b) {return b.id - a.id;});
+                        var elementsLength = elements.length;
+                        if (skip === -1)
+                        skip = elementsLength - HISTORY_PAGE_COUNT;
+                        var skipped = elements.sort(function (a, b) {return b.id - a.id;}).splice(+skip);
+                        skipped.splice(HISTORY_PAGE_COUNT);
+                        data.response.end(JSON.stringify({
+                            data: skipped,
+                            meta: {
+                                length: elementsLength } }));
+
+
+                    }).
+                    catch(function () {
+                        data.response.writeHead(500, { 'Content-Type': 'text/plain' });
+                        data.response.write('Can\'t read file');
+                        data.response.end();
+                    });
                 }
-                var params = parseUrlParams(data.request.url);
-                var id = params.id;
-                var skipParam = params.skip || 0;
-                var skip = +skipParam;
-                history.getAll(id).
-                then(function (items) {
-                    data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                    if (skip === -1)
-                    skip = items.length - HISTORY_PAGE_COUNT;
-                    var skipped = items.sort(function (a, b) {return b.id - a.id;}).splice(+skip);
-                    skipped.splice(HISTORY_PAGE_COUNT);
-                    data.response.end(JSON.stringify(skipped));
-                }).
-                catch(function () {
-                    data.response.writeHead(500, { 'Content-Type': 'text/plain' });
-                    data.response.write('Can\'t read file');
-                    data.response.end();
-                });
                 break;
-            case '/api/users':
-                if (data.request.method !== 'POST') {
-                    data.response.writeHead(404, { 'Content-Type': 'text/plain' });
-                    data.response.end();
-                    break;
-                }var _store$getState =
-                store.getState(),users = _store$getState.users;
-                data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                data.response.end(JSON.stringify(users));
+            case '/api/users':{
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                        data.response.end();
+                        break;
+                    }var _store$getState =
+                    store.getState(),_users = _store$getState.users;
+                    data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                    data.response.end(JSON.stringify(_users));
+                }
+                break;
+            case '/api/categories':
+                {
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                        data.response.end();
+                        break;
+                    }var _parseUrlParams =
+                    parseUrlParams(data.request.url),chatId = _parseUrlParams.chatId;
+                    data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                    data.response.end(JSON.stringify(store.getState().paymentGroups[chatId]));
+                }
                 break;
             default:
+
             // no-op
         }
     };
-    _root2.default.www.apiUrls = ['/api/historyGet', '/api/users'];
+    _root2.default.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories'];
     _root2.default.www.httpServerSet = 42042;
     _root2.default.www.response.subscribe(function (serverData) {var
         data = serverData.data,status = serverData.status;

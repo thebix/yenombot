@@ -1,0 +1,5 @@
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });var _react = require('react');var _react2 = _interopRequireDefault(_react);
+var _classnames = require('classnames');var _classnames2 = _interopRequireDefault(_classnames);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}exports.default =
+
+function (_ref) {var title = _ref.title,onClick = _ref.onClick,_ref$classes = _ref.classes,classes = _ref$classes === undefined ? [] : _ref$classes;return (
+        _react2.default.createElement('span', { className: (0, _classnames2.default)('dynamic', classes), onClick: onClick }, title));};
