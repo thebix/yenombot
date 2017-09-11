@@ -26,13 +26,14 @@ export const history = new History(_config.dirStorage, 'balance-hist-$[id].json'
 
 const fileSystem = new FileSystem()
 
-const HISTORY_PAGE_COUNT = 50
+const HISTORY_PAGE_COUNT = 150
 
 // TODO: extenal library
 const parseUrlParams = urlWithParams => {
+    const uri = decodeURI(urlWithParams)
     const res = {}
-    if (urlWithParams.indexOf('?') === -1) return res
-    urlWithParams.split('?')[1].split('&').forEach(pairItem => {
+    if (uri.indexOf('?') === -1) return res
+    uri.split('?')[1].split('&').forEach(pairItem => {
         const pair = pairItem.split('=')
         if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
             res[pair[0]] = pair[1]
@@ -42,12 +43,8 @@ const parseUrlParams = urlWithParams => {
 }
 
 fileSystem.isExists(_config.dirStorage)
-    .then(() => {
-        return fileSystem.isExists(_config.fileState)
-    })
-    .then(() => {
-        return fileSystem.readJson(_config.fileState)
-    })
+    .then(() => fileSystem.isExists(_config.fileState))
+    .then(() => fileSystem.readJson(_config.fileState))
     .then(stateFromFile => {
         const state = stateFromFile || {}
         store = createStore(appReducer, state, enhancer)
@@ -121,31 +118,49 @@ fileSystem.isExists(_config.dirStorage)
             const uri = url.parse(data.request.url).pathname
             switch (uri) {
                 case '/api/historyGet':
-                    if (data.request.method !== 'POST') {
-                        data.response.writeHead(404, { 'Content-Type': 'text/plain' })
-                        data.response.end()
-                        break
-                    }
-                    const params = parseUrlParams(data.request.url)
-                    const id = params.id
-                    const skipParam = params.skip || 0
-                    let skip = +skipParam
-                    history.getAll(id)
-                        .then(items => {
-                            data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
-                            if (skip === -1)
-                                skip = items.length - HISTORY_PAGE_COUNT
-                            const skipped = items.sort((a, b) => b.id - a.id).splice(+skip)
-                            skipped.splice(HISTORY_PAGE_COUNT)
-                            data.response.end(JSON.stringify(skipped))
-                        })
-                        .catch(() => {
-                            data.response.writeHead(500, { 'Content-Type': 'text/plain' })
-                            data.response.write('Can\'t read file')
+                    {
+                        if (data.request.method !== 'POST') {
+                            data.response.writeHead(404, { 'Content-Type': 'text/plain' })
                             data.response.end()
-                        })
+                            break
+                        }
+                        const params = parseUrlParams(data.request.url)
+                        const { id, categories, users, dateStart, dateEnd } = params
+                        const skipParam = params.skip || 0
+                        let skip = +skipParam
+                        history.getAll(id)
+                            .then(items => {
+                                data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+                                const cats = categories ? categories.split(',') : []
+                                const usrs = users ? users.split(',') : []
+                                const dtStart = dateStart ? new Date(+dateStart) : null
+                                const dtEnd = dateEnd ? new Date(+dateEnd) : null
+                                const elements = items
+                                    .filter(item => (cats.length === 0 || cats.indexOf(item.category) > -1)
+                                        && (usrs.length === 0 || usrs.indexOf(`${item.user_id}`) > -1)
+                                        && (!dtStart || (dtStart.getTime() <= (new Date(item.date_create)).getTime()))
+                                        && (!dtEnd || (dtEnd.getTime() > (new Date(item.date_create)).getTime())))
+                                    .sort((a, b) => b.id - a.id)
+                                const elementsLength = elements.length
+                                if (skip === -1)
+                                    skip = elementsLength - HISTORY_PAGE_COUNT
+                                const skipped = elements.sort((a, b) => b.id - a.id).splice(+skip)
+                                skipped.splice(HISTORY_PAGE_COUNT)
+                                data.response.end(JSON.stringify({
+                                    data: skipped,
+                                    meta: {
+                                        length: elementsLength
+                                    }
+                                }))
+                            })
+                            .catch(() => {
+                                data.response.writeHead(500, { 'Content-Type': 'text/plain' })
+                                data.response.write('Can\'t read file')
+                                data.response.end()
+                            })
+                    }
                     break
-                case '/api/users':
+                case '/api/users': {
                     if (data.request.method !== 'POST') {
                         data.response.writeHead(404, { 'Content-Type': 'text/plain' })
                         data.response.end()
@@ -154,12 +169,26 @@ fileSystem.isExists(_config.dirStorage)
                     const { users } = store.getState()
                     data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
                     data.response.end(JSON.stringify(users))
+                }
+                    break
+                case '/api/categories':
+                    {
+                        if (data.request.method !== 'POST') {
+                            data.response.writeHead(404, { 'Content-Type': 'text/plain' })
+                            data.response.end()
+                            break
+                        }
+                        const { chatId } = parseUrlParams(data.request.url)
+                        data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+                        data.response.end(JSON.stringify(store.getState().paymentGroups[chatId]))
+                    }
                     break
                 default:
+
                 // no-op
             }
         }
-        lib.www.apiUrls = ['/api/historyGet', '/api/users']
+        lib.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories']
         lib.www.httpServerSet = 42042
         lib.www.response.subscribe(serverData => {
             const { data, status } = serverData

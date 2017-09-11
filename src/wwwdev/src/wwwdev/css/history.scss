@@ -1,5 +1,12 @@
-.table-header {
+.fixed {
   position: fixed;
+}
+
+.table-header-row {
+}
+
+.table-header-filters {
+  padding-top: 35px
 }
 
 .table-header-cell {
@@ -9,7 +16,7 @@
 }
 
 .table-content {
-    padding-top: 30px
+  margin-top: 8px;
 }
 
 .table-row {
@@ -40,6 +47,12 @@
 input[type="button"] {
   padding: 5px 10px 5px 10px;
   margin-right: 5px
+}
+
+input[type="button"]:disabled {
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+  color: #BBBBBB
 }
 
 .warning {

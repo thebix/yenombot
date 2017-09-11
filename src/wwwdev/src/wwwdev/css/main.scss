@@ -6,3 +6,35 @@ body {
   padding-top: 15px;
   padding-bottom: 15px;
 }
+
+.dynamic {
+  border-bottom: 1px dashed #999;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+}
+
+// Input.jsx
+.input {
+  padding: 2px 3px 2px 3px;
+  border-top: none;
+  border-left: none;
+}
+
+.input.allowed {
+  border-bottom: solid;
+  border-bottom-color: green;
+}
+
+.input.not-allowed {
+  border-bottom: solid;
+  border-bottom-color: red;
+}
+
+// CheckBox.jsx
+input[type="checkbox"] {
+}
+
+span.check input[type="checkbox"] {
+  margin: 0px 3px 0px 0px;
+}
