@@ -64,6 +64,14 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
             return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        } }, { key: 'getMonthStartDate', value: function getMonthStartDate()
+
+        {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
+            return new Date(date.getFullYear(), date.getMonth(), 1);
+        } }, { key: 'getMonthEndDate', value: function getMonthEndDate()
+
+        {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
+            return new Date(date.getFullYear(), date.getMonth() + 1, 0);
         } }, { key: 'dateTimeString', value: function dateTimeString()
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
@@ -71,6 +79,8 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
         } }, { key: 'dateString', value: function dateString()
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();var isFullYear = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+            if (!date) return '';
+            if (typeof date === 'string') return date;
             // сокращенная запись только для этого столетия
             var century = Math.floor(date.getFullYear() / 100) * 100;
             var yearDiff = isFullYear || century < 2000 ? 0 : 2000;
@@ -107,9 +117,10 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
                 case weekdays.su: // case zero problem
                 default:return 'Вс';}
 
-        } }, { key: 'getMonday', value: function getMonday()
+        }
 
-        {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();var next = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        // TODO: not working on sunday without params
+    }, { key: 'getMonday', value: function getMonday() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();var next = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
             var d = new Date(date);
             var day = d.getDay();
             var diff = void 0;

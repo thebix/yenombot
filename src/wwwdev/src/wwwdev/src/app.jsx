@@ -5,8 +5,11 @@ import Header from './header.jsx'
 import Footer from './footer.jsx'
 import History from './history.jsx'
 
+import l from '../../logger'
+
 export default class App extends Component {
     render() {
+        l.d('App render')
         return (
             <div>
                 {/* <Header /> */}
