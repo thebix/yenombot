@@ -1,16 +1,18 @@
-'use strict';Object.defineProperty(exports, "__esModule", { value: true });var _createClass = function () {function defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}return function (Constructor, protoProps, staticProps) {if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;};}();var _exprEval = require('expr-eval');
-var _json2csv = require('json2csv');var _json2csv2 = _interopRequireDefault(_json2csv);
-var _config2 = require('../config');var _config3 = _interopRequireDefault(_config2);
-var _server = require('../server');
-var _actions = require('../actions');
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });var _createClass = function () {function defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}return function (Constructor, protoProps, staticProps) {if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;};}();
 
 
 
-var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);
-var _filesystem = require('../lib/filesystem');var _filesystem2 = _interopRequireDefault(_filesystem);
-var _index = require('../lib/index');var _index2 = _interopRequireDefault(_index);
 
-var _logger = require('../logger');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var
+
+
+
+
+// TODO: should be refactored
+var _exprEval = require('expr-eval');var _json2csv = require('json2csv');var _json2csv2 = _interopRequireDefault(_json2csv);var _config2 = require('../config');var _config3 = _interopRequireDefault(_config2);var _server = require('../server');var _actions = require('../actions');var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);var _fs = require('../lib/lib/fs');var _fs2 = _interopRequireDefault(_fs);var _index = require('../lib/index');var _index2 = _interopRequireDefault(_index);
+
+var _logger = require('../logger');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
+
+var fileSystem = new _fs2.default();var
 
 Balance = function () {
     function Balance() {_classCallCheck(this, Balance);
@@ -262,7 +264,8 @@ Balance = function () {
         } }, { key: 'report', value: function report(
 
         message, bot) {var _this4 = this;var noBalance = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-            var file = void 0;
+            var file = void 0,
+            csv = void 0;
             return _server.history.getAll(message.chat.id).
             then(function (archive) {
                 var all = archive.filter(function (x) {return !x.date_delete;}).sort(function (a, b) {return b.id - a.id;});var _store$getState =
@@ -281,16 +284,44 @@ Balance = function () {
                     default: 'NULL' // default if value Îfunction returns null or undefined
                 }, 'id'];
                 var fieldNames = ['Дата', 'Сумма', 'Категория', 'Комментарий', 'Юзер', 'id'];
-                var csv = (0, _json2csv2.default)({ data: all, fields: fields, fieldNames: fieldNames });
-                if (_filesystem2.default.isDirExists(_config3.default.dirStorage, true) &&
-                _filesystem2.default.isDirExists(_config3.default.dirStorage + 'repo', true)) {
-                    file = 'repo-' + message.chat.title + '.csv';
-
-                    return _filesystem2.default.saveFile(_config3.default.dirStorage + 'repo/' + file, csv);
-                }
-                return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');
+                csv = (0, _json2csv2.default)({ data: all, fields: fields, fieldNames: fieldNames });
+                return fileSystem.isExists(_config3.default.dirStorage).
+                then(function () {return true;}).
+                catch(function () {
+                    return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');
+                });
             }).
-            then(function () {return bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + file);}).
+            then(function (isExists) {
+                if (isExists !== true)
+                return false;
+                return fileSystem.isExists(_config3.default.dirStorage + 'repo').
+                then(function () {return true;}).
+                catch(function () {
+                    return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');
+                });
+            }).
+            then(function (isExists) {
+                if (isExists !== true)
+                return false;
+                file = 'repo-' + message.chat.title + '.csv';
+                return _fs2.default.saveFile(_config3.default.dirStorage + 'repo/' + file, csv);
+            })
+
+
+
+            //     if (FileSystem.isDirExists(_config.dirStorage, true)
+            //         && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
+            //         file = `repo-${message.chat.title}.csv`
+
+            //         return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
+            //     }
+            //     return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
+            // })
+            .then(function (isExists) {
+                if (isExists !== true)
+                return false;
+                return bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + file);
+            }).
             then(function () {
                 if (noBalance)
                 return Promise.resolve();

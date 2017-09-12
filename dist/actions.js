@@ -1,4 +1,6 @@
-'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.userAdd = exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.setBotBalanceMessageId = exports.botCmdClear = exports.botCmd = exports.USER_ADD = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_BALANCE_MESSAGE_ID = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;var _filesystem = require('./lib/filesystem');var _filesystem2 = _interopRequireDefault(_filesystem);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.userAdd = exports.jsonSave = exports.jsonRead = exports.fileSave = exports.fileRead = exports.balanceChange = exports.balanceInit = exports.initByToken = exports.setBotBalanceMessageId = exports.botCmdClear = exports.botCmd = exports.USER_ADD = exports.FS_JSON_WRITE_DONE = exports.FS_JSON_WRITE = exports.FS_JSON_READ_DONE = exports.FS_JSON_READ = exports.FS_FILE_WRITE_DONE = exports.FS_FILE_WRITE = exports.FS_FILE_READ_DONE = exports.FS_FILE_READ = exports.BALANCE_CHANGE = exports.BALANCE_INIT = exports.INIT_BY_TOKEN = exports.BOT_BALANCE_MESSAGE_ID = exports.BOT_CMD_CLEAR = exports.BOT_CMD = undefined;var _fs = require('./lib/lib/fs');var _fs2 = _interopRequireDefault(_fs);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // TODO: should be refactored
+
+var fileSystem = new _fs2.default();
 
 var BOT_CMD = exports.BOT_CMD = 'BOT_CMD';
 var BOT_CMD_CLEAR = exports.BOT_CMD_CLEAR = 'BOT_CMD_CLEAR';
@@ -70,7 +72,7 @@ var fileReadDone = function fileReadDone(file, data) {return {
 
 var fileRead = exports.fileRead = function fileRead(file) {return function (dispatch) {
         dispatch(fileReadRequest(file));
-        return _filesystem2.default.getFile(file).
+        return fileSystem.getFile(file).
         then(function (data) {return dispatch(fileReadDone(file, data));}).
         catch(function () {
             // TODO: обработка ошибки
@@ -90,7 +92,7 @@ var fileSaveDone = function fileSaveDone(file) {return {
 
 var fileSave = exports.fileSave = function fileSave(file, data) {return function (dispatch) {
         dispatch(fileSaveRequest(file, data));
-        return _filesystem2.default.saveFile(file, data).
+        return fileSystem.saveFile(file, data).
         then(function () {return dispatch(fileSaveDone(file));}).
         catch(function () {
             // TODO: обработка ошибки
@@ -111,7 +113,7 @@ var jsonReadDone = function jsonReadDone(file, id, data) {return {
 
 var jsonRead = exports.jsonRead = function jsonRead(file, id) {return function (dispatch) {
         dispatch(jsonReadRequest(file, id));
-        return _filesystem2.default.getJson(file).
+        return fileSystem.getJson(file).
         then(function (data) {return dispatch(jsonReadDone(file, id, data));}).
         catch(function () {
             // TODO: обработка ошибки
@@ -131,7 +133,7 @@ var jsonSaveDone = function jsonSaveDone(file) {return {
 
 var jsonSave = exports.jsonSave = function jsonSave(file, data) {return function (dispatch) {
         dispatch(jsonSaveRequest(file, data));
-        return _filesystem2.default.saveJson(file, data).
+        return fileSystem.saveJson(file, data).
         then(function () {return dispatch(jsonSaveDone(file));}).
         catch(function () {
             // TODO: обработка ошибки
