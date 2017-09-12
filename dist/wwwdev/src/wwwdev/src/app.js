@@ -3,10 +3,13 @@ require('../css/index.scss');
 
 var _header = require('./header.jsx');var _header2 = _interopRequireDefault(_header);
 var _footer = require('./footer.jsx');var _footer2 = _interopRequireDefault(_footer);
-var _history = require('./history.jsx');var _history2 = _interopRequireDefault(_history);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}var
+var _history = require('./history.jsx');var _history2 = _interopRequireDefault(_history);
+
+var _logger = require('../../logger');var _logger2 = _interopRequireDefault(_logger);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}var
 
 App = function (_Component) {(0, _inherits3.default)(App, _Component);function App() {(0, _classCallCheck3.default)(this, App);return (0, _possibleConstructorReturn3.default)(this, (App.__proto__ || (0, _getPrototypeOf2.default)(App)).apply(this, arguments));}(0, _createClass3.default)(App, [{ key: 'render', value: function render()
         {
+            _logger2.default.d('App render');
             return (
                 _react2.default.createElement('div', null,
 

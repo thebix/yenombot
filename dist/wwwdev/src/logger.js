@@ -1,4 +1,4 @@
-'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.l = exports.log = exports.dateTimeString = exports.logLevel = undefined;var _stringify = require('babel-runtime/core-js/json/stringify');var _stringify2 = _interopRequireDefault(_stringify);var _typeof2 = require('babel-runtime/helpers/typeof');var _typeof3 = _interopRequireDefault(_typeof2);var _config2 = require('./config');var _config3 = _interopRequireDefault(_config2);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.default = exports.logLevel = undefined;var _stringify = require('babel-runtime/core-js/json/stringify');var _stringify2 = _interopRequireDefault(_stringify);var _typeof2 = require('babel-runtime/helpers/typeof');var _typeof3 = _interopRequireDefault(_typeof2);var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);var _createClass2 = require('babel-runtime/helpers/createClass');var _createClass3 = _interopRequireDefault(_createClass2);var _config2 = require('./config');var _config3 = _interopRequireDefault(_config2);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
 
 var logLevel = exports.logLevel = {
     ERROR: 'ERROR',
@@ -6,9 +6,9 @@ var logLevel = exports.logLevel = {
     DEBUG: 'DEBUG' };
 
 
-var dateTimeString = exports.dateTimeString = function dateTimeString() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();return date.toLocaleDateString() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2);};
+var dateTimeString = function dateTimeString() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();return date.toLocaleDateString() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2);};
 
-var log = exports.log = function log(text) {var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : logLevel.DEBUG;
+var log = function log(text) {var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : logLevel.DEBUG;
     if (!text) return;
     if (_config3.default.log === logLevel.DEBUG ||
     _config3.default.log === logLevel.INFO && (level === logLevel.INFO || level === logLevel.ERROR) ||
@@ -16,15 +16,44 @@ var log = exports.log = function log(text) {var level = arguments.length > 1 && 
         var t = dateTimeString() + ' | ' + level + ' | ' + text;
         console.log(t);
     }
-};
+};var
 
-var l = exports.l = function l(text) {var obj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'zero';
-    var msg = void 0;
-    if ((typeof text === 'undefined' ? 'undefined' : (0, _typeof3.default)(text)) === 'object') {
-        msg = (0, _stringify2.default)(text);
-    }
-    if (obj !== 'zero') {
-        msg = text + ' = ' + (0, _stringify2.default)(obj);
-    }
-    log(msg, logLevel.DEBUG);
-};
+l = function () {function l() {(0, _classCallCheck3.default)(this, l);}(0, _createClass3.default)(l, null, [{ key: 'ds', value: function ds(
+        message, obj) {
+            l.d((typeof message === 'undefined' ? 'undefined' : (0, _typeof3.default)(message)) === 'object' ? (0, _stringify2.default)(message) : message,
+            (typeof obj === 'undefined' ? 'undefined' : (0, _typeof3.default)(obj)) === 'object' ? (0, _stringify2.default)(obj) : obj);
+        } }, { key: 'd', value: function d(
+        message, obj) {
+            if (_config3.default.log !== logLevel.DEBUG)
+            return;
+
+            var text = message;
+            if (Array.isArray(message)) {
+                text = '' + (0, _stringify2.default)(message);
+            }
+
+            if (Array.isArray(obj)) {
+                text = text + ': ' + (0, _stringify2.default)(obj);
+            } else if (typeof obj === 'string') {
+                text = text + ': ' + obj;
+            }
+
+            log(text, logLevel.DEBUG);
+            if ((typeof message === 'undefined' ? 'undefined' : (0, _typeof3.default)(message)) === 'object') {
+                console.log(message);
+            }
+            if ((typeof obj === 'undefined' ? 'undefined' : (0, _typeof3.default)(obj)) === 'object') {
+                console.log(obj);
+            }
+        } }, { key: 'e', value: function e(
+        err, obj) {
+            var text = err;
+            if (Array.isArray(obj)) {
+                text = err + ': ' + (0, _stringify2.default)(obj);
+            } else if (typeof obj === 'string') {
+                text = err + ': ' + obj;
+            } else if ((typeof obj === 'undefined' ? 'undefined' : (0, _typeof3.default)(obj)) === 'object') {
+                text = err + ': ' + (0, _stringify2.default)(obj);
+            }
+            log(text, logLevel.ERROR);
+        } }]);return l;}();exports.default = l;
