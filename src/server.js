@@ -118,16 +118,24 @@ fileSystem.isExists(_config.dirStorage)
             const uri = url.parse(data.request.url).pathname
             switch (uri) {
                 case '/api/historyGet':
-                    {
-                        if (data.request.method !== 'POST') {
-                            data.response.writeHead(404, { 'Content-Type': 'text/plain' })
-                            data.response.end()
-                            break
-                        }
-                        const params = parseUrlParams(data.request.url)
-                        const { id, categories, users, dateStart, dateEnd } = params
-                        const skipParam = params.skip || 0
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' })
+                        data.response.end()
+                        break
+                    }
+                    // TODO: rxjs
+                    data.request.on('data', chunk => {
+                        if (!chunk) return
+                        const body = JSON.parse(chunk.toString())
+                        const {
+                            id,
+                            categories,
+                            users,
+                            dateStart,
+                            dateEnd } = body
+                        const skipParam = body.skip || 0
                         let skip = +skipParam
+                        // TODO: rxjs
                         history.getAll(id)
                             .then(items => {
                                 data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
@@ -146,19 +154,55 @@ fileSystem.isExists(_config.dirStorage)
                                     skip = elementsLength - HISTORY_PAGE_COUNT
                                 const skipped = elements.sort((a, b) => b.id - a.id).splice(+skip)
                                 skipped.splice(HISTORY_PAGE_COUNT)
+                                const activeCategories = Array.from(new Set(skipped.map(item => item.category)))
+                                const activeUsersIds = Array.from(new Set(skipped.map(item => item.user_id)))
                                 data.response.end(JSON.stringify({
                                     data: skipped,
                                     meta: {
-                                        length: elementsLength
+                                        length: elementsLength,
+                                        activeCategories,
+                                        activeUsersIds
                                     }
                                 }))
                             })
-                            .catch(() => {
-                                data.response.writeHead(500, { 'Content-Type': 'text/plain' })
+                            .catch(err => {
+                                log(err, logLevel.ERROR)
+                                data.response.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
                                 data.response.write('Can\'t read file')
                                 data.response.end()
                             })
+                    }).on('end', () => {
+                        // no-op
+                    })
+                    break
+                case '/api/historySet':
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' })
+                        data.response.end()
+                        break
                     }
+                    // TODO: rxjs
+                    data.request.on('data', chunk => {
+                        if (!chunk) return
+                        const body = JSON.parse(chunk.toString())
+                        const { id, chatId, ...changes } = body
+                        if (id > 0 && changes) {
+                            history.setById(id, changes, chatId)
+                                .then(() => {
+                                    data.response.writeHead(200, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' })
+                                    data.response.end('ok')
+                                })
+                                .catch(() => {
+                                    data.response.writeHead(500, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' })
+                                    data.response.end('Write history error')
+                                })
+                        } else {
+                            data.response.writeHead(500, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' })
+                            data.response.end('Write history error')
+                        }
+                    }).on('end', () => {
+                        // no-op
+                    })
                     break
                 case '/api/users': {
                     if (data.request.method !== 'POST') {
@@ -172,23 +216,26 @@ fileSystem.isExists(_config.dirStorage)
                 }
                     break
                 case '/api/categories':
-                    {
-                        if (data.request.method !== 'POST') {
-                            data.response.writeHead(404, { 'Content-Type': 'text/plain' })
-                            data.response.end()
-                            break
-                        }
-                        const { chatId } = parseUrlParams(data.request.url)
+                    if (data.request.method !== 'POST') {
+                        data.response.writeHead(404, { 'Content-Type': 'text/plain' })
+                        data.response.end()
+                        break
+                    }
+                    // TODO: rxjs
+                    data.request.on('data', chunk => {
+                        if (!chunk) return
+                        const { chatId } = JSON.parse(chunk.toString())
                         data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
                         data.response.end(JSON.stringify(store.getState().paymentGroups[chatId]))
-                    }
+                    }).on('end', () => {
+                        // no-op
+                    })
                     break
                 default:
-
                 // no-op
             }
         }
-        lib.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories']
+        lib.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories', '/api/historySet']
         lib.www.httpServerSet = 42042
         lib.www.response.subscribe(serverData => {
             const { data, status } = serverData

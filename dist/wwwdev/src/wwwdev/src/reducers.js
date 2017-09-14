@@ -10,6 +10,11 @@
 
 
 
+
+
+
+
+
 var defaultState = {
     historyId: null,
     historyData: {
@@ -21,7 +26,10 @@ var defaultState = {
     historySelectedCategories: [],
     users: {},
     historySelectedUsers: [],
-    historySelectedDates: { dateStart: null, dateEnd: null }
+    historySelectedDates: { dateStart: null, dateEnd: null },
+    historyEditId: null,
+    historyEditUndo: {},
+    historyUpdate: false
 
 
     // TODO: chat selector
@@ -134,6 +142,43 @@ var historySelectedDates = function historySelectedDates() {var state = argument
         default:}
 
     return state;
+};
+
+var historyEditId = function historyEditId() {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.historyEditId;var action = arguments[1];
+    switch (action.type) {
+        case _actions.HISTORY_EDIT_ON:
+            return action.data;
+        case _actions.HISTORY_EDIT_OFF:
+            return null;
+        default:}
+
+    return state;
+};
+
+var historyEditUndo = function historyEditUndo() {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.historyEditUndo;var action = arguments[1];
+    switch (action.type) {
+        case _actions.HISTORY_SAVE_UNDO:
+            return {
+                chatId: action.chatId,
+                id: action.id,
+                changes: action.changes };
+
+        default:}
+
+    return state;
+};
+
+var historyUpdate = function historyUpdate() {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState.historyUpdate;var action = arguments[1];
+    switch (action.type) {
+        case _actions.HISTORY_UPDATE:
+            return action.data;
+        case _actions.HISTORY_SAVE_DONE:
+            return true;
+        case _actions.HISTORY_FETCH_DONE:
+            return false;
+        default:}
+
+    return state;
 };exports.default =
 
 function () {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState;var action = arguments[1];return {
@@ -145,4 +190,7 @@ function () {var state = arguments.length > 0 && arguments[0] !== undefined ? ar
         historyCategories: historyCategories(state.historyCategories, action),
         historySelectedCategories: historySelectedCategories(state.historySelectedCategories, action),
         historySelectedUsers: historySelectedUsers(state.historySelectedUsers, action),
-        historySelectedDates: historySelectedDates(state.historySelectedDates, action) };};
+        historySelectedDates: historySelectedDates(state.historySelectedDates, action),
+        historyEditId: historyEditId(state.historyEditId, action),
+        historyEditUndo: historyEditUndo(state.historyEditUndo, action),
+        historyUpdate: historyUpdate(state.historyUpdate, action) };};

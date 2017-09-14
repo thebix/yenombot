@@ -15,6 +15,12 @@ export const HISTORY_CATEGORY_TOGGLE = 'HISTORY_CATEGORY_TOGGLE'
 export const HISTORY_CATEGORIES_SELECTED = 'HISTORY_CATEGORIES_SELECTED'
 export const HISTORY_DATE_START = 'HISTORY_DATE_START'
 export const HISTORY_DATE_END = 'HISTORY_DATE_END'
+export const HISTORY_EDIT_ON = 'HISTORY_EDIT_ON'
+export const HISTORY_EDIT_OFF = 'HISTORY_EDIT_OFF'
+export const HISTORY_SAVE = 'HISTORY_SAVE'
+export const HISTORY_SAVE_DONE = 'HISTORY_SAVE_DONE'
+export const HISTORY_SAVE_UNDO = 'HISTORY_SAVE_UNDO'
+export const HISTORY_UPDATE = 'HISTORY_UPDATE'
 
 const restUrl = _config.isProduction ? '' : '//127.0.0.1:42042'
 
@@ -42,9 +48,9 @@ export const historyFetch = (id,
         if (Array.isArray(selectedUsers) && selectedUsers.length > 0) {
             usrs = selectedUsers.join(',')
         }
-        return fetch(`${restUrl}/api/historyGet?id=${id}&skip=${skip}&categories=${cats}&users=${usrs}&dateStart=${dateStart}&dateEnd=${dateEnd}`, {
+        return fetch(`${restUrl}/api/historyGet`, {
             method: 'POST',
-            body: JSON.stringify({ id, skip })
+            body: JSON.stringify({ id, skip, dateStart, dateEnd, categories: cats, users: usrs })
         })
             // Do not use catch, because that will also catch
             // any errors in the dispatch and resulting render,
@@ -81,10 +87,11 @@ const categoriesFetchDone = json => ({
     data: json || {}
 })
 
-export const categoriesFetch = id => dispatch => {
+export const categoriesFetch = chatId => dispatch => {
     l.d('action.categoriesFetch()')
-    return fetch(`${restUrl}/api/categories?chatId=${id}`, {
-        method: 'POST'
+    return fetch(`${restUrl}/api/categories`, {
+        method: 'POST',
+        body: JSON.stringify({ chatId })
     })
         .then(response => response.json(), error => l.e('An error occured.', error))
         .then(json => dispatch(categoriesFetchDone(json)))
@@ -103,4 +110,46 @@ export const historyCategoriesSelected = (categories = []) => ({
 export const historyDateSet = (date = new Date(), isStart = true) => ({
     type: isStart ? HISTORY_DATE_START : HISTORY_DATE_END,
     data: date
+})
+
+export const historyEditSwitch = (id = null) => ({
+    type: id === null ? HISTORY_EDIT_OFF : HISTORY_EDIT_ON,
+    data: id
+})
+
+const historySaveDone = (isError = false) => ({
+    type: HISTORY_SAVE_DONE,
+    data: isError
+})
+
+// changes = { value, category, comment, date_delete, date_create }
+export const historySave = (chatId, id, changes) =>
+    dispatch => fetch(`${restUrl}/api/historySet`, {
+        method: 'POST',
+        body: JSON.stringify({
+            ...changes,
+            chatId,
+            id
+        })
+    })
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing an loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        .then(response => response.status !== 200, error => {
+            historySaveDone(true)
+            l.e('An error occured.', error)
+        })
+        .then(isError => dispatch(historySaveDone(isError)))
+
+export const historySaveUndo = (chatId, id, changes) => ({
+    type: HISTORY_SAVE_UNDO,
+    chatId,
+    id,
+    changes
+})
+
+export const historyShouldUpdate = (shouldUpdate = true) => ({
+    type: HISTORY_UPDATE,
+    data: shouldUpdate
 })

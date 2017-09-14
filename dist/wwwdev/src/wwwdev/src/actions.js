@@ -1,4 +1,4 @@
-'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.historyDateSet = exports.historyCategoriesSelected = exports.historyCategoryToggle = exports.categoriesFetch = exports.historyUserToggle = exports.usersFetch = exports.historySkipAction = exports.historyFetch = exports.HISTORY_DATE_END = exports.HISTORY_DATE_START = exports.HISTORY_CATEGORIES_SELECTED = exports.HISTORY_CATEGORY_TOGGLE = exports.HISTORY_CATEGORIES_FETCH_DONE = exports.HISTORY_CATEGORIES_FETCH = exports.HISTORY_USER_TOGGLE = exports.USERS_FETCH_DONE = exports.USERS_FETCH = exports.HISTORY_SKIP = exports.HISTORY_FETCH_DONE = exports.HISTORY_FETCH = undefined;var _stringify = require('babel-runtime/core-js/json/stringify');var _stringify2 = _interopRequireDefault(_stringify);var _isomorphicFetch = require('isomorphic-fetch');var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.historyShouldUpdate = exports.historySaveUndo = exports.historySave = exports.historyEditSwitch = exports.historyDateSet = exports.historyCategoriesSelected = exports.historyCategoryToggle = exports.categoriesFetch = exports.historyUserToggle = exports.usersFetch = exports.historySkipAction = exports.historyFetch = exports.HISTORY_UPDATE = exports.HISTORY_SAVE_UNDO = exports.HISTORY_SAVE_DONE = exports.HISTORY_SAVE = exports.HISTORY_EDIT_OFF = exports.HISTORY_EDIT_ON = exports.HISTORY_DATE_END = exports.HISTORY_DATE_START = exports.HISTORY_CATEGORIES_SELECTED = exports.HISTORY_CATEGORY_TOGGLE = exports.HISTORY_CATEGORIES_FETCH_DONE = exports.HISTORY_CATEGORIES_FETCH = exports.HISTORY_USER_TOGGLE = exports.USERS_FETCH_DONE = exports.USERS_FETCH = exports.HISTORY_SKIP = exports.HISTORY_FETCH_DONE = exports.HISTORY_FETCH = undefined;var _extends2 = require('babel-runtime/helpers/extends');var _extends3 = _interopRequireDefault(_extends2);var _stringify = require('babel-runtime/core-js/json/stringify');var _stringify2 = _interopRequireDefault(_stringify);var _isomorphicFetch = require('isomorphic-fetch');var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 
 var _config2 = require('../../config');var _config3 = _interopRequireDefault(_config2);
 var _logger = require('../../logger');var _logger2 = _interopRequireDefault(_logger);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
@@ -15,6 +15,12 @@ var HISTORY_CATEGORY_TOGGLE = exports.HISTORY_CATEGORY_TOGGLE = 'HISTORY_CATEGOR
 var HISTORY_CATEGORIES_SELECTED = exports.HISTORY_CATEGORIES_SELECTED = 'HISTORY_CATEGORIES_SELECTED';
 var HISTORY_DATE_START = exports.HISTORY_DATE_START = 'HISTORY_DATE_START';
 var HISTORY_DATE_END = exports.HISTORY_DATE_END = 'HISTORY_DATE_END';
+var HISTORY_EDIT_ON = exports.HISTORY_EDIT_ON = 'HISTORY_EDIT_ON';
+var HISTORY_EDIT_OFF = exports.HISTORY_EDIT_OFF = 'HISTORY_EDIT_OFF';
+var HISTORY_SAVE = exports.HISTORY_SAVE = 'HISTORY_SAVE';
+var HISTORY_SAVE_DONE = exports.HISTORY_SAVE_DONE = 'HISTORY_SAVE_DONE';
+var HISTORY_SAVE_UNDO = exports.HISTORY_SAVE_UNDO = 'HISTORY_SAVE_UNDO';
+var HISTORY_UPDATE = exports.HISTORY_UPDATE = 'HISTORY_UPDATE';
 
 var restUrl = _config3.default.isProduction ? '' : '//127.0.0.1:42042';
 
@@ -42,9 +48,9 @@ var historyFetch = exports.historyFetch = function historyFetch(id) {var
             if (Array.isArray(selectedUsers) && selectedUsers.length > 0) {
                 usrs = selectedUsers.join(',');
             }
-            return (0, _isomorphicFetch2.default)(restUrl + '/api/historyGet?id=' + id + '&skip=' + skip + '&categories=' + cats + '&users=' + usrs + '&dateStart=' + dateStart + '&dateEnd=' + dateEnd, {
+            return (0, _isomorphicFetch2.default)(restUrl + '/api/historyGet', {
                 method: 'POST',
-                body: (0, _stringify2.default)({ id: id, skip: skip }) })
+                body: (0, _stringify2.default)({ id: id, skip: skip, dateStart: dateStart, dateEnd: dateEnd, categories: cats, users: usrs }) })
 
             // Do not use catch, because that will also catch
             // any errors in the dispatch and resulting render,
@@ -81,10 +87,11 @@ var categoriesFetchDone = function categoriesFetchDone(json) {return {
         data: json || {} };};
 
 
-var categoriesFetch = exports.categoriesFetch = function categoriesFetch(id) {return function (dispatch) {
+var categoriesFetch = exports.categoriesFetch = function categoriesFetch(chatId) {return function (dispatch) {
         _logger2.default.d('action.categoriesFetch()');
-        return (0, _isomorphicFetch2.default)(restUrl + '/api/categories?chatId=' + id, {
-            method: 'POST' }).
+        return (0, _isomorphicFetch2.default)(restUrl + '/api/categories', {
+            method: 'POST',
+            body: (0, _stringify2.default)({ chatId: chatId }) }).
 
         then(function (response) {return response.json();}, function (error) {return _logger2.default.e('An error occured.', error);}).
         then(function (json) {return dispatch(categoriesFetchDone(json));});
@@ -103,3 +110,45 @@ var historyCategoriesSelected = exports.historyCategoriesSelected = function his
 var historyDateSet = exports.historyDateSet = function historyDateSet() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();var isStart = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;return {
         type: isStart ? HISTORY_DATE_START : HISTORY_DATE_END,
         data: date };};
+
+
+var historyEditSwitch = exports.historyEditSwitch = function historyEditSwitch() {var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;return {
+        type: id === null ? HISTORY_EDIT_OFF : HISTORY_EDIT_ON,
+        data: id };};
+
+
+var historySaveDone = function historySaveDone() {var isError = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;return {
+        type: HISTORY_SAVE_DONE,
+        data: isError };};
+
+
+// changes = { value, category, comment, date_delete, date_create }
+var historySave = exports.historySave = function historySave(chatId, id, changes) {return (
+        function (dispatch) {return (0, _isomorphicFetch2.default)(restUrl + '/api/historySet', {
+                method: 'POST',
+                body: (0, _stringify2.default)((0, _extends3.default)({},
+                changes, {
+                    chatId: chatId,
+                    id: id })) })
+
+
+            // Do not use catch, because that will also catch
+            // any errors in the dispatch and resulting render,
+            // causing an loop of 'Unexpected batch number' errors.
+            // https://github.com/facebook/react/issues/6895
+            .then(function (response) {return response.status !== 200;}, function (error) {
+                historySaveDone(true);
+                _logger2.default.e('An error occured.', error);
+            }).
+            then(function (isError) {return dispatch(historySaveDone(isError));});});};
+
+var historySaveUndo = exports.historySaveUndo = function historySaveUndo(chatId, id, changes) {return {
+        type: HISTORY_SAVE_UNDO,
+        chatId: chatId,
+        id: id,
+        changes: changes };};
+
+
+var historyShouldUpdate = exports.historyShouldUpdate = function historyShouldUpdate() {var shouldUpdate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;return {
+        type: HISTORY_UPDATE,
+        data: shouldUpdate };};

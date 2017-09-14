@@ -41,6 +41,37 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
                 dt.setTime(dt.getTime() + options.ticks);
             }
             return dt;
+        } }, { key: 'setDateTime', value: function setDateTime()
+
+
+
+
+
+
+
+
+
+
+
+
+        {var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { years: undefined, months: undefined, days: undefined, hours: undefined, minutes: undefined, seconds: undefined, ticks: undefined };var date = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+            var dt = new Date(date);
+            if (options.years !== undefined)
+            dt.setFullYear(options.years);
+            if (options.months !== undefined)
+            dt.setMonth(options.months);
+            if (options.days !== undefined)
+            dt.setDate(options.days);
+            if (options.hours !== undefined)
+            dt.setHours(options.hours);
+            if (options.minutes !== undefined)
+            dt.setMinutes(options.minutes);
+            if (options.seconds !== undefined)
+            dt.setSeconds(options.seconds);
+            if (options.ticks !== undefined) {
+                dt.setTime(options.ticks);
+            }
+            return dt;
         }
 
         // 16.12.2017 | 16/12/2016 | 16.12.16 | 16/12 = 16/12/текущий год | 16 - текущий месяц
@@ -60,6 +91,57 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
             if (isNaN(day))
             return null;
             return new Date(year, month - 1, day);
+        }
+
+        // 23 | 23:03 | 23:03:04
+    }, { key: 'getTimeObj', value: function getTimeObj() {var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+            var t = '' + time;
+            var split = t.split(':');
+            if (!split || split.length === 1)
+            split = t.split('.');
+            if (!split || split.length === 1)
+            split = t.split('-');
+            if (!split || split.length === 0) return null;
+            var hours = +split[0];
+            var minutes = void 0,
+            seconds = void 0;
+            if (isNaN(hours)) return null;
+            if (split.length > 1) {
+                minutes = +split[1];
+                if (isNaN(minutes)) return null;
+            }
+            if (split.length > 2) {
+                seconds = +split[2];
+                if (isNaN(seconds)) return null;
+            }
+            return { hours: hours, minutes: minutes, seconds: seconds };
+        }
+
+        // 16.12.2017 23:23:00
+    }, { key: 'getDateTime', value: function getDateTime() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
+            if (Object.prototype.toString.call(date) === '[object Date]') return date;
+            var d = '' + date;
+            var split = d.split(' ');
+            if (!split) return null;
+            var res = void 0;
+            if (split.length === 1) {
+                if (split.indexOf(':') > -1 || split.indexOf('-') > -1) {
+                    var timeObj = this.getTimeObj(split[0]);
+                    if (timeObj) {
+                        res = this.setDateTime(timeObj);
+                    }
+                } else {
+                    res = this.getDate(split[0]);
+                }
+            } else {
+                var dateFromString = this.getDate(split[0]);
+                var _timeObj = this.getTimeObj(split[1]);
+                if (_timeObj)
+                res = this.setDateTime(_timeObj, dateFromString);else
+
+                res = dateFromString;
+            }
+            return res;
         } }, { key: 'getStartDate', value: function getStartDate()
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
