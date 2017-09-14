@@ -1,8 +1,31 @@
+/*
+ * Common
+ */
+
 .fixed {
   position: fixed;
 }
 
+.warning {
+  background-color: #E52323
+}
+
+/*
+ * Header
+ */
+
 .table-header-row {
+}
+
+input[type="button"] {
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px
+}
+
+input[type="button"]:disabled {
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+  color: #BBBBBB
 }
 
 .table-header-filters {
@@ -14,6 +37,14 @@
     color: grey;
     font-weight: bold;
 }
+
+.table-header-category {
+  
+}
+
+/*
+ * Content
+ */
 
 .table-content {
   margin-top: 8px;
@@ -42,19 +73,4 @@
 
 .table-row-deleted .table-cell {
   text-decoration: line-through;
-}
-
-input[type="button"] {
-  padding: 5px 10px 5px 10px;
-  margin-right: 5px
-}
-
-input[type="button"]:disabled {
-  padding: 5px 10px 5px 10px;
-  margin-right: 5px;
-  color: #BBBBBB
-}
-
-.warning {
-  background-color: #E52323
 }
