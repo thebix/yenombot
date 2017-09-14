@@ -14,7 +14,7 @@ var _wwwServer = require('./lib/lib/www-server');
 
 var _timer = require('./telegram/timer');var _timer2 = _interopRequireDefault(_timer);
 var _reducers = require('./reducers');var _reducers2 = _interopRequireDefault(_reducers);
-var _telegram = require('./telegram/telegram');var _telegram2 = _interopRequireDefault(_telegram);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // TODO: should be refactored
+var _telegram = require('./telegram/telegram');var _telegram2 = _interopRequireDefault(_telegram);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _objectWithoutProperties(obj, keys) {var target = {};for (var i in obj) {if (keys.indexOf(i) >= 0) continue;if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;target[i] = obj[i];}return target;} // TODO: should be refactored
 
 (0, _logger.log)('Start bot', _logger.logLevel.INFO);
 
@@ -118,16 +118,24 @@ then(function (stateFromFile) {
         var uri = _url2.default.parse(data.request.url).pathname;
         switch (uri) {
             case '/api/historyGet':
-                {
-                    if (data.request.method !== 'POST') {
-                        data.response.writeHead(404, { 'Content-Type': 'text/plain' });
-                        data.response.end();
-                        break;
-                    }
-                    var params = parseUrlParams(data.request.url);var
-                    id = params.id,categories = params.categories,users = params.users,dateStart = params.dateStart,dateEnd = params.dateEnd;
-                    var skipParam = params.skip || 0;
+                if (data.request.method !== 'POST') {
+                    data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                    data.response.end();
+                    break;
+                }
+                // TODO: rxjs
+                data.request.on('data', function (chunk) {
+                    if (!chunk) return;
+                    var body = JSON.parse(chunk.toString());var
+
+                    id =
+
+
+
+                    body.id,categories = body.categories,users = body.users,dateStart = body.dateStart,dateEnd = body.dateEnd;
+                    var skipParam = body.skip || 0;
                     var skip = +skipParam;
+                    // TODO: rxjs
                     history.getAll(id).
                     then(function (items) {
                         data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -146,19 +154,55 @@ then(function (stateFromFile) {
                         skip = elementsLength - HISTORY_PAGE_COUNT;
                         var skipped = elements.sort(function (a, b) {return b.id - a.id;}).splice(+skip);
                         skipped.splice(HISTORY_PAGE_COUNT);
+                        var activeCategories = Array.from(new Set(skipped.map(function (item) {return item.category;})));
+                        var activeUsersIds = Array.from(new Set(skipped.map(function (item) {return item.user_id;})));
                         data.response.end(JSON.stringify({
                             data: skipped,
                             meta: {
-                                length: elementsLength } }));
+                                length: elementsLength,
+                                activeCategories: activeCategories,
+                                activeUsersIds: activeUsersIds } }));
 
 
                     }).
-                    catch(function () {
-                        data.response.writeHead(500, { 'Content-Type': 'text/plain' });
+                    catch(function (err) {
+                        (0, _logger.log)(err, _logger.logLevel.ERROR);
+                        data.response.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
                         data.response.write('Can\'t read file');
                         data.response.end();
                     });
+                }).on('end', function () {
+                    // no-op
+                });
+                break;
+            case '/api/historySet':
+                if (data.request.method !== 'POST') {
+                    data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                    data.response.end();
+                    break;
                 }
+                // TODO: rxjs
+                data.request.on('data', function (chunk) {
+                    if (!chunk) return;
+                    var body = JSON.parse(chunk.toString());var
+                    id = body.id,chatId = body.chatId,changes = _objectWithoutProperties(body, ['id', 'chatId']);
+                    if (id > 0 && changes) {
+                        history.setById(id, changes, chatId).
+                        then(function () {
+                            data.response.writeHead(200, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+                            data.response.end('ok');
+                        }).
+                        catch(function () {
+                            data.response.writeHead(500, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+                            data.response.end('Write history error');
+                        });
+                    } else {
+                        data.response.writeHead(500, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+                        data.response.end('Write history error');
+                    }
+                }).on('end', function () {
+                    // no-op
+                });
                 break;
             case '/api/users':{
                     if (data.request.method !== 'POST') {
@@ -166,29 +210,32 @@ then(function (stateFromFile) {
                         data.response.end();
                         break;
                     }var _store$getState =
-                    store.getState(),_users = _store$getState.users;
+                    store.getState(),users = _store$getState.users;
                     data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                    data.response.end(JSON.stringify(_users));
+                    data.response.end(JSON.stringify(users));
                 }
                 break;
             case '/api/categories':
-                {
-                    if (data.request.method !== 'POST') {
-                        data.response.writeHead(404, { 'Content-Type': 'text/plain' });
-                        data.response.end();
-                        break;
-                    }var _parseUrlParams =
-                    parseUrlParams(data.request.url),chatId = _parseUrlParams.chatId;
+                if (data.request.method !== 'POST') {
+                    data.response.writeHead(404, { 'Content-Type': 'text/plain' });
+                    data.response.end();
+                    break;
+                }
+                // TODO: rxjs
+                data.request.on('data', function (chunk) {
+                    if (!chunk) return;var _JSON$parse =
+                    JSON.parse(chunk.toString()),chatId = _JSON$parse.chatId;
                     data.response.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
                     data.response.end(JSON.stringify(store.getState().paymentGroups[chatId]));
-                }
+                }).on('end', function () {
+                    // no-op
+                });
                 break;
             default:
-
             // no-op
         }
     };
-    _root2.default.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories'];
+    _root2.default.www.apiUrls = ['/api/historyGet', '/api/users', '/api/categories', '/api/historySet'];
     _root2.default.www.httpServerSet = 42042;
     _root2.default.www.response.subscribe(function (serverData) {var
         data = serverData.data,status = serverData.status;

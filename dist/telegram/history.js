@@ -54,6 +54,8 @@ History = function () {
                 var item = all.filter(function (itm) {return itm.id === id;});
                 if (item && item.length > 0) item = item[0];
 
+                if (newValue.date_create !== undefined)
+                item.date_create = newValue.date_create;
                 if (newValue.value !== undefined)
                 item.value = newValue.value;
                 if (newValue.category !== undefined)
