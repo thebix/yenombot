@@ -75,7 +75,8 @@
         "redux": "~3.7.2",
         "redux-thunk": "~2.2.0",
         "classnames": "2.2.5",
-        "prop-types": "~15.5.10"
+        "prop-types": "~15.5.10",
+        "expr-eval": "^1.0.0"
     },
     "babel": {
         "presets": [

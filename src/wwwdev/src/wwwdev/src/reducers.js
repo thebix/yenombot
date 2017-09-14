@@ -7,7 +7,12 @@ import {
     HISTORY_CATEGORIES_SELECTED,
     HISTORY_USER_TOGGLE,
     HISTORY_DATE_START,
-    HISTORY_DATE_END
+    HISTORY_DATE_END,
+    HISTORY_EDIT_ON,
+    HISTORY_EDIT_OFF,
+    HISTORY_SAVE_UNDO,
+    HISTORY_SAVE_DONE,
+    HISTORY_UPDATE
 } from './actions'
 
 const defaultState = {
@@ -21,7 +26,10 @@ const defaultState = {
     historySelectedCategories: [],
     users: {},
     historySelectedUsers: [],
-    historySelectedDates: { dateStart: null, dateEnd: null }
+    historySelectedDates: { dateStart: null, dateEnd: null },
+    historyEditId: null,
+    historyEditUndo: {},
+    historyUpdate: false
 }
 
 // TODO: chat selector
@@ -136,6 +144,43 @@ const historySelectedDates = (state = defaultState.historySelectedDates, action)
     return state
 }
 
+const historyEditId = (state = defaultState.historyEditId, action) => {
+    switch (action.type) {
+        case HISTORY_EDIT_ON:
+            return action.data
+        case HISTORY_EDIT_OFF:
+            return null
+        default:
+    }
+    return state
+}
+
+const historyEditUndo = (state = defaultState.historyEditUndo, action) => {
+    switch (action.type) {
+        case HISTORY_SAVE_UNDO:
+            return {
+                chatId: action.chatId,
+                id: action.id,
+                changes: action.changes
+            }
+        default:
+    }
+    return state
+}
+
+const historyUpdate = (state = defaultState.historyUpdate, action) => {
+    switch (action.type) {
+        case HISTORY_UPDATE:
+            return action.data
+        case HISTORY_SAVE_DONE:
+            return true
+        case HISTORY_FETCH_DONE:
+            return false
+        default:
+    }
+    return state
+}
+
 export default (state = defaultState, action) => ({
     historyId: historyId(state.historyId, action),
     historyData: historyData(state.historyData, action),
@@ -146,4 +191,7 @@ export default (state = defaultState, action) => ({
     historySelectedCategories: historySelectedCategories(state.historySelectedCategories, action),
     historySelectedUsers: historySelectedUsers(state.historySelectedUsers, action),
     historySelectedDates: historySelectedDates(state.historySelectedDates, action),
+    historyEditId: historyEditId(state.historyEditId, action),
+    historyEditUndo: historyEditUndo(state.historyEditUndo, action),
+    historyUpdate: historyUpdate(state.historyUpdate, action),
 })
