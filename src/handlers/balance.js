@@ -287,18 +287,14 @@ export default class Balance {
                 csv = json2csv({ data: all, fields, fieldNames });
                 return fileSystem.isExists(_config.dirStorage)
                     .then(() => true)
-                    .catch(() => {
-                        return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
-                    })
+                    .catch(() => bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖'))
             })
             .then(isExists => {
                 if (isExists !== true)
                     return false
                 return fileSystem.isExists(`${_config.dirStorage}repo`)
                     .then(() => true)
-                    .catch(() => {
-                        return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
-                    })
+                    .catch(() => bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖'))
             })
             .then(isExists => {
                 if (isExists !== true)
@@ -306,17 +302,6 @@ export default class Balance {
                 file = `repo-${message.chat.title}.csv`
                 return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
             })
-
-
-
-            //     if (FileSystem.isDirExists(_config.dirStorage, true)
-            //         && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
-            //         file = `repo-${message.chat.title}.csv`
-
-            //         return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
-            //     }
-            //     return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
-            // })
             .then(isExists => {
                 if (isExists !== true)
                     return false
