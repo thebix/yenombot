@@ -8,7 +8,7 @@ import {
 } from '../actions'
 import _commands from '../enums/commands'
 import FileSystem from '../lib/lib/fs'   // TODO: should be refactored
-import lib from '../lib/index'
+import lib from '../lib/root'
 
 import { log, logLevel, dateTimeString } from '../logger'
 
