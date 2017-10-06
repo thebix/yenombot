@@ -31,6 +31,9 @@ module.exports = {
         // let a, b
         "one-var": "off",
 
+        // max string len
+        "max-len": ["warn", 150],
+
         // https://medium.freecodecamp.org/adding-some-air-to-the-airbnb-style-guide-3df40e31c57a
         // code arrangement matter
         "no-use-before-define": ["error", { "functions": false }],
