@@ -302,7 +302,7 @@ var Categories = function Categories(_ref4) {var categories = _ref4.categories,d
                 } }));};
 
     if (categories && categories.length > 0) {
-        cell0.push(_react2.default.createElement('span', { key: 3 },
+        cell0.push(_react2.default.createElement('span', { key: -1 },
             _react2.default.createElement(_CheckBox.CheckBoxStatefull, { stateUpdate: function stateUpdate(state) {
                     dispatch((0, _actions.historySkipAction)(0));
                     if (state) {
