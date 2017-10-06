@@ -8,7 +8,7 @@
 
 
 // TODO: should be refactored
-var _exprEval = require('expr-eval');var _json2csv = require('json2csv');var _json2csv2 = _interopRequireDefault(_json2csv);var _config2 = require('../config');var _config3 = _interopRequireDefault(_config2);var _server = require('../server');var _actions = require('../actions');var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);var _fs = require('../lib/lib/fs');var _fs2 = _interopRequireDefault(_fs);var _index = require('../lib/index');var _index2 = _interopRequireDefault(_index);
+var _exprEval = require('expr-eval');var _json2csv = require('json2csv');var _json2csv2 = _interopRequireDefault(_json2csv);var _config2 = require('../config');var _config3 = _interopRequireDefault(_config2);var _server = require('../server');var _actions = require('../actions');var _commands2 = require('../enums/commands');var _commands3 = _interopRequireDefault(_commands2);var _fs = require('../lib/lib/fs');var _fs2 = _interopRequireDefault(_fs);var _root = require('../lib/root');var _root2 = _interopRequireDefault(_root);
 
 var _logger = require('../logger');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
 
@@ -287,37 +287,22 @@ Balance = function () {
                 csv = (0, _json2csv2.default)({ data: all, fields: fields, fieldNames: fieldNames });
                 return fileSystem.isExists(_config3.default.dirStorage).
                 then(function () {return true;}).
-                catch(function () {
-                    return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');
-                });
+                catch(function () {return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');});
             }).
             then(function (isExists) {
                 if (isExists !== true)
                 return false;
                 return fileSystem.isExists(_config3.default.dirStorage + 'repo').
                 then(function () {return true;}).
-                catch(function () {
-                    return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');
-                });
+                catch(function () {return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖');});
             }).
             then(function (isExists) {
                 if (isExists !== true)
                 return false;
                 file = 'repo-' + message.chat.title + '.csv';
                 return _fs2.default.saveFile(_config3.default.dirStorage + 'repo/' + file, csv);
-            })
-
-
-
-            //     if (FileSystem.isDirExists(_config.dirStorage, true)
-            //         && FileSystem.isDirExists(`${_config.dirStorage}repo`, true)) {
-            //         file = `repo-${message.chat.title}.csv`
-
-            //         return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
-            //     }
-            //     return bot.sendMessage(message.chat.id, 'Нет ранее сохраненных трат для этого чата 🤖')
-            // })
-            .then(function (isExists) {
+            }).
+            then(function (isExists) {
                 if (isExists !== true)
                 return false;
                 return bot.sendDocument(message.chat.id, _config3.default.dirStorage + 'repo/' + file);
@@ -344,19 +329,19 @@ Balance = function () {
                 dateEndUser = dateEnd;
             } else if (split.length < 3) {// дата начала - до - текущая дата
                 dateEnd = new Date();
-                dateStart = _index2.default.time.getBack(split[1].trim(' '), dateEnd);
+                dateStart = _root2.default.time.getBack(split[1].trim(' '), dateEnd);
                 dateEndUser = dateEnd;
             } else {// дата начала - до - дата окончания
                 // если юзер вводил, он ввел день окончания, который тоже должен попасть в отчет
-                var end = _index2.default.time.getBack(split[2].trim(' ')); // дата окончания (начало даты 0:00)
-                dateStart = _index2.default.time.getBack(split[1].trim(' '), end);
-                dateEnd = _index2.default.time.getChangedDateTime({ days: 1 },
-                _index2.default.time.getBack(split[2].trim(' ')));
-                if (_index2.default.time.isDateSame(dateStart, dateEnd))
+                var end = _root2.default.time.getBack(split[2].trim(' ')); // дата окончания (начало даты 0:00)
+                dateStart = _root2.default.time.getBack(split[1].trim(' '), end);
+                dateEnd = _root2.default.time.getChangedDateTime({ days: 1 },
+                _root2.default.time.getBack(split[2].trim(' ')));
+                if (_root2.default.time.isDateSame(dateStart, dateEnd))
                 dateEndUser = dateEnd;else
 
                     // юзеру показывается дата на 1 меньше
-                    dateEndUser = _index2.default.time.getChangedDateTime({ days: -1 }, dateEnd);
+                    dateEndUser = _root2.default.time.getChangedDateTime({ days: -1 }, dateEnd);
             }
             var dateEndTime = dateEnd.getTime();
             var dateStartTime = dateStart.getTime();
@@ -387,7 +372,7 @@ Balance = function () {
             var periods = []; // все прошлые периоды (кроме текущего)
             var nonUserGroups = nonUserPaymentGroups[message.chat.id];
             // сколько потрачено за период / в среднем за прошлые
-            var titleInfo = '\u041F\u0435\u0440\u0438\u043E\u0434: ' + _index2.default.time.dateWeekdayString(dateStart) + ' - ' + _index2.default.time.dateWeekdayString(dateEndUser) + '\n\u0414\u043D\u0435\u0439: ' + _index2.default.time.daysBetween(dateStart, dateEnd);
+            var titleInfo = '\u041F\u0435\u0440\u0438\u043E\u0434: ' + _root2.default.time.dateWeekdayString(dateStart) + ' - ' + _root2.default.time.dateWeekdayString(dateEndUser) + '\n\u0414\u043D\u0435\u0439: ' + _root2.default.time.daysBetween(dateStart, dateEnd);
             bot.sendMessage(message.chat.id, titleInfo + ' \uD83E\uDD16').
             then(function () {return _server.history.getAll(message.chat.id);}).
             then(function (data) {//
@@ -402,15 +387,15 @@ Balance = function () {
                 if (curTicks < 1000 * 60 * 60 * 4)
                 return bot.sendMessage(message.chat.id, 'Слишком короткий интервал. Минимум 4 часа. 🤖');
 
-                var curDateEnd = _index2.default.time.getChangedDateTime({ ticks: -1 }, dateStart);
-                var curDateStart = _index2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
+                var curDateEnd = _root2.default.time.getChangedDateTime({ ticks: -1 }, dateStart);
+                var curDateStart = _root2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
                 while (curDateEnd.getTime() >= dateFirstTime) {
                     periods.push({
                         start: curDateStart,
                         end: curDateEnd });
 
-                    curDateEnd = _index2.default.time.getChangedDateTime({ ticks: -1 }, curDateStart);
-                    curDateStart = _index2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
+                    curDateEnd = _root2.default.time.getChangedDateTime({ ticks: -1 }, curDateStart);
+                    curDateStart = _root2.default.time.getChangedDateTime({ ticks: -curTicks }, curDateEnd);
                 }
 
                 // получение за прошлые периоды
