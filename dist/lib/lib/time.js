@@ -94,7 +94,7 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
         }
 
         // 23 | 23:03 | 23:03:04
-    }, { key: 'getTimeObj', value: function getTimeObj() {var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    }, { key: 'getTimeObj', value: function getTimeObj() {var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : ''; // eslint-disable-line complexity
             var t = '' + time;
             var split = t.split(':');
             if (!split || split.length === 1)
@@ -169,7 +169,7 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
             return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + (date.getFullYear() - yearDiff);
         } }, { key: 'getWeekday', value: function getWeekday(
 
-        day) {
+        day) {// eslint-disable-line complexity
             if (day === null || day === undefined)
             return weekdays.unknown;
             var d = ('' + day).toLowerCase();

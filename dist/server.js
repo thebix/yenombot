@@ -21,7 +21,7 @@ var _telegram = require('./telegram/telegram');var _telegram2 = _interopRequireD
 var enhancer = (0, _redux.compose)(
 (0, _redux.applyMiddleware)(_reduxThunk2.default));
 
-var store = exports.store = null;
+var store = exports.store = null; // eslint-disable-line import/no-mutable-exports
 var history = exports.history = new _history2.default(_config3.default.dirStorage, 'balance-hist-$[id].json');
 
 var fileSystem = new _fs2.default();
@@ -29,18 +29,18 @@ var fileSystem = new _fs2.default();
 var HISTORY_PAGE_COUNT = 150;
 
 // TODO: extenal library
-var parseUrlParams = function parseUrlParams(urlWithParams) {
-    var uri = decodeURI(urlWithParams);
-    var res = {};
-    if (uri.indexOf('?') === -1) return res;
-    uri.split('?')[1].split('&').forEach(function (pairItem) {
-        var pair = pairItem.split('=');
-        if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
-            res[pair[0]] = pair[1];
-        }
-    });
-    return res;
-};
+// const parseUrlParams = urlWithParams => {
+//     const uri = decodeURI(urlWithParams)
+//     const res = {}
+//     if (uri.indexOf('?') === -1) return res
+//     uri.split('?')[1].split('&').forEach(pairItem => {
+//         const pair = pairItem.split('=')
+//         if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
+//             res[pair[0]] = pair[1]
+//         }
+//     })
+//     return res
+// }
 
 fileSystem.isExists(_config3.default.dirStorage).
 then(function () {return fileSystem.isExists(_config3.default.fileState);}).
@@ -89,8 +89,8 @@ then(function (stateFromFile) {
 
                 text: '/repo' }),
             {
-                noBalance: true }));
-
+                noBalance: true // eslint-disable-line indent
+            })); // eslint-disable-line indent
         });
         Promise.all(promises).
         then(function () {return (0, _logger.log)('Ежемесячная рассылка прошла успешно.', _logger.logLevel.INFO);}).
