@@ -21,7 +21,7 @@ log('Start bot', logLevel.INFO)
 const enhancer = compose(
     applyMiddleware(thunkMiddleware)
 )
-export let store = null
+export let store = null // eslint-disable-line import/no-mutable-exports
 export const history = new History(_config.dirStorage, 'balance-hist-$[id].json')
 
 const fileSystem = new FileSystem()
@@ -29,18 +29,18 @@ const fileSystem = new FileSystem()
 const HISTORY_PAGE_COUNT = 150
 
 // TODO: extenal library
-const parseUrlParams = urlWithParams => {
-    const uri = decodeURI(urlWithParams)
-    const res = {}
-    if (uri.indexOf('?') === -1) return res
-    uri.split('?')[1].split('&').forEach(pairItem => {
-        const pair = pairItem.split('=')
-        if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
-            res[pair[0]] = pair[1]
-        }
-    })
-    return res
-}
+// const parseUrlParams = urlWithParams => {
+//     const uri = decodeURI(urlWithParams)
+//     const res = {}
+//     if (uri.indexOf('?') === -1) return res
+//     uri.split('?')[1].split('&').forEach(pairItem => {
+//         const pair = pairItem.split('=')
+//         if (pair[0] && pair[1] !== undefined && pair[1] !== null && pair[1] !== '') {
+//             res[pair[0]] = pair[1]
+//         }
+//     })
+//     return res
+// }
 
 fileSystem.isExists(_config.dirStorage)
     .then(() => fileSystem.isExists(_config.fileState))
@@ -89,8 +89,8 @@ fileSystem.isExists(_config.dirStorage)
                         },
                         text: '/repo'
                     }), {
-                            noBalance: true
-                        }))
+                            noBalance: true // eslint-disable-line indent
+                        })) // eslint-disable-line indent
                 })
             Promise.all(promises)
                 .then(() => log('Ежемесячная рассылка прошла успешно.', logLevel.INFO))
