@@ -302,7 +302,7 @@ const Categories = ({ categories, dispatch, selected, activeCategories }) => {
             }} />
     </div>
     if (categories && categories.length > 0) {
-        cell0.push(<span key={3}>
+        cell0.push(<span key={-1}>
             <CheckBoxStatefull stateUpdate={state => {
                 dispatch(historySkipAction(0))
                 if (state) {
