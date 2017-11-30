@@ -300,7 +300,9 @@ export default class Balance {
                 if (isExists !== true)
                     return false
                 file = `repo-${message.chat.title}.csv`
-                return FileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
+                return fileSystem.saveFile(`${_config.dirStorage}repo/${file}`, csv)
+                .then(() => true)
+                .catch(() => false)
             })
             .then(isExists => {
                 if (isExists !== true)
