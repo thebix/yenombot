@@ -154,7 +154,7 @@ export default connect(state => ({
                 // it's title
                 daySum = itemsWithTitles
                     .filter(element =>
-                        element && element.date_create && !item.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)))
+                        element && element.date_create && !element.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)))
                     .map(it => it.value || 0)
                     .reduce((sum, current) => sum + current, 0)
             }
