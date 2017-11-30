@@ -147,15 +147,25 @@ var fetchHistory = function fetchHistory(_ref2)
 
             var historyRows = itemsWithTitles.map(function (item) {
                 var user = '';
+                var daySum = '';
                 if (users && users[item.user_id])
-                user = users[item.user_id].firstName + ' ' + users[item.user_id].lastName;
+                user = users[item.user_id].firstName + ' ' + users[item.user_id].lastName;else
+                {
+                    // it's title
+                    daySum = itemsWithTitles.
+                    filter(function (element) {return (
+                            element && element.date_create && !item.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)));}).
+                    map(function (it) {return it.value || 0;}).
+                    reduce(function (sum, current) {return sum + current;}, 0);
+                }
                 return _react2.default.createElement(Row, { key: item.id,
                     chatId: historyId,
                     item: item,
                     user: user,
                     categories: categories,
                     editId: historyEditId,
-                    dispatch: dispatch });
+                    dispatch: dispatch,
+                    daySum: daySum });
             });
             return _react2.default.createElement('div', { className: 'table-history' },
                 _react2.default.createElement('div', { className: 'table-header' },
@@ -181,6 +191,9 @@ var fetchHistory = function fetchHistory(_ref2)
 
 
                 _react2.default.createElement('div', { className: 'table-content' },
+                    _react2.default.createElement(Row, { key: -666,
+                        chatId: historyId,
+                        daySum: meta.totalSum }),
                     historyRows));
 
 
@@ -291,16 +304,23 @@ var Categories = function Categories(_ref4) {var categories = _ref4.categories,d
     var cell0 = [],
     cell1 = void 0,
     cell2 = void 0;
-    var actCategories = activeCategories || [];
-    var categoryMapper = function categoryMapper(category) {return _react2.default.createElement('div', { key: category.id },
-            _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: category.id, title: category.title,
+
+    var actCategories = activeCategories != null ? (0, _keys2.default)(activeCategories) : [];
+    var categoryMapper = function categoryMapper(category) {
+        var categorySum = activeCategories && activeCategories[category.title] ? '  [' +
+        activeCategories[category.title].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
+        '';
+
+        return _react2.default.createElement('div', { key: category.id },
+            _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: category.id, title: '' + category.title + categorySum,
                 classes: [actCategories.indexOf(category.title) === -1 ? 'color-grey-light' : ''],
                 checked: selected.indexOf(category.title) > -1,
                 onClick: function onClick() {
                     dispatch((0, _actions.historySkipAction)(0));
                     dispatch((0, _actions.historyCategoryToggle)(category.title));
-                } }));};
+                } }));
 
+    };
     if (categories && categories.length > 0) {
         cell0.push(_react2.default.createElement('span', { key: -1 },
             _react2.default.createElement(_CheckBox.CheckBoxStatefull, { stateUpdate: function stateUpdate(state) {
@@ -334,15 +354,20 @@ var Users = function Users(_ref5) {var users = _ref5.users,dispatch = _ref5.disp
     if (!users) return null;
     var selUsers = Array.isArray(selected) ? selected : [];
     var usersIds = (0, _keys2.default)(users);
-    var actUsersIds = activeUsersIds || [];
+    var actUsersIds = activeUsersIds ? (0, _keys2.default)(activeUsersIds) : [];
     return _react2.default.createElement('div', null,
-        usersIds.map(function (id) {return _react2.default.createElement('div', { key: id }, _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: id, title: users[id].firstName + ' ' + users[id].lastName,
+        usersIds.map(function (id) {
+            var userSum = activeUsersIds && activeUsersIds[id] ? '  [' +
+            activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
+            '';
+            return _react2.default.createElement('div', { key: id }, _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: id, title: users[id].firstName + ' ' + users[id].lastName + userSum,
                     classes: [actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : ''],
                     checked: selUsers.indexOf(id) > -1,
                     onClick: function onClick() {
                         dispatch((0, _actions.historySkipAction)(0));
                         dispatch((0, _actions.historyUserToggle)(id));
-                    } }));}));
+                    } }));
+        }));
 
 
 };
@@ -384,10 +409,11 @@ var Dates = function Dates(_ref6) {var dispatch = _ref6.dispatch,selected = _ref
 
 };
 
-var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user = _ref7.user,categories = _ref7.categories,editId = _ref7.editId,dispatch = _ref7.dispatch;
+var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user = _ref7.user,categories = _ref7.categories,editId = _ref7.editId,dispatch = _ref7.dispatch,daySum = _ref7.daySum;
     if (!user) {
         return _react2.default.createElement('div', { className: 'table-row-title' },
-            timeLib.dateString(new Date(item.date_create)));
+            item && item.date_create && timeLib.dateString(new Date(item.date_create)) + ', ' + timeLib.weekdayString(new Date(item.date_create)).toLowerCase() + '  ', '[',
+            (daySum || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '), ']');
     }
     var isEdit = editId === item.id;
     return _react2.default.createElement('div', { className: (0, _classnames2.default)('table-row', {
