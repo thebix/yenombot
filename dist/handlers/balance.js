@@ -300,7 +300,9 @@ Balance = function () {
                 if (isExists !== true)
                 return false;
                 file = 'repo-' + message.chat.title + '.csv';
-                return _fs2.default.saveFile(_config3.default.dirStorage + 'repo/' + file, csv);
+                return fileSystem.saveFile(_config3.default.dirStorage + 'repo/' + file, csv).
+                then(function () {return true;}).
+                catch(function () {return false;});
             }).
             then(function (isExists) {
                 if (isExists !== true)
