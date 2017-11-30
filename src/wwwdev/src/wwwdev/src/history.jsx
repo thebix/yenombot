@@ -147,15 +147,25 @@ export default connect(state => ({
 
         const historyRows = itemsWithTitles.map(item => {
             let user = ''
+            let daySum = ''
             if (users && users[item.user_id])
                 user = `${users[item.user_id].firstName} ${users[item.user_id].lastName}`
+            else {
+                // it's title
+                daySum = itemsWithTitles
+                    .filter(element =>
+                        element && element.date_create && !item.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)))
+                    .map(it => it.value || 0)
+                    .reduce((sum, current) => sum + current, 0)
+            }
             return <Row key={item.id}
                 chatId={historyId}
                 item={item}
                 user={user}
                 categories={categories}
                 editId={historyEditId}
-                dispatch={dispatch} />
+                dispatch={dispatch}
+                daySum={daySum} />
         })
         return <div className="table-history">
             <div className="table-header">
@@ -181,6 +191,9 @@ export default connect(state => ({
                 </div>
             </div>
             <div className="table-content">
+                <Row key={-666}
+                    chatId={historyId}
+                    daySum={meta.totalSum} />
                 {historyRows}
             </div>
         </div >
@@ -291,16 +304,23 @@ const Categories = ({ categories, dispatch, selected, activeCategories }) => {
     let cell0 = [],
         cell1,
         cell2
-    const actCategories = activeCategories || []
-    const categoryMapper = category => <div key={category.id}>
-        <CheckBoxStateless key={category.id} title={category.title}
-            classes={[actCategories.indexOf(category.title) === -1 ? 'color-grey-light' : '']}
-            checked={selected.indexOf(category.title) > -1}
-            onClick={() => {
-                dispatch(historySkipAction(0))
-                dispatch(historyCategoryToggle(category.title))
-            }} />
-    </div>
+
+    const actCategories = activeCategories != null ? Object.keys(activeCategories) : []
+    const categoryMapper = category => {
+        const categorySum = activeCategories && activeCategories[category.title] ?
+            `  [${activeCategories[category.title].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
+            : ''
+
+        return <div key={category.id}>
+            <CheckBoxStateless key={category.id} title={`${category.title}${categorySum}`}
+                classes={[actCategories.indexOf(category.title) === -1 ? 'color-grey-light' : '']}
+                checked={selected.indexOf(category.title) > -1}
+                onClick={() => {
+                    dispatch(historySkipAction(0))
+                    dispatch(historyCategoryToggle(category.title))
+                }} />
+        </div>
+    }
     if (categories && categories.length > 0) {
         cell0.push(<span key={-1}>
             <CheckBoxStatefull stateUpdate={state => {
@@ -334,15 +354,20 @@ const Users = ({ users, dispatch, selected, activeUsersIds }) => {
     if (!users) return null
     const selUsers = Array.isArray(selected) ? selected : []
     const usersIds = Object.keys(users)
-    const actUsersIds = activeUsersIds || []
+    const actUsersIds = activeUsersIds ? Object.keys(activeUsersIds) : []
     return <div>
-        {usersIds.map(id => <div key={id}><CheckBoxStateless key={id} title={`${users[id].firstName} ${users[id].lastName}`}
-            classes={[actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : '']}
-            checked={selUsers.indexOf(id) > -1}
-            onClick={() => {
-                dispatch(historySkipAction(0))
-                dispatch(historyUserToggle(id))
-            }} /></div>
+        {usersIds.map(id => {
+            const userSum = activeUsersIds && activeUsersIds[id] ?
+                `  [${activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
+                : ''
+            return <div key={id}><CheckBoxStateless key={id} title={`${users[id].firstName} ${users[id].lastName}${userSum}`}
+                classes={[actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : '']}
+                checked={selUsers.indexOf(id) > -1}
+                onClick={() => {
+                    dispatch(historySkipAction(0))
+                    dispatch(historyUserToggle(id))
+                }} /></div>
+        }
         )}
     </div>
 }
@@ -384,10 +409,11 @@ const Dates = ({ dispatch, selected }) => {
     </div>
 }
 
-const Row = ({ chatId, item, user, categories, editId, dispatch }) => {
+const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
     if (!user) {
         return (<div className="table-row-title">
-            {timeLib.dateString(new Date(item.date_create))}</div>)
+            {item && item.date_create && `${timeLib.dateString(new Date(item.date_create))}, ${timeLib.weekdayString(new Date(item.date_create)).toLowerCase()}  `}
+            [{(daySum || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]</div>)
     }
     const isEdit = editId === item.id
     return <div className={classNames('table-row', {

@@ -152,16 +152,39 @@ fileSystem.isExists(_config.dirStorage)
                                 const elementsLength = elements.length
                                 if (skip === -1)
                                     skip = elementsLength - HISTORY_PAGE_COUNT
-                                const skipped = elements.sort((a, b) => b.id - a.id).splice(+skip)
+                                const skipped = elements.slice(+skip)
                                 skipped.splice(HISTORY_PAGE_COUNT)
-                                const activeCategories = Array.from(new Set(skipped.map(item => item.category)))
-                                const activeUsersIds = Array.from(new Set(skipped.map(item => item.user_id)))
+                                const activeCategories = {}
+                                Array.from(new Set(elements.map(item => item.category)))
+                                    .forEach(category => {
+                                        activeCategories[category] = {
+                                            sum: elements
+                                                .filter(it => !it.date_delete && it.category === category)
+                                                .map(it => it.value || 0)
+                                                .reduce((sum, prev) => sum + prev, 0)
+                                        }
+                                    })
+                                const activeUsersIds = {}
+                                const nonUserGroups = store.getState().nonUserPaymentGroups[id] || []
+                                Array.from(new Set(elements.map(item => item.user_id)))
+                                    .forEach(userId => {
+                                        activeUsersIds[userId] = {
+                                            sum: elements
+                                                .filter(it => !it.date_delete && it.user_id === userId
+                                                    && nonUserGroups.indexOf(it.category) === -1)
+                                                .map(it => it.value || 0)
+                                                .reduce((sum, prev) => sum + prev, 0)
+                                        }
+                                    })
+                                const totalSum = elements.filter(it => !it.date_delete)
+                                    .reduce((sum, current) => sum + current.value, 0)
                                 data.response.end(JSON.stringify({
                                     data: skipped,
                                     meta: {
                                         length: elementsLength,
                                         activeCategories,
-                                        activeUsersIds
+                                        activeUsersIds,
+                                        totalSum
                                     }
                                 }))
                             })
