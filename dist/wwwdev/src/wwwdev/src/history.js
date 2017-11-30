@@ -154,7 +154,7 @@ var fetchHistory = function fetchHistory(_ref2)
                     // it's title
                     daySum = itemsWithTitles.
                     filter(function (element) {return (
-                            element && element.date_create && !item.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)));}).
+                            element && element.date_create && !element.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)));}).
                     map(function (it) {return it.value || 0;}).
                     reduce(function (sum, current) {return sum + current;}, 0);
                 }
