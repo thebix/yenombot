@@ -152,16 +152,39 @@ then(function (stateFromFile) {
                         var elementsLength = elements.length;
                         if (skip === -1)
                         skip = elementsLength - HISTORY_PAGE_COUNT;
-                        var skipped = elements.sort(function (a, b) {return b.id - a.id;}).splice(+skip);
+                        var skipped = elements.slice(+skip);
                         skipped.splice(HISTORY_PAGE_COUNT);
-                        var activeCategories = Array.from(new Set(skipped.map(function (item) {return item.category;})));
-                        var activeUsersIds = Array.from(new Set(skipped.map(function (item) {return item.user_id;})));
+                        var activeCategories = {};
+                        Array.from(new Set(elements.map(function (item) {return item.category;}))).
+                        forEach(function (category) {
+                            activeCategories[category] = {
+                                sum: elements.
+                                filter(function (it) {return !it.date_delete && it.category === category;}).
+                                map(function (it) {return it.value || 0;}).
+                                reduce(function (sum, prev) {return sum + prev;}, 0) };
+
+                        });
+                        var activeUsersIds = {};
+                        var nonUserGroups = store.getState().nonUserPaymentGroups[id] || [];
+                        Array.from(new Set(elements.map(function (item) {return item.user_id;}))).
+                        forEach(function (userId) {
+                            activeUsersIds[userId] = {
+                                sum: elements.
+                                filter(function (it) {return !it.date_delete && it.user_id === userId &&
+                                    nonUserGroups.indexOf(it.category) === -1;}).
+                                map(function (it) {return it.value || 0;}).
+                                reduce(function (sum, prev) {return sum + prev;}, 0) };
+
+                        });
+                        var totalSum = elements.filter(function (it) {return !it.date_delete;}).
+                        reduce(function (sum, current) {return sum + current.value;}, 0);
                         data.response.end(JSON.stringify({
                             data: skipped,
                             meta: {
                                 length: elementsLength,
                                 activeCategories: activeCategories,
-                                activeUsersIds: activeUsersIds } }));
+                                activeUsersIds: activeUsersIds,
+                                totalSum: totalSum } }));
 
 
                     }).
