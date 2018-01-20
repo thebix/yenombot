@@ -49,7 +49,7 @@ class History {
         if (!historyItem.value) throw new Error('value обязателен для истории')
         if (!historyItem.date_create) throw new Error('date_create обязателен для истории')
         const file = this.getFilePath(templateId)
-        return lib.fs.appendFile(file, JSON.stringify(historyItem))
+        return lib.fs.appendFile(file, `${JSON.stringify(historyItem)},`)
             .catch(error => {
                 log(`history:add: error while add to file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
                 return Observable.of(false)
@@ -97,7 +97,7 @@ class History {
                 const newHistory = [...allHistory.slice(0, indexToEdit), updatedItem, ...allHistory.slice(indexToEdit + 1)]
                 const file = this.getFilePath(templateId)
                 const newHistoryText = JSON.stringify(newHistory)
-                return lib.fs.saveFile(file, newHistoryText.slice(1, newHistoryText.length - 2))
+                return lib.fs.saveFile(file, `${newHistoryText.slice(1, newHistoryText.length - 1)},`)
                     .catch(error => {
                         log(`history:update: error while update to file historyItem. id:<${id}>, templateId: <${templateId}>, error=${error}`,
                             logLevel.ERROR)
@@ -114,7 +114,12 @@ class History {
                 log(`history:getAll: error while get from file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
                 return Observable.of('')
             })
-            .map(historyFileContent => JSON.parse(`[${historyFileContent}]`))
+            .map(historyFileContent => {
+                let historyFileContentText = historyFileContent.toString();
+                if (historyFileContentText.length > 0)
+                    historyFileContentText = historyFileContentText.slice(0, historyFileContentText.length - 1)
+                return JSON.parse(`[${historyFileContentText}]`)
+            })
     }
     getFilePath(templateId = null) {
         const file = templateId
