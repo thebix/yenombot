@@ -19,20 +19,19 @@ export class HistoryItem {
         id,
         userId,
         value,
-        category = undefined,
-        comment = undefined,
-        dateCreate = undefined,
-        dateEdit = undefined,
+        category = 'uncat',
+        comment = '',
+        dateCreate = new Date(),
+        dateEdit = new Date(),
         dateDelete = undefined) {
         // TODO: requeired checks: id, userId, value
-        const currentDate = new Date()
         this.id = id
         this.user_id = userId
         this.value = value
         this.category = category
         this.comment = comment
-        this.date_create = dateCreate || currentDate
-        this.date_edit = dateEdit || currentDate
+        this.date_create = dateCreate
+        this.date_edit = dateEdit
         this.date_delete = dateDelete
     }
 }

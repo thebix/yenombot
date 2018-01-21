@@ -58,13 +58,10 @@ class Storage {
     isInitialized() {
         return this.isFsLoadedBehaviorSubject.asObservable()
     }
-    loadFsStorage() {
-        return Observable.of(true)
-    }
     getItem(id, field) {
         if (!this.storage[id] || !this.storage[id][field])
             return Observable.of(null)
-        return Observable.of(this.storage[id])
+        return Observable.of(this.storage[id][field])
     }
     updateItem(id, fieldName, item) {
         const field = fieldName || '0'
