@@ -3,6 +3,8 @@ node_modules
 token.js
 src/storage
 dist/storage
+src/storage2
+dist/storage2
 wwwroot/
 .DS_Store
 
