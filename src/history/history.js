@@ -64,6 +64,7 @@ class History {
                     : null
             })
     }
+    // returns updated item or false
     update(id, newValue, templateId = null) {
         return this.getAll(templateId)
             .flatMap(allHistory => {
@@ -102,7 +103,7 @@ class History {
                             logLevel.ERROR)
                         return Observable.of(false)
                     })
-                    .map(isUpdated => isUpdated !== false)
+                    .map(() => updatedItem)
             })
     }
     getAll(templateId = null) {
@@ -111,7 +112,7 @@ class History {
         return lib.fs.readFile(historyFile)
             .catch(error => {
                 log(`history:getAll: error while get from file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
-                return Observable.of('')
+                return Observable.of([])
             })
             .map(historyFileContent => {
                 let historyFileContentText = historyFileContent.toString();

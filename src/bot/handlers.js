@@ -212,11 +212,52 @@ const balanceChange = (userId, chatId, text, messageId) => {
                             cmd: commands.BALANCE_CATEGORY_CHANGE
                         })
                     })
+                lastCommands[storageId(userId, chatId)] = commands.BALANCE_CHANGE
                 return Observable.from([new BotMessage(userId, chatId, `Записал ${value}. Выбери категорию`, buttons)]) //
                     .concat(balance(userId, chatId))
             })
             .concatMap(item => item)
     return Observable.merge(balanceUpdateError, historySaveError, successObservable)
+}
+
+const commentChange = (userId, chatId, text) => {
+    // сохранение комментария
+    const historyAllObservable = history.getAll(chatId).share()
+    const historyAllError = historyAllObservable
+        .filter(historyAll => !historyAll || historyAll.length === 0)
+        .switchMap(() => {
+            log(`handlers:commentChange: can't fetch history items. userId:<${userId}>, chatId:<${chatId}`, logLevel.ERROR)
+            return errorToUser(userId, chatId)
+        })
+
+    const historyUpdateObservable =
+        historyAllObservable
+            .filter(historyAll => historyAll && historyAll.length !== 0)
+            .switchMap(historyAll => {
+                const historyLastId = Math.max(...historyAll.map(historyItem => historyItem.id))
+                return history.update(historyLastId, { comment: text }, chatId)
+            }).share()
+
+    const historyUpdateError =
+        historyUpdateObservable
+            .filter(updatedHistoryItem => !updatedHistoryItem)
+            .switchMap(() => {
+                log(`handlers:commentChange: can't update last history item. userId:<${userId}>, chatId:<${chatId}`, logLevel.ERROR)
+                return errorToUser(userId, chatId)
+            })
+
+    const successObservable =
+        historyUpdateObservable
+            .filter(updatedHistoryItem => !!updatedHistoryItem)
+            .map(updatedHistoryItem => {
+                lastCommands[storageId(userId, chatId)] = undefined
+                return new BotMessageEdit(updatedHistoryItem.id, chatId,
+                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}`,
+                    [new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])
+            })
+            .concat(balance(userId, chatId))
+
+    return Observable.merge(historyAllError, historyUpdateError, successObservable)
 }
 
 /*
@@ -226,32 +267,15 @@ const categoryChange = (userId, chatId, data, messageId) => {
     // сохранение категории
     const { hId, gId } = data
 
-    const historyItemObservable = history.get(hId, chatId).share()
-    const historyItemError = historyItemObservable
-        .filter(historyItem => historyItem === false)
-        .switchMap(() => {
-            log(`handlers:categoryChange: can't fetch history item. hId:<${hId}>, gId:<${gId}`, logLevel.ERROR)
-            return errorToUser(userId, chatId)
-        })
-
-    const historyUpdateObservable = Observable.combineLatest(
-        historyItemObservable
-            .filter(historyItem => !!historyItem),
-        getCategoriesObservable(userId, chatId),
-        (historyItem, categories) => {
-            const updatedHistoryItem = Object.assign({}, historyItem, {
+    const historyUpdateObservable = getCategoriesObservable(userId, chatId)
+        .switchMap(categories => {
+            if (!categories || categories.length === 0)
+                return errorToUser(userId, chatId)
+            return history.update(hId, {
                 category: categories.filter(category => gId === category.id)[0].title
-            })
-            return updatedHistoryItem
+            }, chatId)
         })
-        .switchMap(updatedHistoryItem => {
-            return history.update(hId, updatedHistoryItem, chatId)
-                .map(isHistoryUpdated => {
-                    return isHistoryUpdated !== false
-                        ? updatedHistoryItem
-                        : null
-                })
-        }).share()
+        .share()
 
     const historyUpdateError =
         historyUpdateObservable
@@ -265,17 +289,68 @@ const categoryChange = (userId, chatId, data, messageId) => {
         historyUpdateObservable
             .filter(updatedHistoryItem => !!updatedHistoryItem)
             .map(updatedHistoryItem => {
-                return new BotMessageEdit(messageId, chatId, `${updatedHistoryItem.value}, ${updatedHistoryItem.category}${updatedHistoryItem.comment}`,
+                lastCommands[storageId(userId, chatId)] = commands.BALANCE_CATEGORY_CHANGE
+                return new BotMessageEdit(messageId, chatId, `${updatedHistoryItem.value}, ${updatedHistoryItem.category}`,
                     [new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])
             })
+    return Observable.merge(historyUpdateError, successObservable)
+}
 
-    return Observable.merge(historyItemError, historyUpdateError, successObservable)
+const balanceDelete = (userId, chatId, data, messageId) => {
+    // удаление записи
+    const { hId } = data
+
+    const historyUpdateObservable =
+        history.update(hId, {
+            date_delete: new Date()
+        }, chatId)
+            .share()
+
+    const historyUpdateError =
+        historyUpdateObservable
+            .filter(updatedHistoryItem => !updatedHistoryItem)
+            .switchMap(() => {
+                log(`handlers:balanceDelete: can't delete history item. hId:<${hId}>, chatId:<${chatId}, messageId:<${messageId}>`, logLevel.ERROR)
+                return errorToUser(userId, chatId)
+            })
+
+    const successObservable = Observable.combineLatest(
+        historyUpdateObservable
+            .filter(updatedHistoryItem => !!updatedHistoryItem),
+        getBalanceObservable(userId, chatId),
+        (updatedHistoryItem, balanceObject) => {
+            const dateCreated = new Date(updatedHistoryItem.date_create)
+            const currentDate = new Date()
+            if (currentDate.getFullYear() === dateCreated.getFullYear()
+                && currentDate.getMonth() === dateCreated.getMonth()) {
+                const { balance: balanceValue } = balanceObject
+                const newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue + updatedHistoryItem.value })
+                return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
+                    .switchMap(isBalanceUpdated => {
+                        if (!isBalanceUpdated) {
+                            log(`handlers:balanceDelete: can't update storage item. hId:<${hId}>, chatId:<${chatId}, messageId:<${messageId}>`,
+                                logLevel.ERROR)
+                            return errorToUser(userId, chatId)
+                        }
+                        return Observable.from([
+                            new BotMessageEdit(messageId, chatId,
+                                `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`)])
+                            .concat(balance(userId, chatId))
+                    })
+            }
+            return Observable.from([
+                new BotMessageEdit(messageId, chatId,
+                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`)])
+                .concat(balance(userId, chatId))
+        })
+        .concatMap(item => item)
+    return Observable.merge(historyUpdateError, successObservable)
 }
 
 /*
  * EXPORTS
  */
-const mapMessageToHandler = message => {
+const mapMessageToHandler = message => { // eslint-disable-line complexity
     const { text, from, chat, id } = message
     const chatId = chat ? chat.id : from
 
@@ -294,6 +369,8 @@ const mapMessageToHandler = message => {
         messagesToUser = balance(from, chatId)
     else if (InputParser.isBalanceChange(text))
         messagesToUser = balanceChange(from, chatId, text, id)
+    else if (InputParser.isCommentChange(lastCommands[storageId(from, chatId)]))
+        messagesToUser = commentChange(from, chatId, text, id)
 
     if (!messagesToUser) {
         messagesToUser = help(from, chatId)
@@ -305,16 +382,19 @@ const mapMessageToHandler = message => {
         })
 }
 
-export const mapUserActionToHandler = userAction => {
+export const mapUserActionToHandler = userAction => { // eslint-disable-line complexity
     const { message, data = {} } = userAction
     const { from, chat, id } = message
     const chatId = chat ? chat.id : from
     const callbackCommand = data.cmd || undefined
     let messagesToUser
-    if (InputParser.isCategoryChange(callbackCommand)) {
+    if (InputParser.isCategoryChange(callbackCommand))
         messagesToUser = categoryChange(from, chatId, data, id)
-    } else {
-        log(`handlers.mapUserActionToHandler: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, logLevel.ERROR)
+    else if (InputParser.isBalanceDelete(callbackCommand))
+        messagesToUser = balanceDelete(from, chatId, data, id)
+    else {
+        log(`handlers.mapUserActionToHandler: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`,
+            logLevel.ERROR)
         messagesToUser = errorToUser(from, chatId)
     }
 
