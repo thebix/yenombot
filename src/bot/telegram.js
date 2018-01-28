@@ -3,18 +3,28 @@ import { Subject, Observable } from 'rxjs'
 import { log, logLevel } from '../logger'
 import UserMessage, { UserAction } from './message'
 
-const messageToUserOptions = (inlineButtons = undefined, replyKeyboard = undefined, editMessageId = undefined, editMessageChatId = undefined) => {
+const messageToUserOptions = (
+    inlineButtonsGroups = undefined,
+    replyKeyboard = undefined,
+    editMessageId = undefined,
+    editMessageChatId = undefined
+) => {
     const options = {
         message_id: editMessageId,
         chat_id: editMessageChatId,
         reply_markup: {}
     }
-    if (inlineButtons && Array.isArray(inlineButtons)) {
+    if (inlineButtonsGroups && Array.isArray(inlineButtonsGroups)) {
         options.reply_markup.inline_keyboard =
-            inlineButtons.map(item => [{
-                text: item.text,
-                callback_data: JSON.stringify(item.callbackData)
-            }])
+            inlineButtonsGroups.map(inlineButtonsGroup => {
+                return inlineButtonsGroup.inlineButtons
+                    .map(inlineButton => {
+                        return {
+                            text: inlineButton.text,
+                            callback_data: JSON.stringify(inlineButton.callbackData)
+                        }
+                    })
+            })
     }
     if (replyKeyboard && replyKeyboard.buttons && Array.isArray(replyKeyboard.buttons)) {
         const {
@@ -69,14 +79,14 @@ export default class Telegram {
         return this.userActionsSubject.asObservable()
     }
     // TODO: rename to botMessage
-    messageToUser({ chatId, text, inlineButtons, replyKeyboard }) {
+    messageToUser({ chatId, text, inlineButtonsGroups, replyKeyboard }) {
         return Observable.fromPromise(this.bot.sendMessage(chatId, `${text} 🤖`,
-            messageToUserOptions(inlineButtons, replyKeyboard)))
+            messageToUserOptions(inlineButtonsGroups, replyKeyboard)))
     }
     // TODO: rename to botMessageEdit
-    messageToUserEdit({ chatId, text, inlineButtons, messangerMessageIdToEdit }) {
+    messageToUserEdit({ chatId, text, inlineButtonsGroups, messangerMessageIdToEdit }) {
         // TODO: chatId, messangerMessageIdToEdit is required params - add checks isNonBlank()
-        return Observable.fromPromise(this.bot.editMessageText(text,
-            messageToUserOptions(inlineButtons, undefined, messangerMessageIdToEdit, chatId)))
+        return Observable.fromPromise(this.bot.editMessageText(`${text} 🤖`,
+            messageToUserOptions(inlineButtonsGroups, undefined, messangerMessageIdToEdit, chatId)))
     }
 }

@@ -85,6 +85,12 @@ export class InlineButton {
         this.callbackData = callbackData
     }
 }
+export class InlineButtonsGroup {
+    constructor(inlineButtonsArray = []) {
+        this.inlineButtons = inlineButtonsArray
+    }
+}
+
 // https://core.telegram.org/bots/api#replykeyboardmarkups
 export class ReplyKeyboard {
     constructor(buttons = [], resizeKeyboard = false, oneTimeKeyboard = false, selective = false) {
@@ -106,13 +112,13 @@ export class BotMessage {
     constructor(userId,
         chatId,
         text = '',
-        inlineButtons = undefined,
+        inlineButtonsGroups = undefined,
         replyKeyboard = undefined) {
         // TODO: add checks userId, chatId, text isNotBlank()
         this.userId = userId
         this.chatId = chatId
         this.text = text
-        this.inlineButtons = inlineButtons
+        this.inlineButtonsGroups = inlineButtonsGroups
         this.replyKeyboard = replyKeyboard
     }
 }

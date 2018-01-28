@@ -63,6 +63,14 @@ class Storage {
             return Observable.of(null)
         return Observable.of(this.storage[id][field])
     }
+    getItems(id, fieldsArray = []) {
+        const result = {}
+        fieldsArray.forEach(field => {
+            result[field] = this.storage[id] && this.storage[id][field]
+                ? this.storage[id][field] : null
+        })
+        return Observable.of(result)
+    }
     updateItem(id, fieldName, item) {
         const field = fieldName || '0'
         if (!this.storage[id])

@@ -6,7 +6,7 @@
 import { Observable } from 'rxjs/Observable'
 import { Parser } from 'expr-eval'
 
-import { BotMessage, InlineButton, BotMessageEdit } from './message'
+import { BotMessage, InlineButton, BotMessageEdit, InlineButtonsGroup } from './message'
 import commands from './commands'
 import storage from '../storage'
 import { log, logLevel } from '../logger'
@@ -14,6 +14,7 @@ import token from '../token'
 import InputParser from './inputParser'
 import config from '../config'
 import history, { HistoryItem } from '../history/history'
+import lib from '../lib/root'
 
 const lastCommands = {}
 
@@ -73,8 +74,8 @@ const getCategoriesObservable = (userId, chatId) =>
     storage.getItem(storageId(userId, chatId), 'paymentGroups')
         .map(categoriesArray => {
             if (categoriesArray === false)
-                log('//TODO: proper log message: cant fetch categories', logLevel.ERROR)
-
+                log(`handlers:getCategoriesObservable: can't fetch categories. userId:<${userId}>, chatId:<${chatId}>`,
+                    logLevel.ERROR)
             return categoriesArray || []
         })
 /*
@@ -123,7 +124,8 @@ const balanceInit = (userId, chatId) =>
     initializeBalanceObservable(userId, chatId)
         .switchMap(() => balance(userId, chatId))
 
-const balanceChange = (userId, chatId, text, messageId) => {
+const balanceChange = (user, chatId, text, messageId) => {
+    const { id: userId, firstName, lastName } = user
     const parser = new Parser()
     let value
     try {
@@ -136,6 +138,25 @@ const balanceChange = (userId, chatId, text, messageId) => {
     } catch (ex) {
         return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
     }
+
+    // TODO: this error should prevent further observables from emitting
+    const addUserToStorageError = storage.getItem(storageId(userId, chatId), 'balanceUsers')
+        .concatMap(balanceUsers => {
+            let balanceUsersUpdated = {}
+            if (balanceUsers) {
+                balanceUsersUpdated = balanceUsers
+            }
+            if (!balanceUsersUpdated[userId]) {
+                balanceUsersUpdated[userId] = `${firstName || ''} ${lastName || ''}`
+                return storage.updateItem(storageId(userId, chatId), 'balanceUsers', balanceUsersUpdated)
+                    .switchMap(updateResult => {
+                        return updateResult
+                            ? Observable.empty()
+                            : Observable.from(errorToUser(userId, chatId))
+                    })
+            }
+            return Observable.empty()
+        })
 
     const newBalanceObservable = getBalanceObservable(userId, chatId)
         .switchMap(balanceObject => {
@@ -155,7 +176,7 @@ const balanceChange = (userId, chatId, text, messageId) => {
     const balanceUpdateError = newBalanceObservable
         .filter(newBalanceObject => !newBalanceObject)
         .switchMap(() => {
-            log(`handlers:balanceChange: can't update balance. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
+            log(`handlers: balanceChange: can't update balance. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
                 logLevel.ERROR)
             return [new BotMessage(userId, chatId, 'При обновлении баланса возникла ошибка')]
         })
@@ -185,43 +206,39 @@ const balanceChange = (userId, chatId, text, messageId) => {
             historySaveObservable
                 .filter(isHistorySaved => !!isHistorySaved),
             (categories, newBalanceObject) => {
-                // TODO: button groups
-                // const cols = 3 // кол-во в блоке
-                // const buttons = [] // результат
-                // const blocksCount = parseInt(categories.length / cols, 10)
-                //     + ((categories.length % cols) > 0 ? 1 : 0)
-                // for (let i = 0; i < blocksCount; i += 1) {
-                //     buttons.push(
-                //         categories.slice(i * cols, cols * (i + 1))
-                //             .map(category => {
-                //                 const { id, title } = category
-                //                 return new InlineButton(title, {
-                //                     gId: id,
-                //                     hId: messageId,
-                //                     cmd: commands.BALANCE_CATEGORY_CHANGE
-                //                 })
-                //             })
-                //     )
-                // }
-                const buttons = categories
-                    .map(category => {
-                        const { id, title } = category
-                        return new InlineButton(title, {
-                            gId: id,
-                            hId: messageId,
-                            cmd: commands.BALANCE_CATEGORY_CHANGE
-                        })
-                    })
+                const cols = 3 // count in horizontal block
+                const buttonsGroups = [new InlineButtonsGroup(
+                    [new InlineButton('Удалить', {
+                        hId: messageId,
+                        cmd: commands.BALANCE_REMOVE
+                    })]
+                )]
+                const blocksCount = parseInt(categories.length / cols, 10)
+                    + ((categories.length % cols) > 0 ? 1 : 0)
+                for (let i = 0; i < blocksCount; i += 1) {
+                    buttonsGroups.push(
+                        new InlineButtonsGroup(
+                            categories.slice(i * cols, cols * (i + 1))
+                                .map(category => {
+                                    const { id, title } = category
+                                    return new InlineButton(title, {
+                                        gId: id,
+                                        hId: messageId,
+                                        cmd: commands.BALANCE_CATEGORY_CHANGE
+                                    })
+                                })
+                        )
+                    )
+                }
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CHANGE
-                return Observable.from([new BotMessage(userId, chatId, `Записал ${value}. Выбери категорию`, buttons)]) //
+                return Observable.from([new BotMessage(userId, chatId, `Записал ${value}. Выбери категорию`, buttonsGroups)])
                     .concat(balance(userId, chatId))
             })
             .concatMap(item => item)
-    return Observable.merge(balanceUpdateError, historySaveError, successObservable)
+    return Observable.merge(addUserToStorageError, balanceUpdateError, historySaveError, successObservable)
 }
 
 const commentChange = (userId, chatId, text) => {
-    // сохранение комментария
     const historyAllObservable = history.getAll(chatId).share()
     const historyAllError = historyAllObservable
         .filter(historyAll => !historyAll || historyAll.length === 0)
@@ -253,18 +270,216 @@ const commentChange = (userId, chatId, text) => {
                 lastCommands[storageId(userId, chatId)] = undefined
                 return new BotMessageEdit(updatedHistoryItem.id, chatId,
                     `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}`,
-                    [new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])
+                    [new InlineButtonsGroup([new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
             })
             .concat(balance(userId, chatId))
 
     return Observable.merge(historyAllError, historyUpdateError, successObservable)
 }
 
+const stats = (userId, chatId, text) => {
+    // getting the interval
+    let dateEnd,
+        dateStart,
+        dateEndUser
+    const split = (`${text}`).split(' ')
+    if (split.length === 1) { // without params => just this month statistics
+        dateEnd = lib.time.getEndDate()
+        dateStart = lib.time.getMonthStartDate(dateEnd)
+        dateEndUser = dateEnd
+    } else if (split.length < 3) { // date start - till - current date
+        dateEnd = lib.time.getEndDate()
+        dateStart = lib.time.getBack(split[1].trim(' '), dateEnd)
+        dateEndUser = dateEnd
+    } else { // date start - till - date end
+        // end day should be added to statistics
+        const end = lib.time.getBack(split[2].trim(' ')) // date end (starts from 0:00)
+        dateStart = lib.time.getBack(split[1].trim(' '), end)
+        dateEnd = lib.time.getEndDate(end)
+        if (lib.time.isDateSame(dateStart, dateEnd))
+            dateEndUser = dateEnd
+        else
+            // we are showing to user the date one day less
+            dateEndUser = lib.time.getChangedDateTime({ days: -1 }, dateEnd)
+    }
+    const dateEndTime = dateEnd.getTime()
+    const dateStartTime = dateStart.getTime()
+    const curTicks = dateEndTime - dateStartTime
+    if (curTicks < 1000 * 60 * 60 * 4)
+        return Observable.from([new BotMessage(userId, chatId,
+            'Слишком короткий интервал. Минимум 4 часа.')])
+
+    const intervalLength = lib.time.daysBetween(dateStart, lib.time.getChangedDateTime({ ticks: 1 }, dateEnd))
+
+    return Observable.combineLatest(
+        storage.getItems(storageId(userId, chatId), ['nonUserPaymentGroups', 'paymentGroups', 'balanceUsers']),
+        history.getAll(chatId),
+        (storageData, historyAll) => {
+            const {
+                    nonUserPaymentGroups: nonUserPaymentCategories,
+                paymentGroups: paymentCategories,
+                balanceUsers
+                } = storageData
+            return {
+                nonUserPaymentCategories,
+                paymentCategories,
+                historyAll,
+                balanceUsers
+            }
+        }
+    ).concatMap(storageData => {
+        const { nonUserPaymentCategories = [],
+            paymentCategories = [],
+            historyAll = [],
+            balanceUsers = {}
+            } = storageData
+        let periodNumber = 0
+        const historyAllSorted = historyAll
+            .filter(historyItem => !historyItem.date_delete)
+            .sort((i1, i2) => i2.id - i1.id)
+        // users in history
+        const historyUsers = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            historyAllSorted.map(item => item.user_id)))
+        // categories in history
+        const historyCategories = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+            historyAllSorted.map(item => item.category)))
+        const userSumsPevPeriods = {}  // summary of all payments by user in previous periods ~~, doesn't unclude current period~~
+        historyUsers.forEach(user => {
+            userSumsPevPeriods[user] = 0
+        })
+        nonUserPaymentCategories.forEach(category => {
+            userSumsPevPeriods[category] = 0
+        })
+        const categoriesSumsPevPeriods = {} // summary of all payments by category in previous periods ~~, doesn't unclude current period~~
+        historyCategories.forEach(category => {
+            categoriesSumsPevPeriods[category] = 0
+        })
+        nonUserPaymentCategories.forEach(category => {
+            categoriesSumsPevPeriods[category] = 0
+        })
+        const userSumsByPeriods = {} // payments by user by period, including current period
+        const categoriesSumsByPeriods = {} // payments by category by period, including current period
+        const initCurrentPeriodUsersSums = () => {
+            userSumsByPeriods[periodNumber] = {}
+            historyUsers.forEach(user => {
+                userSumsByPeriods[periodNumber][user] = 0
+            })
+            nonUserPaymentCategories.forEach(category => {
+                userSumsByPeriods[periodNumber][category] = 0
+            })
+        }
+        const initCurrentPeriodCategoriesSums = () => {
+            categoriesSumsByPeriods[periodNumber] = {}
+            historyCategories.forEach(category => {
+                categoriesSumsByPeriods[periodNumber][category] = 0
+            })
+            nonUserPaymentCategories.forEach(category => {
+                categoriesSumsByPeriods[periodNumber][category] = 0
+            })
+        }
+        initCurrentPeriodUsersSums()
+        initCurrentPeriodCategoriesSums()
+        let curIntervalDateStart = dateStart
+        let curIntervalDateEnd = dateEnd
+
+        // get intervals before the last historyItem
+        const historyItemLast = historyAllSorted[0]
+        let historyItemTicks = new Date(historyItemLast.date_create).getTime()
+        while (historyItemTicks < curIntervalDateStart.getTime()) {
+            periodNumber += 1
+            curIntervalDateStart = lib.time.getChangedDateTime({ days: -intervalLength }, curIntervalDateStart)
+            curIntervalDateEnd = lib.time.getChangedDateTime({ days: -intervalLength }, curIntervalDateEnd)
+            initCurrentPeriodUsersSums()
+            initCurrentPeriodCategoriesSums()
+        }
+        let i = 0
+        for (i; i < historyAllSorted.length; i += 1) {
+            const { date_create, value, user_id, category } = historyAllSorted[i]
+            historyItemTicks = new Date(date_create).getTime()
+            // check if we need to increase period
+            while (historyItemTicks < curIntervalDateStart.getTime()) {
+                periodNumber += 1
+                curIntervalDateStart = lib.time.getChangedDateTime({ days: -intervalLength }, curIntervalDateStart)
+                curIntervalDateEnd = lib.time.getChangedDateTime({ days: -intervalLength }, curIntervalDateEnd)
+                initCurrentPeriodUsersSums()
+                initCurrentPeriodCategoriesSums()
+            }
+            if (nonUserPaymentCategories.indexOf(category) === -1) {
+                userSumsByPeriods[periodNumber][user_id] += value
+                // if (i > 0)  // only previous periods, non current
+                userSumsPevPeriods[user_id] += value
+            } else {
+                userSumsByPeriods[periodNumber][category] += value
+                // if (i > 0)  // only previous periods, non current
+                userSumsPevPeriods[category] += value
+            }
+            categoriesSumsByPeriods[periodNumber][category] += value
+            // if (i > 0)  // only previous periods, non current
+            categoriesSumsPevPeriods[category] += value
+        }
+        // TODO: check if userSumsByPeriods > 0, etc
+        const successMessages = [
+            new BotMessage(userId, chatId,
+                `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`)
+        ]
+        const periodsAllCount = Object.keys(userSumsByPeriods).length  // all history periods count
+        const usersInCurrentPeriod =
+            Object.keys(userSumsByPeriods[0])
+                .filter(user => userSumsByPeriods[0][user] > 0)
+        const categoriesInCurrentPeriod =
+            Object.keys(categoriesSumsByPeriods[0])
+                .filter(category => categoriesSumsByPeriods[0][category] > 0)
+        const periodsCountByCategories = {} // count of periods for concrete category. including current period
+        categoriesInCurrentPeriod.forEach(category => {
+            let periodsCountTmp = 0
+            let periodNum = 0
+            for (periodNum; periodNum < periodsAllCount; periodNum += 1) {
+                periodsCountTmp += 1
+                if (categoriesSumsByPeriods[periodNum][category] !== 0) {
+                    periodsCountByCategories[category] = (periodsCountByCategories[category] || 0) + periodsCountTmp
+                    periodsCountTmp = 0
+                }
+            }
+        })
+
+        // sums by user
+        let usersSumsText = 'Потрачено [в этом | в среднем]:'
+        usersInCurrentPeriod.forEach(userIdOrCategoryTitle => {
+            let userName
+            let perCount // periods count
+            if (balanceUsers[userIdOrCategoryTitle]) {
+                userName = balanceUsers[userIdOrCategoryTitle]
+                perCount = periodsAllCount // user periods - all available in history
+            } else {
+                userName = userIdOrCategoryTitle // category title from nonUserGroups
+                perCount = periodsCountByCategories[userIdOrCategoryTitle] // periods count for every category is different
+            }
+
+            const sum = Math.round(userSumsByPeriods[0][userIdOrCategoryTitle]) || 0
+            const bef = Math.round(userSumsPevPeriods[userIdOrCategoryTitle] / perCount) || 0
+            usersSumsText = `${usersSumsText}\r\n${userName}: ${sum} | ${bef}`
+        })
+        successMessages.push(new BotMessage(userId, chatId, usersSumsText))
+
+        // sums by category
+        let sumsCategoriesText = 'По категориям [в этом | в среднем]:'
+        categoriesInCurrentPeriod
+            .sort((cat1, cat2) =>
+                Math.round(categoriesSumsByPeriods[0][cat2]) - Math.round(categoriesSumsByPeriods[0][cat1]))
+            .forEach(categoryTitle => {
+                const cur = Math.round(categoriesSumsByPeriods[0][categoryTitle])
+                const bef = Math.round(categoriesSumsPevPeriods[categoryTitle] / periodsCountByCategories[categoryTitle])
+                sumsCategoriesText = `${sumsCategoriesText}\r\n${categoryTitle}: ${cur || 0} | ${bef || 0}`
+            })
+        successMessages.push(new BotMessage(userId, chatId, sumsCategoriesText))
+        return Observable.from(successMessages)
+    })
+}
+
 /*
  * USER ACTION HELPERS
  */
 const categoryChange = (userId, chatId, data, messageId) => {
-    // сохранение категории
     const { hId, gId } = data
 
     const historyUpdateObservable = getCategoriesObservable(userId, chatId)
@@ -291,13 +506,12 @@ const categoryChange = (userId, chatId, data, messageId) => {
             .map(updatedHistoryItem => {
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CATEGORY_CHANGE
                 return new BotMessageEdit(messageId, chatId, `${updatedHistoryItem.value}, ${updatedHistoryItem.category}`,
-                    [new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])
+                    [new InlineButtonsGroup([new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])])
             })
     return Observable.merge(historyUpdateError, successObservable)
 }
 
 const balanceDelete = (userId, chatId, data, messageId) => {
-    // удаление записи
     const { hId } = data
 
     const historyUpdateObservable =
@@ -351,7 +565,7 @@ const balanceDelete = (userId, chatId, data, messageId) => {
  * EXPORTS
  */
 const mapMessageToHandler = message => { // eslint-disable-line complexity
-    const { text, from, chat, id } = message
+    const { text, from, chat, id, user } = message
     const chatId = chat ? chat.id : from
 
     let messagesToUser
@@ -367,8 +581,10 @@ const mapMessageToHandler = message => { // eslint-disable-line complexity
         messagesToUser = balanceInit(from, chatId)
     else if (InputParser.isBalance(text))
         messagesToUser = balance(from, chatId)
+    else if (InputParser.isStats(text))
+        messagesToUser = stats(from, chatId, text)
     else if (InputParser.isBalanceChange(text))
-        messagesToUser = balanceChange(from, chatId, text, id)
+        messagesToUser = balanceChange(user, chatId, text, id)
     else if (InputParser.isCommentChange(lastCommands[storageId(from, chatId)]))
         messagesToUser = commentChange(from, chatId, text, id)
 
