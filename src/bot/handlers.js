@@ -473,6 +473,7 @@ const stats = (userId, chatId, text) => {
             })
         successMessages.push(new BotMessage(userId, chatId, sumsCategoriesText))
         return Observable.from(successMessages)
+            .concat(balance(userId, chatId))
     })
 }
 

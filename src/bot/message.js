@@ -1,5 +1,7 @@
 // https://core.telegram.org/bots/api#user
 
+export const USER_ID_UNUSED = 'userId_unused'
+
 /*
  *   FROM USER
  */
@@ -13,6 +15,7 @@ export default class UserMessage {
     }
 
     static mapTelegramMessage(msg) {
+        // TODO: change to new UserMessage()
         return {
             id: msg.message_id,
             from: msg.from.id,
@@ -37,6 +40,7 @@ export default class UserMessage {
     static mapTelegramUserActionToMessage(userAction) {
         // INFO: message.user = bot, from = user
         const { message, from } = userAction
+        // TODO: change to new UserMessage()
         return {
             id: message.message_id,
             from: from.id,
@@ -57,6 +61,29 @@ export default class UserMessage {
                 allMembersAdmins: !!message.chat.all_members_are_administrators
             }
         }
+    }
+    // create command to handler to imitate user input
+    static createCommand(chatId, text) {
+        return new UserMessage({
+            id: 'messageId_unused',
+            from: USER_ID_UNUSED,
+            text,
+            user: {
+                id: USER_ID_UNUSED,
+                firstName: 'firstName_unused',
+                lastName: 'lastName_unused',
+                username: 'username_unused'
+            },
+            chat: {
+                id: chatId,
+                type: 'chatType_unused',
+                title: 'chatTitle_unused',
+                username: 'chatUsername_unused',
+                firstName: 'chatFirstName_unused',
+                lastName: 'chatLastName_unused',
+                allMembersAdmins: false
+            }
+        })
     }
 }
 

@@ -1,11 +1,13 @@
 import token from '../token'
 import commands from './commands'
+import { USER_ID_UNUSED } from './message'
 
 export default class InputParser {
     static isDeveloper(id) {
-        return token.developers
-            && token.developers.length > 0
-            && token.developers.some(x => x === id)
+        return USER_ID_UNUSED === id
+            || (token.developers
+                && token.developers.length > 0
+                && token.developers.some(x => x === id))
     }
     static isEcho() {
         return true

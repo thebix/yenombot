@@ -58,6 +58,9 @@ class Storage {
     isInitialized() {
         return this.isFsLoadedBehaviorSubject.asObservable()
     }
+    getStorageKeys() {
+        return Observable.of(Object.keys(this.storage))
+    }
     getItem(id, field) {
         if (!this.storage[id] || !this.storage[id][field])
             return Observable.of(null)

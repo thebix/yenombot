@@ -80,12 +80,14 @@ export default class Telegram {
     }
     // TODO: rename to botMessage
     messageToUser({ chatId, text, inlineButtonsGroups, replyKeyboard }) {
+        // TODO: check if bot has access to chatId
         return Observable.fromPromise(this.bot.sendMessage(chatId, `${text} 🤖`,
             messageToUserOptions(inlineButtonsGroups, replyKeyboard)))
     }
     // TODO: rename to botMessageEdit
     messageToUserEdit({ chatId, text, inlineButtonsGroups, messangerMessageIdToEdit }) {
         // TODO: chatId, messangerMessageIdToEdit is required params - add checks isNonBlank()
+        // TODO: check if bot has access to chatId
         return Observable.fromPromise(this.bot.editMessageText(`${text} 🤖`,
             messageToUserOptions(inlineButtonsGroups, undefined, messangerMessageIdToEdit, chatId)))
     }
