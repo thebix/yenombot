@@ -70,9 +70,10 @@ const usersFetchDone = json => ({
     data: json || {}
 })
 
-export const usersFetch = () => dispatch =>
+export const usersFetch = chatId => dispatch =>
     fetch(`${restUrl}/api/users`, {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ chatId })
     })
         .then(response => response.json(), error => l.e('An error occured.', error))
         .then(json => dispatch(usersFetchDone(json)))
