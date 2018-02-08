@@ -5,7 +5,7 @@ import yenomWww from './yenomWww'
 import storage from './storage'
 import { log, logLevel } from './logger'
 
-log('Start bot', logLevel.INFO)
+log('Starting server', logLevel.INFO)
 
 const compositeSubscription = new Subscription()
 
@@ -22,7 +22,7 @@ compositeSubscription.add(
         .subscribe(
         () => { },
         error => {
-            log(`Unhandled exception: server.yenombot: error while handling userText / userAvtions. Error=${error && error.message
+            log(`Unhandled exception: server.yenombot: error while handling userText / userActions. Error=${error && error.message
                 ? error.message : JSON.stringify(error)}`, logLevel.ERROR)
             compositeSubscription.unsubscribe()
         }))

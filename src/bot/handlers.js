@@ -27,7 +27,7 @@ const errorToUser = (userId, chatId) => [new BotMessage(userId, chatId,
 const botIsInDevelopmentToUser = (userId, chatId) => {
     log(`handlers.botIsInDevelopmentToUser: userId="${userId}" is not in token.developers array.`, logLevel.ERROR)
     return Observable.from([new BotMessage(userId, chatId,
-        `В данный момент бот находится в режиме разработки. \nВаш идентификатор в мессенджере - "${userId}". Сообщите свой идентификатор по контактам в описании бота, чтобы Вас добавили в группу разработчиков`)])
+        `В данный момент бот находится в режиме разработки. \nВаш идентификатор в мессенджере - "${userId}". Сообщите свой идентификатор по контактам в описании бота, чтобы Вас добавили в группу разработчиков`)]) // eslint-disable-line max-len
 }
 
 /*
@@ -52,11 +52,10 @@ const initializeBalanceObservable = (userId, chatId) =>
                 period: new Date().getMonth()
             }
             return storage.updateItem(storageId(userId, chatId), 'balance', balanceObject)
-                .map(isBalanceObjectUpdated => {
-                    return isBalanceObjectUpdated === true
+                .map(isBalanceObjectUpdated => (
+                    isBalanceObjectUpdated === true
                         ? balanceObject
-                        : null
-                })
+                        : null))
         })
 const getBalanceObservable = (userId, chatId) =>
     storage.getItem(storageId(userId, chatId), 'balance')
@@ -97,18 +96,16 @@ const tokenInit = (userId, chatId, text) => {
 
     const initDataItems = token.initData[tokenKey]
     const dataItems = Object.keys(initDataItems)
-        .map(key => {
-            return {
-                fieldName: key,
-                item: initDataItems[key]
-            }
-        })
+        .map(key => ({
+            fieldName: key,
+            item: initDataItems[key]
+        }))
     return storage.updateItems(storageId(userId, chatId), dataItems)
-        .mergeMap(isStorageUpdated => {
-            return !isStorageUpdated
+        .mergeMap(isStorageUpdated => (
+            !isStorageUpdated
                 ? Observable.from(errorToUser(userId, chatId))
                 : Observable.from([new BotMessage(userId, chatId, 'Токен принят')])
-        })
+        ))
 }
 
 const balance = (userId, chatId) =>
@@ -149,11 +146,10 @@ const balanceChange = (user, chatId, text, messageId) => {
             if (!balanceUsersUpdated[userId]) {
                 balanceUsersUpdated[userId] = `${firstName || ''} ${lastName || ''}`
                 return storage.updateItem(storageId(userId, chatId), 'balanceUsers', balanceUsersUpdated)
-                    .switchMap(updateResult => {
-                        return updateResult
-                            ? Observable.empty()
-                            : Observable.from(errorToUser(userId, chatId))
-                    })
+                    .switchMap(updateResult => (updateResult
+                        ? Observable.empty()
+                        : Observable.from(errorToUser(userId, chatId))
+                    ))
             }
             return Observable.empty()
         })
@@ -166,11 +162,10 @@ const balanceChange = (user, chatId, text, messageId) => {
             const { balance: balanceValue } = balanceObject
             const newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue - value })
             return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
-                .map(isBalanceUpdated => {
-                    return isBalanceUpdated
-                        ? newBalanceObject
-                        : null
-                })
+                .map(isBalanceUpdated => (isBalanceUpdated
+                    ? newBalanceObject
+                    : null
+                ))
         }).share()
 
     const balanceUpdateError = newBalanceObservable
@@ -186,11 +181,10 @@ const balanceChange = (user, chatId, text, messageId) => {
         .switchMap(newBalanceObject =>
             history.add(new HistoryItem(messageId, userId, value),
                 chatId)
-                .map(isHistorySaved => {
-                    return isHistorySaved
-                        ? newBalanceObject
-                        : null
-                })).share()
+                .map(isHistorySaved => (isHistorySaved
+                    ? newBalanceObject
+                    : null
+                ))).share()
 
     const historySaveError = historySaveObservable
         .filter(isHistorySaved => !isHistorySaved)
@@ -205,7 +199,7 @@ const balanceChange = (user, chatId, text, messageId) => {
             getCategoriesObservable(userId, chatId),
             historySaveObservable
                 .filter(isHistorySaved => !!isHistorySaved),
-            (categories, newBalanceObject) => {
+            categories => {
                 const cols = 3 // count in horizontal block
                 const buttonsGroups = [new InlineButtonsGroup(
                     [new InlineButton('Удалить', {
@@ -268,6 +262,7 @@ const commentChange = (userId, chatId, text) => {
             .filter(updatedHistoryItem => !!updatedHistoryItem)
             .map(updatedHistoryItem => {
                 lastCommands[storageId(userId, chatId)] = undefined
+                // TODO: doesn't work, creates new message
                 return new BotMessageEdit(updatedHistoryItem.id, chatId,
                     `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}`,
                     [new InlineButtonsGroup([new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
@@ -312,24 +307,21 @@ const stats = (userId, chatId, text) => {
     const intervalLength = lib.time.daysBetween(dateStart, lib.time.getChangedDateTime({ ticks: 1 }, dateEnd))
 
     return Observable.combineLatest(
-        storage.getItems(storageId(userId, chatId), ['nonUserPaymentGroups', 'paymentGroups', 'balanceUsers']),
+        storage.getItems(storageId(userId, chatId), ['nonUserPaymentGroups', 'balanceUsers']),
         history.getAll(chatId),
         (storageData, historyAll) => {
             const {
-                    nonUserPaymentGroups: nonUserPaymentCategories,
-                paymentGroups: paymentCategories,
+                nonUserPaymentGroups: nonUserPaymentCategories,
                 balanceUsers
                 } = storageData
             return {
                 nonUserPaymentCategories,
-                paymentCategories,
                 historyAll,
                 balanceUsers
             }
         }
     ).concatMap(storageData => {
         const { nonUserPaymentCategories = [],
-            paymentCategories = [],
             historyAll = [],
             balanceUsers = {}
             } = storageData
@@ -337,6 +329,16 @@ const stats = (userId, chatId, text) => {
         const historyAllSorted = historyAll
             .filter(historyItem => !historyItem.date_delete)
             .sort((i1, i2) => i2.id - i1.id)
+        const successMessages = [
+            new BotMessage(userId, chatId,
+                `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`) // eslint-disable-line max-len
+        ]
+        if (historyAllSorted.length === 0) {
+            successMessages.push(new BotMessage(userId, chatId, 'Нет записей для отображения'))
+            return Observable.from(successMessages)
+                .concat(balance(userId, chatId))
+        }
+
         // users in history
         const historyUsers = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
             historyAllSorted.map(item => item.user_id)))
@@ -406,23 +408,21 @@ const stats = (userId, chatId, text) => {
             }
             if (nonUserPaymentCategories.indexOf(category) === -1) {
                 userSumsByPeriods[periodNumber][user_id] += value
-                // if (i > 0)  // only previous periods, non current
                 userSumsPevPeriods[user_id] += value
             } else {
                 userSumsByPeriods[periodNumber][category] += value
-                // if (i > 0)  // only previous periods, non current
                 userSumsPevPeriods[category] += value
             }
             categoriesSumsByPeriods[periodNumber][category] += value
-            // if (i > 0)  // only previous periods, non current
             categoriesSumsPevPeriods[category] += value
         }
-        // TODO: check if userSumsByPeriods > 0, etc
-        const successMessages = [
-            new BotMessage(userId, chatId,
-                `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`)
-        ]
+
         const periodsAllCount = Object.keys(userSumsByPeriods).length  // all history periods count
+        if (periodsAllCount === 0) {
+            successMessages.push(new BotMessage(userId, chatId, 'Нет записей для отображения'))
+            return Observable.from(successMessages)
+                .concat(balance(userId, chatId))
+        }
         const usersInCurrentPeriod =
             Object.keys(userSumsByPeriods[0])
                 .filter(user => userSumsByPeriods[0][user] > 0)
@@ -472,6 +472,7 @@ const stats = (userId, chatId, text) => {
                 sumsCategoriesText = `${sumsCategoriesText}\r\n${categoryTitle}: ${cur || 0} | ${bef || 0}`
             })
         successMessages.push(new BotMessage(userId, chatId, sumsCategoriesText))
+
         return Observable.from(successMessages)
             .concat(balance(userId, chatId))
     })
@@ -594,9 +595,7 @@ const mapMessageToHandler = message => { // eslint-disable-line complexity
     }
 
     return Observable.from(messagesToUser)
-        .concatMap(msgToUser => {
-            return Observable.of(msgToUser).delay(10)
-        })
+        .concatMap(msgToUser => Observable.of(msgToUser).delay(10))
 }
 
 export const mapUserActionToHandler = userAction => { // eslint-disable-line complexity
@@ -610,15 +609,13 @@ export const mapUserActionToHandler = userAction => { // eslint-disable-line com
     else if (InputParser.isBalanceDelete(callbackCommand))
         messagesToUser = balanceDelete(from, chatId, data, id)
     else {
-        log(`handlers.mapUserActionToHandler: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`,
+        log(`handlers.mapUserActionToHandler: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, // eslint-disable-line max-len
             logLevel.ERROR)
         messagesToUser = errorToUser(from, chatId)
     }
 
     return Observable.from(messagesToUser)
-        .concatMap(msgToUser => {
-            return Observable.of(msgToUser).delay(10)
-        })
+        .concatMap(msgToUser => Observable.of(msgToUser).delay(10))
 }
 
 export default mapMessageToHandler

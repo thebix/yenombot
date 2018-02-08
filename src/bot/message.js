@@ -15,8 +15,7 @@ export default class UserMessage {
     }
 
     static mapTelegramMessage(msg) {
-        // TODO: change to new UserMessage()
-        return {
+        return new UserMessage({
             id: msg.message_id,
             from: msg.from.id,
             text: msg.text,
@@ -35,13 +34,12 @@ export default class UserMessage {
                 lastName: msg.chat.last_name,
                 allMembersAdmins: msg.chat.all_members_are_administrators
             }
-        }
+        })
     }
     static mapTelegramUserActionToMessage(userAction) {
         // INFO: message.user = bot, from = user
         const { message, from } = userAction
-        // TODO: change to new UserMessage()
-        return {
+        return new UserMessage({
             id: message.message_id,
             from: from.id,
             text: message.text,
@@ -60,7 +58,7 @@ export default class UserMessage {
                 lastName: message.chat.last_name,
                 allMembersAdmins: !!message.chat.all_members_are_administrators
             }
-        }
+        })
     }
     // create command to handler to imitate user input
     static createCommand(chatId, text) {
@@ -97,7 +95,7 @@ export class UserAction {
         const { data } = userAction
         return {
             data: data ? JSON.parse(data) : {},
-            message: new UserMessage(UserMessage.mapTelegramUserActionToMessage(userAction))
+            message: UserMessage.mapTelegramUserActionToMessage(userAction)
         }
     }
 }
@@ -141,7 +139,6 @@ export class BotMessage {
         text = '',
         inlineButtonsGroups = undefined,
         replyKeyboard = undefined) {
-        // TODO: add checks userId, chatId, text isNotBlank()
         this.userId = userId
         this.chatId = chatId
         this.text = text
@@ -150,10 +147,8 @@ export class BotMessage {
     }
 }
 export class BotMessageEdit extends BotMessage {
-    // TODO: rename messangerMessageIdToEdit to messageIdToEdit
-    constructor(messangerMessageIdToEdit, chatId, text, inlineButtons) {
-        // TODO: messangerMessageIdToEdit check isNonBlank
+    constructor(messageIdToEdit, chatId, text, inlineButtons) {
         super('userId_not_needed', chatId, text, inlineButtons)
-        this.messangerMessageIdToEdit = messangerMessageIdToEdit
+        this.messageIdToEdit = messageIdToEdit
     }
 }

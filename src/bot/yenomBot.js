@@ -31,7 +31,7 @@ const getCommandsForReportMonthlyObservable = () =>
     ).flatMap(commands => Observable.from(commands || []))
 
 export default () => {
-    log('yenomBot.startVkoBot()', logLevel.DEBUG)
+    log('yenomBot.startYenomBot()', logLevel.INFO)
     const userTextObservalbe =
         Observable.merge(
             telegram.userText(),
@@ -42,19 +42,17 @@ export default () => {
             // .observeOn(Scheduler.async)
             // .subscribeOn(Scheduler.async)
             .mergeMap(mapMessageToHandler)
-            .mergeMap(message => telegram.messageToUser(message))
+            .mergeMap(message => telegram.botMessage(message))
 
     const userActionsObservable = telegram.userActions()
         // TODO: proper observeOn / subscribeOn
         // .observeOn(Scheduler.async)
         // .subscribeOn(Scheduler.async)
         .mergeMap(mapUserActionToHandler)
-        .mergeMap(message => {
-            return message.messangerMessageIdToEdit
-                ? telegram.messageToUserEdit(message)
-                : telegram.messageToUser(message)
-        })
-    telegram.start()
+        .mergeMap(message => (message.messageIdToEdit
+            ? telegram.botMessageEdit(message)
+            : telegram.botMessage(message)
+        ))
     weeklyIntervalTimer.start()
     monthlyIntervalTimer.start()
     return Observable.merge(userTextObservalbe, userActionsObservable)

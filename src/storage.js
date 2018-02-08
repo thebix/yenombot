@@ -1,59 +1,64 @@
 // in memory sotrage.
 
-import { Observable, BehaviorSubject } from 'rxjs'
+import { Observable, BehaviorSubject, Subscription } from 'rxjs'
 import lib from './lib/root'
 import config from './config';
 import { log, logLevel } from './logger';
+
+const compositeSubscription = new Subscription()
 
 class Storage {
     constructor() {
         this.storage = {}
         this.isFsLoadedBehaviorSubject = new BehaviorSubject(false)
-        // load saved storage from fs
-        // check if directory and file exists, if not - create
-        lib.fs.isExists(config.dirStorage)
-            .switchMap(isStorageDirExists => {
-                if (isStorageDirExists !== true) {
-                    log(`Storage:constructor: storage directory doesn't exists, creating. path: <${config.dirStorage}>`, logLevel.INFO)
-                    return lib.fs.mkDir(config.dirStorage)
-                        .switchMap(() => lib.fs.isExists(config.fileState))
-                        .catch(error => {
-                            throw new Error(`Storage:constructor: can't create storage directory. path: <${config.dirStorage}>. error: <${error}>`)
-                        })
-                }
-                return lib.fs.isExists(config.fileState)
-            })
-            .switchMap(isStateFileExists => {
-                if (isStateFileExists !== true) {
-                    log(`Storage:constructor: state file doesn't exists, creating. path: <${config.fileState}>`, logLevel.INFO)
-                    return lib.fs.saveJson(config.fileState, {})
-                        .map(() => true)
-                        .catch(error => {
-                            throw new Error(`Storage:constructor: can't create state file. path: <${config.fileState}>. error: <${error}>`)
-                        })
-                }
-                return Observable.of(true)
-            })
-            .switchMap(isStorageDirAndStateFileExists => {
-                if (isStorageDirAndStateFileExists)
-                    return lib.fs.readJson(config.fileState)
-                        .do(fileStorage => {
-                            this.storage = fileStorage
-                        })
-                        .map(() => true)
-                        .catch(error => {
-                            throw new Error(`Storage:constructor: can't read state file. path: <${config.fileState}>. error: <${error}>`)
-                        })
-                return Observable.of(false)
-            })
-            // TODO: add subscription to composite subscription and unsubscribe
-            .subscribe(
-            initResult => {
-                this.isFsLoadedBehaviorSubject.next(initResult)
-            },
-            initError => {
-                log(initError, logLevel.ERROR)
-            })
+        compositeSubscription.add(
+            // load saved storage from fs
+            // check if directory and file exists, if not - create
+            lib.fs.isExists(config.dirStorage)
+                .switchMap(isStorageDirExists => {
+                    if (isStorageDirExists !== true) {
+                        log(`Storage:constructor: storage directory doesn't exists, creating. path: <${config.dirStorage}>`, logLevel.INFO)
+                        return lib.fs.mkDir(config.dirStorage)
+                            .switchMap(() => lib.fs.isExists(config.fileState))
+                            .catch(error => {
+                                throw new Error(`Storage:constructor: can't create storage directory. path: <${config.dirStorage}>. error: <${error}>`)
+                            })
+                    }
+                    return lib.fs.isExists(config.fileState)
+                })
+                .switchMap(isStateFileExists => {
+                    if (isStateFileExists !== true) {
+                        log(`Storage:constructor: state file doesn't exists, creating. path: <${config.fileState}>`, logLevel.INFO)
+                        return lib.fs.saveJson(config.fileState, {})
+                            .map(() => true)
+                            .catch(error => {
+                                throw new Error(`Storage:constructor: can't create state file. path: <${config.fileState}>. error: <${error}>`)
+                            })
+                    }
+                    return Observable.of(true)
+                })
+                .switchMap(isStorageDirAndStateFileExists => {
+                    if (isStorageDirAndStateFileExists)
+                        return lib.fs.readJson(config.fileState)
+                            .do(fileStorage => {
+                                this.storage = fileStorage
+                            })
+                            .map(() => true)
+                            .catch(error => {
+                                throw new Error(`Storage:constructor: can't read state file. path: <${config.fileState}>. error: <${error}>`)
+                            })
+                    return Observable.of(false)
+                })
+                .subscribe(
+                initResult => {
+                    this.isFsLoadedBehaviorSubject.next(initResult)
+                    compositeSubscription.unsubscribe()
+                },
+                initError => {
+                    log(initError, logLevel.ERROR)
+                    compositeSubscription.unsubscribe()
+                })
+        )
     }
     isInitialized() {
         return this.isFsLoadedBehaviorSubject.asObservable()

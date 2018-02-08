@@ -146,7 +146,7 @@ const handleApi = {
 }
 
 export default () => {
-    log('yenomWww', logLevel.DEBUG)
+    log('yenomWww.startWwwServer()', logLevel.INFO)
     const wwwServer = new WwwServer({
         port: config.www.port,
         wwwRoot: config.www.wwwRoot,

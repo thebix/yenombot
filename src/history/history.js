@@ -24,7 +24,6 @@ export class HistoryItem {
         dateCreate = new Date(),
         dateEdit = new Date(),
         dateDelete = undefined) {
-        // TODO: requeired checks: id, userId, value
         this.id = id
         this.user_id = userId
         this.value = value
@@ -49,11 +48,11 @@ class History {
         if (!historyItem.date_create) throw new Error('date_create обязателен для истории')
         const file = this.getFilePath(templateId)
         return lib.fs.appendFile(file, `${JSON.stringify(historyItem)},`)
+            .map(isAdded => isAdded !== false)
             .catch(error => {
                 log(`history:add: error while add to file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
                 return Observable.of(false)
             })
-            .map(isAdded => isAdded !== false)
     }
     get(id, templateId = null) {
         return this.getAll(templateId)
@@ -98,27 +97,26 @@ class History {
                 const file = this.getFilePath(templateId)
                 const newHistoryText = JSON.stringify(newHistory)
                 return lib.fs.saveFile(file, `${newHistoryText.slice(1, newHistoryText.length - 1)},`)
+                    .map(() => updatedItem)
                     .catch(error => {
                         log(`history:update: error while update to file historyItem. id:<${id}>, templateId: <${templateId}>, error=${error}`,
                             logLevel.ERROR)
                         return Observable.of(false)
                     })
-                    .map(() => updatedItem)
             })
     }
     getAll(templateId = null) {
         const historyFile = this.getFilePath(templateId)
-        // TODO: check if this.path and historyFile exists. return [] if not
         return lib.fs.readFile(historyFile)
-            .catch(error => {
-                log(`history:getAll: error while get from file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
-                return Observable.of([])
-            })
             .map(historyFileContent => {
                 let historyFileContentText = historyFileContent.toString();
                 if (historyFileContentText.length > 0)
                     historyFileContentText = historyFileContentText.slice(0, historyFileContentText.length - 1)
                 return JSON.parse(`[${historyFileContentText}]`)
+            })
+            .catch(error => {
+                log(`history:getAll: error while get from file historyItem. templateId: <${templateId}>, error=${error}`, logLevel.ERROR)
+                return Observable.of([])
             })
     }
     getFilePath(templateId = null) {
