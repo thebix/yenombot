@@ -14,7 +14,7 @@ export default class UserMessage {
         this.chat = msg.chat
     }
 
-    static mapTelegramMessage(msg) {
+    static createFromTelegramMessage(msg) {
         return new UserMessage({
             id: msg.message_id,
             from: msg.from.id,
@@ -36,7 +36,7 @@ export default class UserMessage {
             }
         })
     }
-    static mapTelegramUserActionToMessage(userAction) {
+    static createFromTelegramUserAction(userAction) {
         // INFO: message.user = bot, from = user
         const { message, from } = userAction
         return new UserMessage({
@@ -91,11 +91,11 @@ export class UserAction {
         this.message = message
     }
 
-    static mapTelegramUserAction(userAction) {
+    static createFromTelegramUserAction(userAction) {
         const { data } = userAction
         return {
             data: data ? JSON.parse(data) : {},
-            message: UserMessage.mapTelegramUserActionToMessage(userAction)
+            message: UserMessage.createFromTelegramUserAction(userAction)
         }
     }
 }

@@ -52,12 +52,12 @@ export default class Telegram {
     }
     userText() {
         return Observable.fromEvent(this.bot, 'text')
-            .map(msg => UserMessage.mapTelegramMessage(msg))
+            .map(msg => UserMessage.createFromTelegramMessage(msg))
     }
     userActions() {
         return Observable.fromEvent(this.bot, 'callback_query')
             .do(userAction => this.bot.answerCallbackQuery(userAction.id, 'Команда получена', false))
-            .map(userAction => UserAction.mapTelegramUserAction(userAction))
+            .map(userAction => UserAction.createFromTelegramUserAction(userAction))
     }
     botMessage({ chatId, text, inlineButtonsGroups, replyKeyboard }) {
         return Observable.fromPromise(this.bot.sendMessage(chatId, `${text} 🤖`,
