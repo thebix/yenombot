@@ -270,8 +270,11 @@ const commentChange = (userId, chatId, text) => {
                     return Observable.empty()
                 }
                 return Observable.of(new BotMessageEdit(editMessageId, chatId,
-                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}`,
-                    [new InlineButtonsGroup([new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
+                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}${updatedHistoryItem.date_delete
+                        ? ' удалено из истории' : ''}`,
+                    [new InlineButtonsGroup(updatedHistoryItem.date_delete
+                        ? []
+                        : [new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
                 )
             })
             .concat(balance(userId, chatId))
