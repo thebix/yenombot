@@ -322,9 +322,9 @@ const stats = (userId, chatId, text) => {
                 balanceUsers
             } = storageData
             return {
-                nonUserPaymentCategories,
-                historyAll,
-                balanceUsers
+                nonUserPaymentCategories: nonUserPaymentCategories || [],
+                historyAll: historyAll || [],
+                balanceUsers: balanceUsers || {}
             }
         }
     ).concatMap(storageData => {
@@ -348,10 +348,10 @@ const stats = (userId, chatId, text) => {
 
         // users in history
         const historyUsers = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-            historyAllSorted.map(item => item.user_id)))
+            historyAllSorted.map(item => item.user_id))) || []
         // categories in history
         const historyCategories = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-            historyAllSorted.map(item => item.category)))
+            historyAllSorted.map(item => item.category))) || []
         const userSumsPevPeriods = {}  // summary of all payments by user in previous periods ~~, doesn't unclude current period~~
         historyUsers.forEach(user => {
             userSumsPevPeriods[user] = 0
@@ -574,7 +574,7 @@ const balanceDelete = (userId, chatId, data, messageId) => {
 /*
  * EXPORTS
  */
-const mapMessageToHandler = message => { // eslint-disable-line complexity
+const mapUserMessageToBotMessages = message => { // eslint-disable-line complexity
     const { text, from, chat, id, user } = message
     const chatId = chat ? chat.id : from
 
@@ -606,7 +606,7 @@ const mapMessageToHandler = message => { // eslint-disable-line complexity
         .concatMap(msgToUser => Observable.of(msgToUser).delay(10))
 }
 
-export const mapUserActionToHandler = userAction => { // eslint-disable-line complexity
+export const mapUserActionToBotMessages = userAction => { // eslint-disable-line complexity
     const { message, data = {} } = userAction
     const { from, chat, id } = message
     const chatId = chat ? chat.id : from
@@ -617,7 +617,7 @@ export const mapUserActionToHandler = userAction => { // eslint-disable-line com
     else if (InputParser.isBalanceDelete(callbackCommand))
         messagesToUser = balanceDelete(from, chatId, data, id)
     else {
-        log(`handlers.mapUserActionToHandler: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, // eslint-disable-line max-len
+        log(`handlers.mapUserActionToBotMessages: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, // eslint-disable-line max-len
             logLevel.ERROR)
         messagesToUser = errorToUser(from, chatId)
     }
@@ -626,4 +626,4 @@ export const mapUserActionToHandler = userAction => { // eslint-disable-line com
         .concatMap(msgToUser => Observable.of(msgToUser).delay(10))
 }
 
-export default mapMessageToHandler
+export default mapUserMessageToBotMessages
