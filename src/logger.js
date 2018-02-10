@@ -6,7 +6,16 @@ export const logLevel = {
     DEBUG: 'DEBUG'
 }
 
-export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString()} ${(`0${date.getHours()}`).slice(-2)}:${(`0${date.getMinutes()}`).slice(-2)}:${(`0${date.getSeconds()}`).slice(-2)}`
+export const dateTimeString = (date = new Date()) => new Intl.DateTimeFormat('ru-RU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Moscow'
+}).format(date)
 
 export const log = (text, level = logLevel.DEBUG) => {
     if (!text) return
@@ -14,9 +23,10 @@ export const log = (text, level = logLevel.DEBUG) => {
         || (_config.log === logLevel.INFO && (level === logLevel.INFO || level === logLevel.ERROR))
         || (_config.log === logLevel.ERROR && level === logLevel.ERROR)) {
         const t = `${dateTimeString()} | ${level} | ${text}`
-        if (level === logLevel.ERROR)
+        if (level === logLevel.ERROR) {
+            console.error(t)
             console.trace(t)
-        else
+        } else
             console.log(t)
     }
 }

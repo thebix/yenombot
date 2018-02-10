@@ -35,9 +35,9 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-react": "^7.0.1",
+    "forever": "~0.15.3",
     "mocha": "^3.2.0",
-    "nodemon": "^1.11.0",
-    "forever": "~0.15.3"
+    "nodemon": "^1.11.0"
   },
   "dependencies": {
     "expr-eval": "^1.0.0",
@@ -47,8 +47,9 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "babel-register": "^6.18.0",
-    "rxjs": "~5.4.2",
-    "rwlock": "5.0.0"
+    "rxjs": "5.5.6",
+    "rwlock": "5.0.0",
+    "node-cleanup": "^2.1.2"
   },
   "private": true,
   "engines": {
