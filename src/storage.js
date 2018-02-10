@@ -5,6 +5,8 @@ import lib from './lib/root'
 import config from './config';
 import { log, logLevel } from './logger';
 
+export const archiveName = 'storage_archive'
+
 const compositeSubscription = new Subscription()
 
 class Storage {
@@ -50,14 +52,14 @@ class Storage {
                     return Observable.of(false)
                 })
                 .subscribe(
-                initResult => {
-                    this.isFsLoadedBehaviorSubject.next(initResult)
-                    compositeSubscription.unsubscribe()
-                },
-                initError => {
-                    log(initError, logLevel.ERROR)
-                    compositeSubscription.unsubscribe()
-                })
+                    initResult => {
+                        this.isFsLoadedBehaviorSubject.next(initResult)
+                        compositeSubscription.unsubscribe()
+                    },
+                    initError => {
+                        log(initError, logLevel.ERROR)
+                        compositeSubscription.unsubscribe()
+                    })
         )
     }
     isInitialized() {
@@ -129,6 +131,24 @@ class Storage {
                     log(`Storage:removeItem: can't save to state file. path: <${config.fileState}>, error:<${error}>`, logLevel.ERROR)
                     // rollback changes to fs storage to previous values on error
                     this.storage[id][field] = oldValue
+                    return Observable.of(false)
+                })
+        }
+        return Observable.of(true)
+    }
+    archive(id) {
+        const archive = this.storage[archiveName] || {}
+        if (id !== archiveName && this.storage[id]) {
+            archive[id] = this.storage[id]
+            this.storage[archiveName] = archive
+            delete this.storage[id]
+            return lib.fs.saveJson(config.fileState, this.storage)
+                .map(() => true)
+                .catch(error => {
+                    log(`Storage:archive: can't save to state file. path: <${config.fileState}>, error:<${error}>`, logLevel.ERROR)
+                    // rollback changes to fs storage to previous values on error
+                    this.storage[id] = archive[id]
+                    delete this.storage[archiveName][id]
                     return Observable.of(false)
                 })
         }
