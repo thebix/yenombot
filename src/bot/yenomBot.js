@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs'
+import { Observable, Scheduler } from 'rxjs'
 import { log, logLevel } from '../logger'
 import config from '../config'
 import token from '../token'
@@ -57,15 +57,11 @@ export default () => {
             getCommandsForReportWeeklyObservable(),
             getCommandsForReportMonthlyObservable()
         )
-            // TODO: proper observeOn / subscribeOn
-            // .observeOn(Scheduler.async)
-            // .subscribeOn(Scheduler.async)
+            .observeOn(Scheduler.asap)
             .mergeMap(mapUserMessageToBotMessages)
             .mergeMap(mapBotMessageToSendResult)
     const userActionsObservable = telegram.userActions()
-        // TODO: proper observeOn / subscribeOn
-        // .observeOn(Scheduler.async)
-        // .subscribeOn(Scheduler.async)
+        .observeOn(Scheduler.asap)
         .mergeMap(mapUserActionToBotMessages)
         .mergeMap(mapBotMessageToSendResult)
     weeklyIntervalTimer.start()
