@@ -226,7 +226,9 @@ const balanceChange = (user, chatId, text, messageId) => {
                     )
                 }
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CHANGE
-                return Observable.from([new BotMessage(userId, chatId, `Записал ${value}. Выбери категорию`, buttonsGroups)])
+                // buttonsGroups.length > 1 since at least one group (Delete button) always exists
+                return Observable.from([new BotMessage(userId, chatId, `Записал ${value}.${buttonsGroups.length > 1 ? ' Выбери категорию1' : ''}`,
+                    buttonsGroups)])
                     .concat(balance(userId, chatId))
             })
             .concatMap(item => item.delay(10))
