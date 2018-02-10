@@ -23,7 +23,7 @@ class Storage {
                         return lib.fs.mkDir(config.dirStorage)
                             .switchMap(() => lib.fs.isExists(config.fileState))
                             .catch(error => {
-                                throw new Error(`Storage:constructor: can't create storage directory. path: <${config.dirStorage}>. error: <${error}>`)
+                                throw new Error(`Storage:constructor: can't create storage directory. path: <${config.dirStorage}>. error: <${error}>`) // eslint-disable-line max-len
                             })
                     }
                     return lib.fs.isExists(config.fileState)
