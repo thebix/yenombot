@@ -17,6 +17,7 @@ import history, { HistoryItem } from '../history/history'
 import lib from '../lib/root'
 
 const lastCommands = {}
+const lastChangeBalanceBotMessageId = {}
 
 /*
  * ERRORS HANDERS
@@ -228,7 +229,7 @@ const balanceChange = (user, chatId, text, messageId) => {
                 return Observable.from([new BotMessage(userId, chatId, `Записал ${value}. Выбери категорию`, buttonsGroups)])
                     .concat(balance(userId, chatId))
             })
-            .concatMap(item => item)
+            .concatMap(item => item.delay(10))
     return Observable.merge(addUserToStorageError, balanceUpdateError, historySaveError, successObservable)
 }
 
@@ -260,12 +261,16 @@ const commentChange = (userId, chatId, text) => {
     const successObservable =
         historyUpdateObservable
             .filter(updatedHistoryItem => !!updatedHistoryItem)
-            .map(updatedHistoryItem => {
+            .switchMap(updatedHistoryItem => {
                 lastCommands[storageId(userId, chatId)] = undefined
-                // TODO: doesn't work, creates new message
-                return new BotMessageEdit(updatedHistoryItem.id, chatId,
+                const editMessageId = lastChangeBalanceBotMessageId[storageId(userId, chatId)]
+                if (!editMessageId) {
+                    return Observable.empty()
+                }
+                return Observable.of(new BotMessageEdit(editMessageId, chatId,
                     `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}`,
                     [new InlineButtonsGroup([new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
+                )
             })
             .concat(balance(userId, chatId))
 
@@ -313,7 +318,7 @@ const stats = (userId, chatId, text) => {
             const {
                 nonUserPaymentGroups: nonUserPaymentCategories,
                 balanceUsers
-                } = storageData
+            } = storageData
             return {
                 nonUserPaymentCategories,
                 historyAll,
@@ -324,7 +329,7 @@ const stats = (userId, chatId, text) => {
         const { nonUserPaymentCategories = [],
             historyAll = [],
             balanceUsers = {}
-            } = storageData
+        } = storageData
         let periodNumber = 0
         const historyAllSorted = historyAll
             .filter(historyItem => !historyItem.date_delete)
@@ -507,6 +512,7 @@ const categoryChange = (userId, chatId, data, messageId) => {
             .filter(updatedHistoryItem => !!updatedHistoryItem)
             .map(updatedHistoryItem => {
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CATEGORY_CHANGE
+                lastChangeBalanceBotMessageId[storageId(userId, chatId)] = messageId
                 return new BotMessageEdit(messageId, chatId, `${updatedHistoryItem.value}, ${updatedHistoryItem.category}`,
                     [new InlineButtonsGroup([new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])])
             })

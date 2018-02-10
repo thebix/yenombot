@@ -46,7 +46,7 @@ export default class Telegram {
     constructor(token) {
         if (!token) {
             log('Telegram: You should provide a telegram bot token', logLevel.ERROR)
-            return
+            throw new Error('Telegram: You should provide a telegram bot token')
         }
         this.bot = new TelegramBot(token, { polling: true })
     }

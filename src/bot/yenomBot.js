@@ -42,7 +42,10 @@ export default () => {
             // .observeOn(Scheduler.async)
             // .subscribeOn(Scheduler.async)
             .mergeMap(mapMessageToHandler)
-            .mergeMap(message => telegram.botMessage(message))
+            .mergeMap(message => (message.messageIdToEdit
+                ? telegram.botMessageEdit(message)
+                : telegram.botMessage(message)
+            ))
 
     const userActionsObservable = telegram.userActions()
         // TODO: proper observeOn / subscribeOn
