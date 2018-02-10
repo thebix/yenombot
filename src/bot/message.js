@@ -152,3 +152,37 @@ export class BotMessageEdit extends BotMessage {
         this.messageIdToEdit = messageIdToEdit
     }
 }
+
+export class BotMessageSendResult {
+    constructor({ chatId, messageText, statusCode, statusMessage, ok, messageId }) {
+        this.chatId = chatId
+        this.messageId = messageId
+        this.messageText = messageText
+        this.statusCode = statusCode
+        this.statusMessage = statusMessage
+        this.ok = ok
+    }
+
+    static createFromSuccess(botMessageSendSuccess) {
+        const { message_id: messageId, chat } = botMessageSendSuccess
+        const { id: chatId } = chat
+        return new BotMessageSendResult({
+            chatId,
+            messageId,
+            statusCode: 200,
+            statusMessage: 'ok',
+            ok: true
+        })
+    }
+    static createFromError(botMessageSendError) {
+        const { message } = botMessageSendError
+        const { statusCode, statusMessage, body } = botMessageSendError.response
+        const { ok } = body
+        return new BotMessageSendResult({
+            messageText: message,
+            statusCode,
+            statusMessage,
+            ok
+        })
+    }
+}

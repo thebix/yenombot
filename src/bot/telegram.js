@@ -1,7 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api'
 import { Observable } from 'rxjs'
 import { log, logLevel } from '../logger'
-import UserMessage, { UserAction } from './message'
+import UserMessage, { UserAction, BotMessageSendResult } from './message'
 
 const botMessageOptions = (
     inlineButtonsGroups = undefined,
@@ -60,13 +60,19 @@ export default class Telegram {
             .map(userAction => UserAction.mapTelegramUserAction(userAction))
     }
     botMessage({ chatId, text, inlineButtonsGroups, replyKeyboard }) {
-        // TODO: check if bot has access to chatId
         return Observable.fromPromise(this.bot.sendMessage(chatId, `${text} 🤖`,
             botMessageOptions(inlineButtonsGroups, replyKeyboard)))
+            .map(botMessageSendSuccess => BotMessageSendResult.createFromSuccess(botMessageSendSuccess))
+            .catch(botMessageSendError => Observable.of(BotMessageSendResult.createFromError(botMessageSendError)))
     }
     botMessageEdit({ chatId, text, inlineButtonsGroups, messageIdToEdit }) {
         // TODO: check if bot has access to chatId
         return Observable.fromPromise(this.bot.editMessageText(`${text} 🤖`,
             botMessageOptions(inlineButtonsGroups, undefined, messageIdToEdit, chatId)))
+            .map(botMessageSendSuccess => BotMessageSendResult.createFromSuccess(botMessageSendSuccess))
+            .catch(botMessageSendError => Observable.of(BotMessageSendResult.createFromError(botMessageSendError)))
+    }
+    chatInfo(chatId) {
+        return Observable.fromPromise(this.bot.getChat(chatId))
     }
 }
