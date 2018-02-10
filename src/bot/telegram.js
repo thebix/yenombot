@@ -66,7 +66,6 @@ export default class Telegram {
             .catch(botMessageSendError => Observable.of(BotMessageSendResult.createFromError(botMessageSendError)))
     }
     botMessageEdit({ chatId, text, inlineButtonsGroups, messageIdToEdit }) {
-        // TODO: check if bot has access to chatId
         return Observable.fromPromise(this.bot.editMessageText(`${text} 🤖`,
             botMessageOptions(inlineButtonsGroups, undefined, messageIdToEdit, chatId)))
             .map(botMessageSendSuccess => BotMessageSendResult.createFromSuccess(botMessageSendSuccess))
