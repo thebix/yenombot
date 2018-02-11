@@ -2,11 +2,11 @@
 
 var logLevel = exports.logLevel = {
     ERROR: 'ERROR',
-    INFO: 'INFO ',
+    INFO: 'INFO',
     DEBUG: 'DEBUG' };
 
 
-var dateTimeString = exports.dateTimeString = function dateTimeString() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();return date.toLocaleDateString() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2);};
+var dateTimeString = exports.dateTimeString = function dateTimeString() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();return date.toLocaleDateString() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2);}; // eslint-disable-line max-len
 
 var log = exports.log = function log(text) {var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : logLevel.DEBUG;
     if (!text) return;
@@ -14,9 +14,10 @@ var log = exports.log = function log(text) {var level = arguments.length > 1 && 
     _config3.default.log === logLevel.INFO && (level === logLevel.INFO || level === logLevel.ERROR) ||
     _config3.default.log === logLevel.ERROR && level === logLevel.ERROR) {
         var t = dateTimeString() + ' | ' + level + ' | ' + text;
-        if (level === logLevel.ERROR)
-        console.trace(t);else
-
+        if (level === logLevel.ERROR) {
+            console.error(t);
+            console.trace(t);
+        } else
         console.log(t);
     }
 };

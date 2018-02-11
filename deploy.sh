@@ -159,7 +159,7 @@ else
     echo -e "We are going to deploy ${WHITE}DEVELOP${RESET}"
 fi
 
-# check directories exits end has content
+# check directories exits and has content
 echo -e "Check configs..."
 dirExistsTerminate "Source" $DIR_SOURCE
 dirIsEmptyTerminate "Source" $DIR_SOURCE
@@ -177,6 +177,10 @@ if ! stringIsEmpty $DIR_NAME_DESTINATION_IGNORE; then
 fi
 if ! stringIsEmpty $DIR_EXCLUDE; then
     echo "Directories to exclude (no copy/bkp) ${WHITE}$DIR_EXCLUDE${RESET}"
+fi
+
+if ! dirExists "Logs" "./logs"; then
+    \mkdir "./logs"
 fi
 
 # apply pre copy actions from config

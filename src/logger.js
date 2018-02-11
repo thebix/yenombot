@@ -2,11 +2,11 @@ import _config from './config'
 
 export const logLevel = {
     ERROR: 'ERROR',
-    INFO: 'INFO ',
+    INFO: 'INFO',
     DEBUG: 'DEBUG'
 }
 
-export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString()} ${(`0${date.getHours()}`).slice(-2)}:${(`0${date.getMinutes()}`).slice(-2)}:${(`0${date.getSeconds()}`).slice(-2)}`
+export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString()} ${(`0${date.getHours()}`).slice(-2)}:${(`0${date.getMinutes()}`).slice(-2)}:${(`0${date.getSeconds()}`).slice(-2)}` // eslint-disable-line max-len
 
 export const log = (text, level = logLevel.DEBUG) => {
     if (!text) return
@@ -14,9 +14,10 @@ export const log = (text, level = logLevel.DEBUG) => {
         || (_config.log === logLevel.INFO && (level === logLevel.INFO || level === logLevel.ERROR))
         || (_config.log === logLevel.ERROR && level === logLevel.ERROR)) {
         const t = `${dateTimeString()} | ${level} | ${text}`
-        if (level === logLevel.ERROR)
+        if (level === logLevel.ERROR) {
+            console.error(t)
             console.trace(t)
-        else
+        } else
             console.log(t)
     }
 }

@@ -6,6 +6,10 @@ export default {
     isProduction,
     log: isProduction ? 'INFO' : 'DEBUG',
     developers: _token.developers,
-    dirStorage: `${__dirname}/storage/`,
-    fileState: `${__dirname}/storage/state.json`
+    dirStorage: `${__dirname}/state/`,
+    fileState: `${__dirname}/state/state.json`,
+    www: {
+        port: 42042,
+        wwwRoot: './wwwroot'
+    }
 }

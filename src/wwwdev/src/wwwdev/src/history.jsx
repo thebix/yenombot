@@ -52,7 +52,7 @@ const fetchHistory = ({
     selectedDates }) => {
     l.d('History:fetchHistory()')
     // TODO: move this request to other lyfecycle method
-    dispatch(usersFetch())
+    dispatch(usersFetch(historyId))
     dispatch(historyEditSwitch())
     const { dateStart, dateEnd } = selectedDates
     const start = checkDateInput(dateStart)
@@ -90,7 +90,7 @@ export default connect(state => ({
         dispatch(historyDateSet(timeLib.dateString(new Date(date.setDate(1)))))
         dispatch(historyDateSet(timeLib.dateString(), false))
 
-        dispatch(usersFetch())
+        dispatch(usersFetch(historyId))
         dispatch(historyFetch(historyId))
         dispatch(categoriesFetch(historyId))
     }
@@ -149,7 +149,7 @@ export default connect(state => ({
             let user = ''
             let daySum = ''
             if (users && users[item.user_id])
-                user = `${users[item.user_id].firstName} ${users[item.user_id].lastName}`
+                user = users[item.user_id]
             else {
                 // it's title
                 daySum = itemsWithTitles
@@ -360,7 +360,7 @@ const Users = ({ users, dispatch, selected, activeUsersIds }) => {
             const userSum = activeUsersIds && activeUsersIds[id] ?
                 `  [${activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
                 : ''
-            return <div key={id}><CheckBoxStateless key={id} title={`${users[id].firstName} ${users[id].lastName}${userSum}`}
+            return <div key={id}><CheckBoxStateless key={id} title={`${users[id]}${userSum}`}
                 classes={[actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : '']}
                 checked={selUsers.indexOf(id) > -1}
                 onClick={() => {

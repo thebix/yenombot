@@ -1,6 +1,6 @@
 {
   "name": "yenombot",
-  "version": "0.6.5",
+  "version": "0.7.0",
   "description": "group stats",
   "keywords": [
     "telegram",
@@ -12,7 +12,7 @@
     "test": "mocha --compilers js:babel-register",
     "start": "nodemon --trace-deprecation src/server.js --exec babel-node",
     "debug": "node src/server.js",
-    "build": "cd src/wwwdev && npm install && npm run build && cd ../.. && export NODE_ENV=production&& babel --ignore node_modules,storage src -d dist",
+    "build": "cd src/wwwdev && npm install && npm run build && cd ../.. && export NODE_ENV=production&& babel --ignore node_modules,state src -d dist",
     "serve": "export NODE_ENV=production&& node dist/server.js"
   },
   "repository": {
@@ -35,9 +35,9 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-react": "^7.0.1",
+    "forever": "~0.15.3",
     "mocha": "^3.2.0",
-    "nodemon": "^1.11.0",
-    "forever": "~0.15.3"
+    "nodemon": "^1.11.0"
   },
   "dependencies": {
     "expr-eval": "^1.0.0",
@@ -47,8 +47,9 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "babel-register": "^6.18.0",
-    "rxjs": "~5.4.2",
-    "rwlock": "5.0.0"
+    "rxjs": "5.5.6",
+    "rwlock": "5.0.0",
+    "node-cleanup": "^2.1.2"
   },
   "private": true,
   "engines": {
