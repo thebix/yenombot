@@ -52,7 +52,7 @@ var fetchHistory = function fetchHistory(_ref2)
 {var dispatch = _ref2.dispatch,historyId = _ref2.historyId,historySkip = _ref2.historySkip,selectedCategories = _ref2.selectedCategories,selectedUsers = _ref2.selectedUsers,selectedDates = _ref2.selectedDates;
     _logger2.default.d('History:fetchHistory()');
     // TODO: move this request to other lyfecycle method
-    dispatch((0, _actions.usersFetch)());
+    dispatch((0, _actions.usersFetch)(historyId));
     dispatch((0, _actions.historyEditSwitch)());var
     dateStart = selectedDates.dateStart,dateEnd = selectedDates.dateEnd;
     var start = checkDateInput(dateStart);
@@ -90,7 +90,7 @@ var fetchHistory = function fetchHistory(_ref2)
         dispatch((0, _actions.historyDateSet)(timeLib.dateString(new Date(date.setDate(1)))));
         dispatch((0, _actions.historyDateSet)(timeLib.dateString(), false));
 
-        dispatch((0, _actions.usersFetch)());
+        dispatch((0, _actions.usersFetch)(historyId));
         dispatch((0, _actions.historyFetch)(historyId));
         dispatch((0, _actions.categoriesFetch)(historyId));return _this;
     }(0, _createClass3.default)(History, [{ key: 'componentDidUpdate', value: function componentDidUpdate(
@@ -149,7 +149,7 @@ var fetchHistory = function fetchHistory(_ref2)
                 var user = '';
                 var daySum = '';
                 if (users && users[item.user_id])
-                user = users[item.user_id].firstName + ' ' + users[item.user_id].lastName;else
+                user = users[item.user_id];else
                 {
                     // it's title
                     daySum = itemsWithTitles.
@@ -360,7 +360,7 @@ var Users = function Users(_ref5) {var users = _ref5.users,dispatch = _ref5.disp
             var userSum = activeUsersIds && activeUsersIds[id] ? '  [' +
             activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
             '';
-            return _react2.default.createElement('div', { key: id }, _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: id, title: users[id].firstName + ' ' + users[id].lastName + userSum,
+            return _react2.default.createElement('div', { key: id }, _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: id, title: '' + users[id] + userSum,
                     classes: [actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : ''],
                     checked: selUsers.indexOf(id) > -1,
                     onClick: function onClick() {

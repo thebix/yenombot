@@ -2,7 +2,7 @@
 
 var _fs = require('fs');var _fs2 = _interopRequireDefault(_fs);
 var _jsonfile = require('jsonfile');var _jsonfile2 = _interopRequireDefault(_jsonfile);
-var _Rx = require('rxjs/Rx');var _Rx2 = _interopRequireDefault(_Rx);
+var _rxjs = require('rxjs');var _rxjs2 = _interopRequireDefault(_rxjs);
 var _rwlock = require('rwlock');var _rwlock2 = _interopRequireDefault(_rwlock);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
 
 var lock = new _rwlock2.default();var
@@ -79,41 +79,56 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
         } }, { key: 'accessRead', value: function accessRead(
         path) {
             return this.access(path, _fs2.default.constants.R_OK);
-        } }]);return FileSystem;}();exports.default = FileSystem;var
+        } }, { key: 'mkDir', value: function mkDir(
+        path) {
+            return new Promise(function (resolve, reject) {
+                lock.writeLock(path, function (release) {
+                    _fs2.default.mkdir(path, undefined, function (err) {
+                        release();
+                        if (err) return reject(err);
+                        return resolve();
+                    });
+                });
+            });
+        } }]);return FileSystem;}();
 
 
-RxFileSystem = exports.RxFileSystem = function () {
+// TODO: think about Scheduler use
+exports.default = FileSystem;var RxFileSystem = exports.RxFileSystem = function () {
     function RxFileSystem() {_classCallCheck(this, RxFileSystem);
         this.filesystem = new FileSystem();
     }_createClass(RxFileSystem, [{ key: 'readFile', value: function readFile(
         file) {var scheduler = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-            return _Rx2.default.Observable.fromPromise(this.filesystem.readFile(file), scheduler);
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.readFile(file), scheduler);
         } }, { key: 'saveFile', value: function saveFile(
         file, data) {
-            return _Rx2.default.Observable.fromPromise(this.filesystem.saveFile(file, data));
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.saveFile(file, data));
         } }, { key: 'appendFile', value: function appendFile(
         file, data) {
-            return _Rx2.default.Observable.fromPromise(this.filesystem.appendFile(file, data));
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.appendFile(file, data));
         } }, { key: 'readJson', value: function readJson(
         file) {
-            return _Rx2.default.Observable.fromPromise(this.filesystem.readJson(file));
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.readJson(file));
         } }, { key: 'saveJson', value: function saveJson(
         file, data) {
-            return _Rx2.default.Observable.fromPromise(this.filesystem.saveJson(file, data));
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.saveJson(file, data));
         } }, { key: 'createReadStream', value: function createReadStream(
         file) {
-            return _Rx2.default.Observable.of(_fs2.default.createReadStream(file));
+            return _rxjs2.default.Observable.of(_fs2.default.createReadStream(file));
         } }, { key: 'access', value: function access(
         path, mode) {
-            return _Rx2.default.Observable.fromPromise(this.filesystem.access(path, mode));
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.access(path, mode));
         } }, { key: 'isExists', value: function isExists(
         path) {
             return this.access(path, _fs2.default.constants.F_OK).
-            flatMap(function () {return _Rx2.default.Observable.of(true);}).
-            catch(function () {return _Rx2.default.Observable.of(false);});
+            flatMap(function () {return _rxjs2.default.Observable.of(true);}).
+            catch(function () {return _rxjs2.default.Observable.of(false);});
         } }, { key: 'accessRead', value: function accessRead(
         path) {
             return this.access(path, _fs2.default.constants.R_OK).
-            flatMap(function () {return _Rx2.default.Observable.of(true);}).
-            catch(function () {return _Rx2.default.Observable.of(false);});
+            flatMap(function () {return _rxjs2.default.Observable.of(true);}).
+            catch(function () {return _rxjs2.default.Observable.of(false);});
+        } }, { key: 'mkDir', value: function mkDir(
+        path) {
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.mkDir(path));
         } }]);return RxFileSystem;}();

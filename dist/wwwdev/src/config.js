@@ -3,4 +3,4 @@
 {
     isProduction: isProduction,
     log: isProduction ? 'INFO' : 'DEBUG',
-    dirStorage: __dirname + '/storage/' };
+    dirStorage: __dirname + '/state/' };

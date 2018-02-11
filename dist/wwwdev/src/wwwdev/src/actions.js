@@ -70,9 +70,10 @@ var usersFetchDone = function usersFetchDone(json) {return {
         data: json || {} };};
 
 
-var usersFetch = exports.usersFetch = function usersFetch() {return function (dispatch) {return (
+var usersFetch = exports.usersFetch = function usersFetch(chatId) {return function (dispatch) {return (
             (0, _isomorphicFetch2.default)(restUrl + '/api/users', {
-                method: 'POST' }).
+                method: 'POST',
+                body: (0, _stringify2.default)({ chatId: chatId }) }).
 
             then(function (response) {return response.json();}, function (error) {return _logger2.default.e('An error occured.', error);}).
             then(function (json) {return dispatch(usersFetchDone(json));}));};};

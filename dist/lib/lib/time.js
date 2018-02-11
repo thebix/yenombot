@@ -150,6 +150,10 @@ Time = function () {function Time() {_classCallCheck(this, Time);}_createClass(T
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
             return new Date(date.getFullYear(), date.getMonth(), 1);
+        } }, { key: 'getEndDate', value: function getEndDate()
+
+        {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
+            return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
         } }, { key: 'getMonthEndDate', value: function getMonthEndDate()
 
         {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();

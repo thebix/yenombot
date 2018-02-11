@@ -6,5 +6,8 @@ var isProduction = process.env.NODE_ENV === 'production';exports.default =
     isProduction: isProduction,
     log: isProduction ? 'INFO' : 'DEBUG',
     developers: _token3.default.developers,
-    dirStorage: __dirname + '/storage/',
-    fileState: __dirname + '/storage/state.json' };
+    dirStorage: __dirname + '/state/',
+    fileState: __dirname + '/state/state.json',
+    www: {
+        port: 42042,
+        wwwRoot: './wwwroot' } };
