@@ -109,9 +109,9 @@ class History {
         const historyFile = this.getFilePath(templateId)
         return lib.fs.readFile(historyFile)
             .map(historyFileContent => {
-                let historyFileContentText = historyFileContent.toString();
+                let historyFileContentText = historyFileContent.toString().trim();
                 if (historyFileContentText.length > 0)
-                    historyFileContentText = historyFileContentText.slice(0, historyFileContentText.length - 1)
+                    historyFileContentText = historyFileContentText.slice(0, -1)
                 return JSON.parse(`[${historyFileContentText}]`)
             })
             .catch(error => {

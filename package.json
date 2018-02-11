@@ -12,7 +12,7 @@
     "test": "mocha --compilers js:babel-register",
     "start": "nodemon --trace-deprecation src/server.js --exec babel-node",
     "debug": "node src/server.js",
-    "build": "cd src/wwwdev && npm install && npm run build && cd ../.. && export NODE_ENV=production&& babel --ignore node_modules,storage src -d dist",
+    "build": "cd src/wwwdev && npm install && npm run build && cd ../.. && export NODE_ENV=production&& babel --ignore node_modules,state src -d dist",
     "serve": "export NODE_ENV=production&& node dist/server.js"
   },
   "repository": {

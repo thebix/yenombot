@@ -34,15 +34,7 @@ const botIsInDevelopmentToUser = (userId, chatId) => {
 /*
  * COMMON METHODS
  */
-export const dateTimeString = (date = new Date()) => new Intl.DateTimeFormat('ru-RU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/Moscow'
-}).format(date)
+export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString()} ${(`0${date.getHours()}`).slice(-2)}:${(`0${date.getMinutes()}`).slice(-2)}:${(`0${date.getSeconds()}`).slice(-2)}` // eslint-disable-line max-len
 
 const storageId = (userId, chatId) => `${chatId}`
 const initializeBalanceObservable = (userId, chatId) =>
