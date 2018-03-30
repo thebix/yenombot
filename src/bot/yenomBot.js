@@ -36,14 +36,17 @@ const mapBotMessageToSendResult = message => {
         : telegram.botMessage(message)
     return sendOrEditResultObservable
         .switchMap(sendOrEditResult => {
-            const { statusCode } = sendOrEditResult
+            const { statusCode, messageText } = sendOrEditResult
             const { chatId } = message
-            if (statusCode !== 200) {
+            if (statusCode === 403) {
                 return storage.archive(chatId)
                     .map(() => {
-                        log(`yenomBot: chatId<${chatId}> error, move to archive`, logLevel.INFO)
+                        log(`yenomBot: chatId<${chatId}> forbidden error: <${messageText}>, message: <${JSON.stringify(message)}>, moving to archive`, logLevel.INFO) // eslint-disable-line max-len
                         return sendOrEditResult
                     })
+            }
+            if (statusCode !== 200) {
+                log(`yenomBot: chatId<${chatId}> telegram send to user error: statusCode: <${statusCode}>, <${messageText}>, message: <${JSON.stringify(message)}>,`, logLevel.ERROR) // eslint-disable-line max-len
             }
             return Observable.of(sendOrEditResult)
         })
