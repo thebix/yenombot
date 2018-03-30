@@ -36,14 +36,17 @@ var mapBotMessageToSendResult = function mapBotMessageToSendResult(message) {
     telegram.botMessage(message);
     return sendOrEditResultObservable.
     switchMap(function (sendOrEditResult) {var
-        statusCode = sendOrEditResult.statusCode;var
+        statusCode = sendOrEditResult.statusCode,messageText = sendOrEditResult.messageText;var
         chatId = message.chatId;
-        if (statusCode !== 200) {
+        if (statusCode === 403) {
             return _storage2.default.archive(chatId).
             map(function () {
-                (0, _logger.log)('yenomBot: chatId<' + chatId + '> error, move to archive', _logger.logLevel.INFO);
+                (0, _logger.log)('yenomBot: chatId<' + chatId + '> forbidden error: <' + messageText + '>, message: <' + JSON.stringify(message) + '>, moving to archive', _logger.logLevel.INFO); // eslint-disable-line max-len
                 return sendOrEditResult;
             });
+        }
+        if (statusCode !== 200) {
+            (0, _logger.log)('yenomBot: chatId<' + chatId + '> telegram send to user error: statusCode: <' + statusCode + '>, <' + messageText + '>, message: <' + JSON.stringify(message) + '>,', _logger.logLevel.ERROR); // eslint-disable-line max-len
         }
         return _rxjs.Observable.of(sendOrEditResult);
     });
