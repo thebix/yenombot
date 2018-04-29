@@ -53,4 +53,4 @@ module.exports = {
         template: './src/wwwdev/template.html',
         files: {
             css: ['style.css'],
-            js: ['bundle.js'] } })] };
+            js: ['bundle.js'] } })] };;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}}();;
