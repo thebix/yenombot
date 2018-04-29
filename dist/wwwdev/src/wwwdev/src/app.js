@@ -19,4 +19,4 @@ App = function (_Component) {(0, _inherits3.default)(App, _Component);function A
 
 
 
-        } }]);return App;}(_react.Component);exports.default = App;
+        } }]);return App;}(_react.Component);exports.default = App;;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(App, 'App', 'src/wwwdev/src/wwwdev/src/app.jsx');}();;

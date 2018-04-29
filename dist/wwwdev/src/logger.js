@@ -56,4 +56,4 @@ l = function () {function l() {(0, _classCallCheck3.default)(this, l);}(0, _crea
                 text = err + ': ' + (0, _stringify2.default)(obj);
             }
             log(text, logLevel.ERROR);
-        } }]);return l;}();exports.default = l;
+        } }]);return l;}();exports.default = l;;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(logLevel, 'logLevel', 'src/wwwdev/src/logger.js');__REACT_HOT_LOADER__.register(dateTimeString, 'dateTimeString', 'src/wwwdev/src/logger.js');__REACT_HOT_LOADER__.register(log, 'log', 'src/wwwdev/src/logger.js');__REACT_HOT_LOADER__.register(l, 'l', 'src/wwwdev/src/logger.js');}();;

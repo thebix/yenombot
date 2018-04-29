@@ -13,4 +13,4 @@ var AUTOPREFIXER_BROWSERS = [
 
 module.exports = {
     plugins: [
-    require('autoprefixer')({ browsers: AUTOPREFIXER_BROWSERS })] };
+    require('autoprefixer')({ browsers: AUTOPREFIXER_BROWSERS })] };;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(AUTOPREFIXER_BROWSERS, 'AUTOPREFIXER_BROWSERS', 'src/wwwdev/postcss.config.js');}();;

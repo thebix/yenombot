@@ -179,9 +179,9 @@ var historyUpdate = function historyUpdate() {var state = arguments.length > 0 &
         default:}
 
     return state;
-};exports.default =
+};var _default =
 
-function () {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState;var action = arguments[1];return {
+function _default() {var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultState;var action = arguments[1];return {
         historyId: historyId(state.historyId, action),
         historyData: historyData(state.historyData, action),
         historyOrder: historyOrder(state.historyOrder, action),
@@ -193,4 +193,4 @@ function () {var state = arguments.length > 0 && arguments[0] !== undefined ? ar
         historySelectedDates: historySelectedDates(state.historySelectedDates, action),
         historyEditId: historyEditId(state.historyEditId, action),
         historyEditUndo: historyEditUndo(state.historyEditUndo, action),
-        historyUpdate: historyUpdate(state.historyUpdate, action) };};
+        historyUpdate: historyUpdate(state.historyUpdate, action) };};exports.default = _default;;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(defaultState, 'defaultState', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyId, 'historyId', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyData, 'historyData', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyOrder, 'historyOrder', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(users, 'users', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historySkip, 'historySkip', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyCategories, 'historyCategories', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historySelectedCategories, 'historySelectedCategories', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historySelectedUsers, 'historySelectedUsers', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historySelectedDates, 'historySelectedDates', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyEditId, 'historyEditId', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyEditUndo, 'historyEditUndo', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(historyUpdate, 'historyUpdate', 'src/wwwdev/src/wwwdev/src/reducers.js');__REACT_HOT_LOADER__.register(_default, 'default', 'src/wwwdev/src/wwwdev/src/reducers.js');}();;

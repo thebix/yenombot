@@ -90,7 +90,13 @@ WwwServer = function () {
             var handleApi = this.handleApi;
             var handleFile = this.handleFile;
 
-            var requestsObservable = this.httpServer.requests.share();
+            var requestsObservable = this.httpServer.requests
+            // TODO: fast workaround to restrict to only-local usage. refactor to authentification
+            .filter(function (next) {return next.request.socket.remoteAddress.indexOf('192.168.') !== -1 ||
+                next.request.socket.remoteAddress.indexOf('localhost') !== -1 ||
+                next.request.socket.remoteAddress.indexOf('127.0.0.1') !== -1 ||
+                next.request.socket.remoteAddress === '::1';}).
+            share();
 
             var apiRequestObservable =
             requestsObservable.
