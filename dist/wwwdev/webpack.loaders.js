@@ -44,4 +44,4 @@ module.exports = [
 {
     test: /\.png/,
     exclude: /(node_modules|bower_components)/,
-    loader: 'url-loader?limit=10000&mimetype=image/png' }];
+    loader: 'url-loader?limit=10000&mimetype=image/png' }];;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}}();;

@@ -16,9 +16,9 @@ var Input = function Input(_ref) {var
             className: (0, _classnames2.default)('input', classes),
             onChange: function onChange(event) {return _onChange(event.target.value);},
             defaultValue: defaultValue,
-            onKeyPress: function onKeyPress(event) {return _onKeyPress(event.charCode);} }));};exports.default =
+            onKeyPress: function onKeyPress(event) {return _onKeyPress(event.charCode);} }));};var _default =
 
-Input;var
+Input;exports.default = _default;var
 
 InputStatefull = exports.InputStatefull = function (_Component) {(0, _inherits3.default)(InputStatefull, _Component);
     function InputStatefull(props) {(0, _classCallCheck3.default)(this, InputStatefull);var _this = (0, _possibleConstructorReturn3.default)(this, (InputStatefull.__proto__ || (0, _getPrototypeOf2.default)(InputStatefull)).call(this,
@@ -44,4 +44,4 @@ InputStatefull = exports.InputStatefull = function (_Component) {(0, _inherits3.
                 },
                 onKeyPress: function onKeyPress(char) {return _onKeyPress2(char, value);} });
 
-        } }]);return InputStatefull;}(_react.Component);
+        } }]);return InputStatefull;}(_react.Component);;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(Input, 'Input', 'src/wwwdev/src/wwwdev/src/components/Input.jsx');__REACT_HOT_LOADER__.register(InputStatefull, 'InputStatefull', 'src/wwwdev/src/wwwdev/src/components/Input.jsx');__REACT_HOT_LOADER__.register(_default, 'default', 'src/wwwdev/src/wwwdev/src/components/Input.jsx');}();;

@@ -35,4 +35,4 @@ CheckBoxStatefull = exports.CheckBoxStatefull = function (_Component) {(0, _inhe
 // https://github.com/facebook/prop-types#prop-types
 CheckBoxStatefull.propTypes = {
     optionalFunc: _propTypes2.default.func,
-    optionalString: _propTypes2.default.string };
+    optionalString: _propTypes2.default.string };;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(CheckBoxStateless, 'CheckBoxStateless', 'src/wwwdev/src/wwwdev/src/components/CheckBox.jsx');__REACT_HOT_LOADER__.register(CheckBoxStatefull, 'CheckBoxStatefull', 'src/wwwdev/src/wwwdev/src/components/CheckBox.jsx');}();;
