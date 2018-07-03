@@ -64,6 +64,7 @@ export default () => {
         .mergeMap(mapUserActionToBotMessages)
         .mergeMap(mapBotMessageToSendResult)
     weeklyIntervalTimer.start()
-    monthlyIntervalTimer.start()
+    // TODO: removed monthly timer in order to avoid timer bug. Timer class should be refactored. error: (node:28334) TimeoutOverflowWarning: 2433606194 does not fit into a 32-bit signed integer. Timeout duration was set to 1  // eslint-disable-line max-len
+    // monthlyIntervalTimer.start()
     return Observable.merge(userTextObservalbe, userActionsObservable)
 }
