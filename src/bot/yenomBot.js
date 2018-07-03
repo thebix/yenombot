@@ -17,18 +17,14 @@ const getCommandsForReportWeeklyObservable = () =>
         .switchMap(() => storage.getStorageKeys())
         .switchMap(chatIds => Observable.from(chatIds))
         .filter(chatId => chatId !== archiveName)
-        .map(chatId =>
-            UserMessage.createCommand(chatId, '/stat mo su')
-        )
+        .map(chatId => UserMessage.createCommand(chatId, '/stat mo su'))
 
 const getCommandsForReportMonthlyObservable = () =>
     monthlyIntervalTimer.timerEvent()
         .switchMap(() => storage.getStorageKeys())
         .switchMap(chatIds => Observable.from(chatIds))
         .filter(chatId => chatId !== archiveName)
-        .map(chatId =>
-            UserMessage.createCommand(chatId, `/stat 1.${new Date().getMonth()}`)
-        )
+        .map(chatId => UserMessage.createCommand(chatId, `/stat 1.${new Date().getMonth()}`))
 
 const mapBotMessageToSendResult = message => {
     const sendOrEditResultObservable = message.messageIdToEdit

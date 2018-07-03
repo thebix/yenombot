@@ -612,8 +612,10 @@ export const mapUserActionToBotMessages = userAction => { // eslint-disable-line
     else if (InputParser.isBalanceDelete(callbackCommand))
         messagesToUser = balanceDelete(from, chatId, data, id)
     else {
-        log(`handlers.mapUserActionToBotMessages: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, // eslint-disable-line max-len
-            logLevel.ERROR)
+        log(
+            `handlers.mapUserActionToBotMessages: can't find handler for user action callback query. userId=${from}, chatId=${chatId}, data=${JSON.stringify(data)}`, // eslint-disable-line max-len
+            logLevel.ERROR
+        )
         messagesToUser = errorToUser(from, chatId)
     }
 
