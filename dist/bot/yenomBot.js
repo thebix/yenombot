@@ -17,18 +17,14 @@ var getCommandsForReportWeeklyObservable = function getCommandsForReportWeeklyOb
         switchMap(function () {return _storage2.default.getStorageKeys();}).
         switchMap(function (chatIds) {return _rxjs.Observable.from(chatIds);}).
         filter(function (chatId) {return chatId !== _storage.archiveName;}).
-        map(function (chatId) {return (
-                _message2.default.createCommand(chatId, '/stat mo su'));}));};
-
+        map(function (chatId) {return _message2.default.createCommand(chatId, '/stat mo su');}));};
 
 var getCommandsForReportMonthlyObservable = function getCommandsForReportMonthlyObservable() {return (
         monthlyIntervalTimer.timerEvent().
         switchMap(function () {return _storage2.default.getStorageKeys();}).
         switchMap(function (chatIds) {return _rxjs.Observable.from(chatIds);}).
         filter(function (chatId) {return chatId !== _storage.archiveName;}).
-        map(function (chatId) {return (
-                _message2.default.createCommand(chatId, '/stat 1.' + new Date().getMonth()));}));};
-
+        map(function (chatId) {return _message2.default.createCommand(chatId, '/stat 1.' + new Date().getMonth());}));};
 
 var mapBotMessageToSendResult = function mapBotMessageToSendResult(message) {
     var sendOrEditResultObservable = message.messageIdToEdit ?
@@ -68,6 +64,7 @@ function () {
     mergeMap(_handlers.mapUserActionToBotMessages).
     mergeMap(mapBotMessageToSendResult);
     weeklyIntervalTimer.start();
-    monthlyIntervalTimer.start();
+    // TODO: removed monthly timer in order to avoid timer bug. Timer class should be refactored. error: (node:28334) TimeoutOverflowWarning: 2433606194 does not fit into a 32-bit signed integer. Timeout duration was set to 1  // eslint-disable-line max-len
+    // monthlyIntervalTimer.start()
     return _rxjs.Observable.merge(userTextObservalbe, userActionsObservable);
 };
