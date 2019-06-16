@@ -9,6 +9,7 @@
 
 
 
+
 var _rxjs = require('rxjs');
 var _logger = require('../logger');
 var _config = require('../config');var _config2 = _interopRequireDefault(_config);
@@ -18,15 +19,17 @@ var _root = require('../lib/root');var _root2 = _interopRequireDefault(_root);fu
 //     'date_edit': date,
 //     'date_delete': null,
 //     'category': 'uncat',
-//     'value': text,
+//     'value': number,
+//     'values': object,
 //     'user_id': message.from,
 //     'comment': ''
 // }
-var HistoryItem = exports.HistoryItem = function HistoryItem(id, userId, value)
-{var category = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'uncat';var comment = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';var dateCreate = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : new Date();var dateEdit = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : new Date();var dateDelete = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : undefined;_classCallCheck(this, HistoryItem);
+var HistoryItem = exports.HistoryItem = function HistoryItem(id, userId, value, values)
+{var category = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'uncat';var comment = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : '';var dateCreate = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : new Date();var dateEdit = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : new Date();var dateDelete = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : undefined;_classCallCheck(this, HistoryItem);
     this.id = id;
     this.user_id = userId;
     this.value = value;
+    this.values = values;
     this.category = category;
     this.comment = comment;
     this.date_create = dateCreate;
@@ -45,6 +48,7 @@ History = function () {
             if (!historyItem.id) throw new Error('Идентификатор обязателен для истории');
             if (!historyItem.user_id) throw new Error('user_id обязателен для истории');
             if (!historyItem.value) throw new Error('value обязателен для истории');
+            if (!historyItem.values) throw new Error('values обязателен для истории');
             if (!historyItem.date_create) throw new Error('date_create обязателен для истории');
             var file = this.getFilePath(templateId);
             return _root2.default.fs.appendFile(file, JSON.stringify(historyItem) + ',').
@@ -65,8 +69,9 @@ History = function () {
         }
         // returns updated item or false
     }, { key: 'update', value: function update(id, newValue) {var _this = this;var templateId = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-            return this.getAll(templateId).
-            flatMap(function (allHistory) {
+            return this.getAll(templateId)
+            // eslint-disable-next-line complexity
+            .flatMap(function (allHistory) {
                 var updatedItem = void 0;
                 var indexToEdit = -1;
                 var i = 0;
@@ -78,6 +83,8 @@ History = function () {
                         updatedItem.date_create = newValue.date_create;
                         if (newValue.value !== undefined)
                         updatedItem.value = newValue.value;
+                        if (newValue.values !== undefined)
+                        updatedItem.values = newValue.values;
                         if (newValue.category !== undefined)
                         updatedItem.category = newValue.category;
                         if (newValue.comment !== undefined)
