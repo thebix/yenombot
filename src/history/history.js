@@ -4,7 +4,8 @@
 //     'date_edit': date,
 //     'date_delete': null,
 //     'category': 'uncat',
-//     'value': text,
+//     'value': number,
+//     'values': object,
 //     'user_id': message.from,
 //     'comment': ''
 // }
@@ -19,6 +20,7 @@ export class HistoryItem {
         id,
         userId,
         value,
+        values,
         category = 'uncat',
         comment = '',
         dateCreate = new Date(),
@@ -27,6 +29,7 @@ export class HistoryItem {
         this.id = id
         this.user_id = userId
         this.value = value
+        this.values = values
         this.category = category
         this.comment = comment
         this.date_create = dateCreate
@@ -45,6 +48,7 @@ class History {
         if (!historyItem.id) throw new Error('Идентификатор обязателен для истории')
         if (!historyItem.user_id) throw new Error('user_id обязателен для истории')
         if (!historyItem.value) throw new Error('value обязателен для истории')
+        if (!historyItem.values) throw new Error('values обязателен для истории')
         if (!historyItem.date_create) throw new Error('date_create обязателен для истории')
         const file = this.getFilePath(templateId)
         return lib.fs.appendFile(file, `${JSON.stringify(historyItem)},`)
@@ -66,6 +70,7 @@ class History {
     // returns updated item or false
     update(id, newValue, templateId = null) {
         return this.getAll(templateId)
+            // eslint-disable-next-line complexity
             .flatMap(allHistory => {
                 let updatedItem
                 let indexToEdit = -1
@@ -78,6 +83,8 @@ class History {
                             updatedItem.date_create = newValue.date_create
                         if (newValue.value !== undefined)
                             updatedItem.value = newValue.value
+                        if (newValue.values !== undefined)
+                            updatedItem.values = newValue.values
                         if (newValue.category !== undefined)
                             updatedItem.category = newValue.category
                         if (newValue.comment !== undefined)

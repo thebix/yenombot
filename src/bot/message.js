@@ -145,6 +145,10 @@ export class BotMessage {
         this.inlineButtonsGroups = inlineButtonsGroups
         this.replyKeyboard = replyKeyboard
     }
+
+    static createMessageForChat(chatId, text) {
+        return new BotMessage('userId_not_needed', chatId, text)
+    }
 }
 export class BotMessageEdit extends BotMessage {
     constructor(messageIdToEdit, chatId, text, inlineButtons) {
