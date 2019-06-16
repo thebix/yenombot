@@ -132,19 +132,23 @@ function ReplyKeyboardButton(text) {_classCallCheck(this, ReplyKeyboardButton);
 
 
 // send or edit message from bot to user
-var BotMessage =
-// INFO: userId, chatId, text - reqired params
-exports.BotMessage = function BotMessage(userId,
-chatId)
+var BotMessage = exports.BotMessage = function () {
+    // INFO: userId, chatId, text - reqired params
+    function BotMessage(userId,
+    chatId)
 
 
-{var text = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';var inlineButtonsGroups = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : undefined;var replyKeyboard = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : undefined;_classCallCheck(this, BotMessage);
-    this.userId = userId;
-    this.chatId = chatId;
-    this.text = text;
-    this.inlineButtonsGroups = inlineButtonsGroups;
-    this.replyKeyboard = replyKeyboard;
-};var
+    {var text = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';var inlineButtonsGroups = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : undefined;var replyKeyboard = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : undefined;_classCallCheck(this, BotMessage);
+        this.userId = userId;
+        this.chatId = chatId;
+        this.text = text;
+        this.inlineButtonsGroups = inlineButtonsGroups;
+        this.replyKeyboard = replyKeyboard;
+    }_createClass(BotMessage, null, [{ key: 'createMessageForChat', value: function createMessageForChat(
+
+        chatId, text) {
+            return new BotMessage('userId_not_needed', chatId, text);
+        } }]);return BotMessage;}();var
 
 BotMessageEdit = exports.BotMessageEdit = function (_BotMessage) {_inherits(BotMessageEdit, _BotMessage);
     function BotMessageEdit(messageIdToEdit, chatId, text, inlineButtons) {_classCallCheck(this, BotMessageEdit);var _this = _possibleConstructorReturn(this, (BotMessageEdit.__proto__ || Object.getPrototypeOf(BotMessageEdit)).call(this,

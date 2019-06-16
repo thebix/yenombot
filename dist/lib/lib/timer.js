@@ -5,7 +5,9 @@ var timerTypes = exports.timerTypes = {
     NONE: 'NONE',
     MAIN: 'MAIN',
     MONTHLY: 'MONTHLY',
-    WEEKLY: 'WEEKLY' };var
+    WEEKLY: 'WEEKLY',
+    DAILY: 'DAILY',
+    SOON: 'SOON' };var
 
 
 Timer = function () {
@@ -66,9 +68,10 @@ Timer = function () {
 
 
 IntervalTimerRx = exports.IntervalTimerRx = function () {
-    function IntervalTimerRx(type) {_classCallCheck(this, IntervalTimerRx);
+    function IntervalTimerRx(type) {var secondsDelay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;_classCallCheck(this, IntervalTimerRx);
         this.timerSubject = new _rxjs.Subject();
         this.type = type;
+        this.secondsDelay = secondsDelay;
         this.timerCallback = this.timerCallback.bind(this);
         this.timer = new Timer(type, this.timerCallback);
     }_createClass(IntervalTimerRx, [{ key: 'timerEvent', value: function timerEvent()
@@ -77,13 +80,26 @@ IntervalTimerRx = exports.IntervalTimerRx = function () {
         } }, { key: 'start', value: function start()
         {
             var nextEmitDate = void 0;
-            if (this.type === timerTypes.WEEKLY) {
-                nextEmitDate = _root2.default.time.getChangedDateTime({ seconds: 23 },
+            if (this.type === timerTypes.DAILY) {
+                nextEmitDate = _root2.default.time.getChangedDateTime(
+                { seconds: this.secondsDelay > 0 ? this.secondsDelay : 23 },
+                _root2.default.time.getEndDate());
+
+            } else if (this.type === timerTypes.WEEKLY) {
+                nextEmitDate = _root2.default.time.getChangedDateTime(
+                { seconds: this.secondsDelay > 0 ? this.secondsDelay : 23 },
                 _root2.default.time.getMonday(new Date(), true));
+
             } else if (this.type === timerTypes.MONTHLY) {
                 var dt = new Date();
-                nextEmitDate = _root2.default.time.getChangedDateTime({ months: 1, seconds: 23 },
+                nextEmitDate = _root2.default.time.getChangedDateTime(
+                { months: 1, seconds: this.secondsDelay > 0 ? this.secondsDelay : 23 },
                 new Date(dt.getFullYear(), dt.getMonth(), 1));
+
+            } else if (this.type === timerTypes.SOON) {
+                nextEmitDate = _root2.default.time.getChangedDateTime({
+                    seconds: this.secondsDelay > 0 ? this.secondsDelay : 1 });
+
             } else {
                 throw Object.create({ message: 'timer: IntervalTimerRx: start: unknown type of timer, type: <' + this.type + '>' });
             }
