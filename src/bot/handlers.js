@@ -36,7 +36,8 @@ const botIsInDevelopmentToUser = (userId, chatId) => {
  */
 export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString()} ${(`0${date.getHours()}`).slice(-2)}:${(`0${date.getMinutes()}`).slice(-2)}:${(`0${date.getSeconds()}`).slice(-2)}` // eslint-disable-line max-len
 
-const storageId = (userId, chatId) => `${chatId}`
+export const storageId = (userId, chatId) => `${chatId}`
+
 const initializeBalanceObservable = (userId, chatId) =>
     storage.getItem(storageId(userId, chatId), 'balanceInit')
         .switchMap(balanceInitValue => {
@@ -70,6 +71,15 @@ const getCategoriesObservable = (userId, chatId) =>
                     logLevel.ERROR)
             return categoriesArray || []
         })
+
+const getCurrenciesObservable = (userId, chatId) =>
+    storage.getItem(storageId(userId, chatId), 'currencies')
+        .map(currencies => {
+            if (currencies == null)
+                log(`handlers:getCurrenciesObservable: can't fetch currencies. userId:<${userId}>, chatId:<${chatId}>`, logLevel.INFO)
+            return currencies || { RUB: 1 }
+        })
+
 /*
  * HANDLERS
  */
@@ -119,6 +129,7 @@ const balanceChange = (user, chatId, text, messageId) => {
     const parser = new Parser()
     let value
     try {
+        // TODO: trim and remove spaces
         value = parser.parse(text).evaluate()
         if (!value)
             return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
@@ -153,7 +164,7 @@ const balanceChange = (user, chatId, text, messageId) => {
                 return Observable.from(errorToUser(userId, chatId))
             }
             const { balance: balanceValue } = balanceObject
-            const newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue - value })
+            const newBalanceObject = Object.assign({}, balanceObject, { balance: Math.round((balanceValue - value) * 100) / 100 })
             return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
                 .map(isBalanceUpdated => (isBalanceUpdated
                     ? newBalanceObject
@@ -169,15 +180,29 @@ const balanceChange = (user, chatId, text, messageId) => {
             return [new BotMessage(userId, chatId, 'При обновлении баланса возникла ошибка')]
         })
 
-    const historySaveObservable = newBalanceObservable
-        .filter(newBalanceObject => !!newBalanceObject)
-        .switchMap(newBalanceObject =>
-            history.add(new HistoryItem(messageId, userId, value),
-                chatId)
-                .map(isHistorySaved => (isHistorySaved
-                    ? newBalanceObject
-                    : null
-                ))).share()
+    const historySaveObservable =
+        Observable.combineLatest(
+            newBalanceObservable
+                .filter(newBalanceObject => !!newBalanceObject),
+            getCurrenciesObservable(userId, chatId),
+            (newBalanceObject, currencies) => {
+                const values = {}
+                Object.keys(currencies)
+                    .forEach(keyCurrency => {
+                        values[keyCurrency] = Math.round(currencies[keyCurrency] * 100 * value) / 100
+                    })
+                return { newBalanceObject, values }
+            }
+        )
+            .switchMap(({ newBalanceObject, values }) =>
+                history.add(
+                    new HistoryItem(messageId, userId, Math.round(value * 100) / 100, values),
+                    chatId
+                )
+                    .map(isHistorySaved => (isHistorySaved
+                        ? newBalanceObject
+                        : null
+                    ))).share()
 
     const historySaveError = historySaveObservable
         .filter(isHistorySaved => !isHistorySaved)

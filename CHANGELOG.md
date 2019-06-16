@@ -1,3 +1,7 @@
+## 0.9.0 (June 16, 2019)
+  - added multi currencies
+  - added currencies rates fetching
+
 ## 0.8.1 (July 03, 2018)
   - закомменитрован месячный таймер, чтобы быстро исключить баг таймер-класса
   - eslint fixes

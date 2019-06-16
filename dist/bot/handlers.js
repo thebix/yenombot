@@ -1,4 +1,4 @@
-'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.mapUserActionToBotMessages = exports.dateTimeString = undefined;
+'use strict';Object.defineProperty(exports, "__esModule", { value: true });exports.mapUserActionToBotMessages = exports.storageId = exports.dateTimeString = undefined;
 
 
 
@@ -36,7 +36,8 @@ var botIsInDevelopmentToUser = function botIsInDevelopmentToUser(userId, chatId)
     */
 var dateTimeString = exports.dateTimeString = function dateTimeString() {var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();return date.toLocaleDateString() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2);}; // eslint-disable-line max-len
 
-var storageId = function storageId(userId, chatId) {return '' + chatId;};
+var storageId = exports.storageId = function storageId(userId, chatId) {return '' + chatId;};
+
 var initializeBalanceObservable = function initializeBalanceObservable(userId, chatId) {return (
         _storage2.default.getItem(storageId(userId, chatId), 'balanceInit').
         switchMap(function (balanceInitValue) {
@@ -70,6 +71,15 @@ var getCategoriesObservable = function getCategoriesObservable(userId, chatId) {
             _logger.logLevel.ERROR);
             return categoriesArray || [];
         }));};
+
+var getCurrenciesObservable = function getCurrenciesObservable(userId, chatId) {return (
+        _storage2.default.getItem(storageId(userId, chatId), 'currencies').
+        map(function (currencies) {
+            if (currencies == null)
+            (0, _logger.log)('handlers:getCurrenciesObservable: can\'t fetch currencies. userId:<' + userId + '>, chatId:<' + chatId + '>', _logger.logLevel.INFO);
+            return currencies || { RUB: 1 };
+        }));};
+
 /*
                 * HANDLERS
                 */
@@ -119,6 +129,7 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     var parser = new _exprEval.Parser();
     var value = void 0;
     try {
+        // TODO: trim and remove spaces
         value = parser.parse(text).evaluate();
         if (!value)
         return _Observable.Observable.from([new _message.BotMessage(userId, chatId, 'Не понял выражение')]);
@@ -153,7 +164,7 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
             return _Observable.Observable.from(errorToUser(userId, chatId));
         }var
         balanceValue = balanceObject.balance;
-        var newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue - value });
+        var newBalanceObject = Object.assign({}, balanceObject, { balance: Math.round((balanceValue - value) * 100) / 100 });
         return _storage2.default.updateItem(storageId(userId, chatId), 'balance', newBalanceObject).
         map(function (isBalanceUpdated) {return isBalanceUpdated ?
             newBalanceObject :
@@ -169,11 +180,25 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
         return [new _message.BotMessage(userId, chatId, 'При обновлении баланса возникла ошибка')];
     });
 
-    var historySaveObservable = newBalanceObservable.
-    filter(function (newBalanceObject) {return !!newBalanceObject;}).
-    switchMap(function (newBalanceObject) {return (
-            _history2.default.add(new _history.HistoryItem(messageId, userId, value),
+    var historySaveObservable =
+    _Observable.Observable.combineLatest(
+    newBalanceObservable.
+    filter(function (newBalanceObject) {return !!newBalanceObject;}),
+    getCurrenciesObservable(userId, chatId),
+    function (newBalanceObject, currencies) {
+        var values = {};
+        Object.keys(currencies).
+        forEach(function (keyCurrency) {
+            values[keyCurrency] = Math.round(currencies[keyCurrency] * 100 * value) / 100;
+        });
+        return { newBalanceObject: newBalanceObject, values: values };
+    }).
+
+    switchMap(function (_ref) {var newBalanceObject = _ref.newBalanceObject,values = _ref.values;return (
+            _history2.default.add(
+            new _history.HistoryItem(messageId, userId, Math.round(value * 100) / 100, values),
             chatId).
+
             map(function (isHistorySaved) {return isHistorySaved ?
                 newBalanceObject :
                 null;}));}).

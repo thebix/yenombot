@@ -5,5 +5,7 @@ src/state
 dist/state
 src/state2
 dist/state2
+src/state3
+dist/state3
 wwwroot/
 .DS_Store
