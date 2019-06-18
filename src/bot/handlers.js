@@ -129,13 +129,13 @@ const balanceChange = (user, chatId, text, messageId) => {
     const parser = new Parser()
     let value
     try {
-        // TODO: trim and remove spaces
-        value = parser.parse(text).evaluate()
+        value = parser.parse(text.replace(/ /g, '').replace(/,/g, '.')).evaluate()
         if (!value)
             return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
         if (value === Infinity)
             return Observable.from([new BotMessage(userId, chatId,
                 'Я открою тебе маленькую тайну http://elementy.ru/email/1530320/Pochemu_nelzya_delit_na_nol')])
+        value = Math.round(value * 100) / 100
     } catch (ex) {
         return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
     }
