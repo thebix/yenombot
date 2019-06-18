@@ -3,9 +3,11 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { Parser } from 'expr-eval'
 
+// eslint-disable-next-line no-unused-vars
 import { CheckBoxStatefull, CheckBoxStateless } from './components/CheckBox.jsx'
-import Dynamic from './components/Dynamic.jsx'
+// eslint-disable-next-line no-unused-vars
 import Input, { InputStatefull } from './components/Input.jsx'
+// eslint-disable-next-line no-unused-vars
 import Select from './components/Select.jsx'
 
 import '../css/history.scss'
@@ -32,6 +34,9 @@ const HISTORY_PAGE_COUNT = 150
 
 const timeLib = new Time()
 
+const roundDecimal = value => Math.round(value * 100) / 100
+
+// eslint-disable-next-line no-unused-vars
 const TableHeaderCell = ({ children, classes = [] }) => <div className={classNames('table-header-cell', classes)}>{children}</div>
 
 const checkDateInput = value => {
@@ -94,6 +99,7 @@ export default connect(state => ({
         dispatch(historyFetch(historyId))
         dispatch(categoriesFetch(historyId))
     }
+    // eslint-disable-next-line complexity
     componentDidUpdate(prevProps) {
         // l.d('componentDidUpdate')
         const {
@@ -154,7 +160,10 @@ export default connect(state => ({
                 // it's title
                 daySum = itemsWithTitles
                     .filter(element =>
-                        element && element.date_create && !element.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)))
+                        element && element.date_create
+                        && !element.date_delete
+                        && timeLib.isDateSame(new Date(element.date_create),
+                            new Date(item.date_create)))
                     .map(it => it.value || 0)
                     .reduce((sum, current) => sum + current, 0)
             }
@@ -200,6 +209,7 @@ export default connect(state => ({
     }
 })
 
+// eslint-disable-next-line complexity
 const Navigation = ({ props }) => {
     // l.d('History.Navigation()')
     const { selectedDates,
@@ -300,6 +310,7 @@ const Navigation = ({ props }) => {
     </TableHeaderCell>
 }
 
+// eslint-disable-next-line no-unused-vars
 const Categories = ({ categories, dispatch, selected, activeCategories }) => {
     let cell0 = [],
         cell1,
@@ -308,7 +319,7 @@ const Categories = ({ categories, dispatch, selected, activeCategories }) => {
     const actCategories = activeCategories != null ? Object.keys(activeCategories) : []
     const categoryMapper = category => {
         const categorySum = activeCategories && activeCategories[category.title] ?
-            `  [${activeCategories[category.title].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
+            `  [${roundDecimal(activeCategories[category.title].sum).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
             : ''
 
         return <div key={category.id}>
@@ -350,6 +361,7 @@ const Categories = ({ categories, dispatch, selected, activeCategories }) => {
         {cell2 && <TableHeaderCell classes={['padding-right-7']} key={2}>{cell2}</TableHeaderCell>}</span>
 }
 
+// eslint-disable-next-line no-unused-vars
 const Users = ({ users, dispatch, selected, activeUsersIds }) => {
     if (!users) return null
     const selUsers = Array.isArray(selected) ? selected : []
@@ -358,7 +370,7 @@ const Users = ({ users, dispatch, selected, activeUsersIds }) => {
     return <div>
         {usersIds.map(id => {
             const userSum = activeUsersIds && activeUsersIds[id] ?
-                `  [${activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
+                `  [${roundDecimal(activeUsersIds[id].sum).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]`
                 : ''
             return <div key={id}><CheckBoxStateless key={id} title={`${users[id]}${userSum}`}
                 classes={[actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : '']}
@@ -372,6 +384,7 @@ const Users = ({ users, dispatch, selected, activeUsersIds }) => {
     </div>
 }
 
+// eslint-disable-next-line no-unused-vars
 const Dates = ({ dispatch, selected }) => {
     if (!selected) return null
     const { dateStart, dateEnd } = selected
@@ -409,6 +422,7 @@ const Dates = ({ dispatch, selected }) => {
     </div>
 }
 
+// eslint-disable-next-line complexity
 const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
     if (!user) {
         return (<div className="table-row-title">
@@ -457,13 +471,13 @@ const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
                 }} />}
         </div>
         <div className="table-cell" style={{ width: '65px' }}>
-            {!isEdit && <span>{item.value ? item.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''}</span>}
+            {!isEdit && <span>{item.value ? roundDecimal(item.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''}</span>}
             {isEdit && <InputStatefull defaultValue={item.value}
                 classes={['width-55']}
                 onBlur={value => {
                     const parser = new Parser()
                     try {
-                        const text = parser.parse(value).evaluate()
+                        const text = roundDecimal(parser.parse(value.replace(/ /g, '').replace(/,/g, '.')).evaluate())
                         dispatch(historySaveUndo(chatId, item.id, { value: item.value }))
                         dispatch(historySave(chatId, item.id, { value: text }))
                     } catch (ex) {
@@ -474,7 +488,7 @@ const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
                     if (char === 13) {
                         const parser = new Parser()
                         try {
-                            const text = parser.parse(value).evaluate()
+                            const text = roundDecimal(parser.parse(value).evaluate())
                             dispatch(historySaveUndo(chatId, item.id, { value: item.value }))
                             dispatch(historySave(chatId, item.id, { value: text }))
                         } catch (ex) {
