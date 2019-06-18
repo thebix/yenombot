@@ -54,7 +54,8 @@ const handleApi = {
             users: bodyUsers,
             dateStart,
             dateEnd,
-            skip: skipParam = 0 } = body
+            skip: skipParam = 0
+        } = body
         if (method !== 'POST' || !chatId)
             return Observable.of(handleApiError404('/api/historyGet'))
         let skip = +skipParam

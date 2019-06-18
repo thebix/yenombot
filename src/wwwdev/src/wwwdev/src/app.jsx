@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 import '../css/index.scss'
 
-import Header from './header.jsx'
-import Footer from './footer.jsx'
+// eslint-disable-next-line no-unused-vars
 import History from './history.jsx'
 
 import l from '../../logger'
