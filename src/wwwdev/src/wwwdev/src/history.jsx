@@ -209,7 +209,7 @@ export default connect(state => ({
     }
 })
 
-// eslint-disable-next-line complexity
+// eslint-disable-next-line complexity, no-unused-vars
 const Navigation = ({ props }) => {
     // l.d('History.Navigation()')
     const { selectedDates,
@@ -422,7 +422,7 @@ const Dates = ({ dispatch, selected }) => {
     </div>
 }
 
-// eslint-disable-next-line complexity
+// eslint-disable-next-line complexity, no-unused-vars
 const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
     if (!user) {
         return (<div className="table-row-title">

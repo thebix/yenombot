@@ -25,7 +25,8 @@ export class HistoryItem {
         comment = '',
         dateCreate = new Date(),
         dateEdit = new Date(),
-        dateDelete = undefined) {
+        dateDelete = undefined
+    ) {
         this.id = id
         this.user_id = userId
         this.value = value
@@ -106,8 +107,10 @@ class History {
                 return lib.fs.saveFile(file, `${newHistoryText.slice(1, newHistoryText.length - 1)},`)
                     .map(() => updatedItem)
                     .catch(error => {
-                        log(`history:update: error while update to file historyItem. id:<${id}>, templateId: <${templateId}>, error=${error}`,
-                            logLevel.ERROR)
+                        log(
+                            `history:update: error while update to file historyItem. id:<${id}>, templateId: <${templateId}>, error=${error}`,
+                            logLevel.ERROR
+                        )
                         return Observable.of(false)
                     })
             })
