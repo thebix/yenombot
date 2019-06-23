@@ -427,7 +427,7 @@ const Row = ({ chatId, item, user, categories, editId, dispatch, daySum }) => {
     if (!user) {
         return (<div className="table-row-title">
             {item && item.date_create && `${timeLib.dateString(new Date(item.date_create))}, ${timeLib.weekdayString(new Date(item.date_create)).toLowerCase()}  `}
-            [{(daySum || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]</div>)
+            [{roundDecimal(daySum || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}]</div>)
     }
     const isEdit = editId === item.id
     return <div className={classNames('table-row', {
