@@ -25,6 +25,7 @@ var _root = require('../lib/root');var _root2 = _interopRequireDefault(_root);fu
 //     'comment': ''
 // }
 var HistoryItem = exports.HistoryItem = function HistoryItem(id, userId, value, values)
+
 {var category = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'uncat';var comment = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : '';var dateCreate = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : new Date();var dateEdit = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : new Date();var dateDelete = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : undefined;_classCallCheck(this, HistoryItem);
     this.id = id;
     this.user_id = userId;
@@ -106,8 +107,10 @@ History = function () {
                 return _root2.default.fs.saveFile(file, newHistoryText.slice(1, newHistoryText.length - 1) + ',').
                 map(function () {return updatedItem;}).
                 catch(function (error) {
-                    (0, _logger.log)('history:update: error while update to file historyItem. id:<' + id + '>, templateId: <' + templateId + '>, error=' + error,
+                    (0, _logger.log)('history:update: error while update to file historyItem. id:<' +
+                    id + '>, templateId: <' + templateId + '>, error=' + error,
                     _logger.logLevel.ERROR);
+
                     return _rxjs.Observable.of(false);
                 });
             });

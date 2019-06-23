@@ -54,6 +54,7 @@ var handleApi = {
 
 
 
+
         body.id,bodyCategories = body.categories,bodyUsers = body.users,dateStart = body.dateStart,dateEnd = body.dateEnd,_body$skip = body.skip,skipParam = _body$skip === undefined ? 0 : _body$skip;
         if (method !== 'POST' || !chatId)
         return _rxjs.Observable.of(handleApiError404('/api/historyGet'));

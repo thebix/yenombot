@@ -1,3 +1,6 @@
+## 0.9.1 (June 23, 2019)
+  - added rounding for calculations and values to decimal
+
 ## 0.9.0 (June 16, 2019)
   - added multi currencies
   - added currencies rates fetching

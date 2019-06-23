@@ -3,9 +3,11 @@ var _reactRedux = require('react-redux');
 var _classnames = require('classnames');var _classnames2 = _interopRequireDefault(_classnames);
 var _exprEval = require('expr-eval');
 
+
 var _CheckBox = require('./components/CheckBox.jsx');
-var _Dynamic = require('./components/Dynamic.jsx');var _Dynamic2 = _interopRequireDefault(_Dynamic);
+
 var _Input = require('./components/Input.jsx');var _Input2 = _interopRequireDefault(_Input);
+
 var _Select = require('./components/Select.jsx');var _Select2 = _interopRequireDefault(_Select);
 
 require('../css/history.scss');
@@ -27,11 +29,14 @@ var _actions = require('./actions');
 
 
 var _time = require('../../../../lib/lib/time');var _time2 = _interopRequireDefault(_time);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // INFO: bad reference
-
-var HISTORY_PAGE_COUNT = 150;
-
+// eslint-disable-next-line no-unused-vars
+var HISTORY_PAGE_COUNT = 150; // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 var timeLib = new _time2.default();
 
+var roundDecimal = function roundDecimal(value) {return Math.round(value * 100) / 100;};
+
+// eslint-disable-next-line no-unused-vars
 var TableHeaderCell = function TableHeaderCell(_ref) {var children = _ref.children,_ref$classes = _ref.classes,classes = _ref$classes === undefined ? [] : _ref$classes;return _react2.default.createElement('div', { className: (0, _classnames2.default)('table-header-cell', classes) }, children);};
 
 var checkDateInput = function checkDateInput(value) {
@@ -93,8 +98,9 @@ var fetchHistory = function fetchHistory(_ref2)
         dispatch((0, _actions.usersFetch)(historyId));
         dispatch((0, _actions.historyFetch)(historyId));
         dispatch((0, _actions.categoriesFetch)(historyId));return _this;
-    }(0, _createClass3.default)(History, [{ key: 'componentDidUpdate', value: function componentDidUpdate(
-        prevProps) {
+    }
+    // eslint-disable-next-line complexity
+    (0, _createClass3.default)(History, [{ key: 'componentDidUpdate', value: function componentDidUpdate(prevProps) {
             // l.d('componentDidUpdate')
             var _props =
 
@@ -154,7 +160,10 @@ var fetchHistory = function fetchHistory(_ref2)
                     // it's title
                     daySum = itemsWithTitles.
                     filter(function (element) {return (
-                            element && element.date_create && !element.date_delete && timeLib.isDateSame(new Date(element.date_create), new Date(item.date_create)));}).
+                            element && element.date_create &&
+                            !element.date_delete &&
+                            timeLib.isDateSame(new Date(element.date_create),
+                            new Date(item.date_create)));}).
                     map(function (it) {return it.value || 0;}).
                     reduce(function (sum, current) {return sum + current;}, 0);
                 }
@@ -200,6 +209,7 @@ var fetchHistory = function fetchHistory(_ref2)
         } }]);return History;}(_react.Component));exports.default = _default;
 
 
+// eslint-disable-next-line complexity, no-unused-vars
 var Navigation = function Navigation(_ref3) {var props = _ref3.props;
     // l.d('History.Navigation()')
     var selectedDates =
@@ -300,6 +310,7 @@ var Navigation = function Navigation(_ref3) {var props = _ref3.props;
 
 };
 
+// eslint-disable-next-line no-unused-vars
 var Categories = function Categories(_ref4) {var categories = _ref4.categories,dispatch = _ref4.dispatch,selected = _ref4.selected,activeCategories = _ref4.activeCategories;
     var cell0 = [],
     cell1 = void 0,
@@ -308,7 +319,7 @@ var Categories = function Categories(_ref4) {var categories = _ref4.categories,d
     var actCategories = activeCategories != null ? (0, _keys2.default)(activeCategories) : [];
     var categoryMapper = function categoryMapper(category) {
         var categorySum = activeCategories && activeCategories[category.title] ? '  [' +
-        activeCategories[category.title].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
+        roundDecimal(activeCategories[category.title].sum).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
         '';
 
         return _react2.default.createElement('div', { key: category.id },
@@ -350,6 +361,7 @@ var Categories = function Categories(_ref4) {var categories = _ref4.categories,d
         cell2 && _react2.default.createElement(TableHeaderCell, { classes: ['padding-right-7'], key: 2 }, cell2));
 };
 
+// eslint-disable-next-line no-unused-vars
 var Users = function Users(_ref5) {var users = _ref5.users,dispatch = _ref5.dispatch,selected = _ref5.selected,activeUsersIds = _ref5.activeUsersIds;
     if (!users) return null;
     var selUsers = Array.isArray(selected) ? selected : [];
@@ -358,7 +370,7 @@ var Users = function Users(_ref5) {var users = _ref5.users,dispatch = _ref5.disp
     return _react2.default.createElement('div', null,
         usersIds.map(function (id) {
             var userSum = activeUsersIds && activeUsersIds[id] ? '  [' +
-            activeUsersIds[id].sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
+            roundDecimal(activeUsersIds[id].sum).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ']' :
             '';
             return _react2.default.createElement('div', { key: id }, _react2.default.createElement(_CheckBox.CheckBoxStateless, { key: id, title: '' + users[id] + userSum,
                     classes: [actUsersIds.indexOf(+id) === -1 ? 'color-grey-light' : ''],
@@ -372,6 +384,7 @@ var Users = function Users(_ref5) {var users = _ref5.users,dispatch = _ref5.disp
 
 };
 
+// eslint-disable-next-line no-unused-vars
 var Dates = function Dates(_ref6) {var dispatch = _ref6.dispatch,selected = _ref6.selected;
     if (!selected) return null;var
     dateStart = selected.dateStart,dateEnd = selected.dateEnd;
@@ -409,6 +422,7 @@ var Dates = function Dates(_ref6) {var dispatch = _ref6.dispatch,selected = _ref
 
 };
 
+// eslint-disable-next-line complexity, no-unused-vars
 var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user = _ref7.user,categories = _ref7.categories,editId = _ref7.editId,dispatch = _ref7.dispatch,daySum = _ref7.daySum;
     if (!user) {
         return _react2.default.createElement('div', { className: 'table-row-title' },
@@ -457,13 +471,13 @@ var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user 
                 } })),
 
         _react2.default.createElement('div', { className: 'table-cell', style: { width: '65px' } },
-            !isEdit && _react2.default.createElement('span', null, item.value ? item.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''),
+            !isEdit && _react2.default.createElement('span', null, item.value ? roundDecimal(item.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''),
             isEdit && _react2.default.createElement(_Input.InputStatefull, { defaultValue: item.value,
                 classes: ['width-55'],
                 onBlur: function onBlur(value) {
                     var parser = new _exprEval.Parser();
                     try {
-                        var text = parser.parse(value).evaluate();
+                        var text = roundDecimal(parser.parse(value.replace(/ /g, '').replace(/,/g, '.')).evaluate());
                         dispatch((0, _actions.historySaveUndo)(chatId, item.id, { value: item.value }));
                         dispatch((0, _actions.historySave)(chatId, item.id, { value: text }));
                     } catch (ex) {
@@ -474,7 +488,7 @@ var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user 
                     if (char === 13) {
                         var parser = new _exprEval.Parser();
                         try {
-                            var text = parser.parse(value).evaluate();
+                            var text = roundDecimal(parser.parse(value).evaluate());
                             dispatch((0, _actions.historySaveUndo)(chatId, item.id, { value: item.value }));
                             dispatch((0, _actions.historySave)(chatId, item.id, { value: text }));
                         } catch (ex) {
@@ -504,4 +518,4 @@ var Row = function Row(_ref7) {var chatId = _ref7.chatId,item = _ref7.item,user 
                 } })));
 
 
-};;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(HISTORY_PAGE_COUNT, 'HISTORY_PAGE_COUNT', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(timeLib, 'timeLib', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(TableHeaderCell, 'TableHeaderCell', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(checkDateInput, 'checkDateInput', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(fetchHistory, 'fetchHistory', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Navigation, 'Navigation', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Categories, 'Categories', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Users, 'Users', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Dates, 'Dates', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Row, 'Row', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(_default, 'default', 'src/wwwdev/src/wwwdev/src/history.jsx');}();;
+};;var _temp = function () {if (typeof __REACT_HOT_LOADER__ === 'undefined') {return;}__REACT_HOT_LOADER__.register(HISTORY_PAGE_COUNT, 'HISTORY_PAGE_COUNT', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(timeLib, 'timeLib', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(roundDecimal, 'roundDecimal', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(TableHeaderCell, 'TableHeaderCell', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(checkDateInput, 'checkDateInput', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(fetchHistory, 'fetchHistory', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Navigation, 'Navigation', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Categories, 'Categories', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Users, 'Users', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Dates, 'Dates', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(Row, 'Row', 'src/wwwdev/src/wwwdev/src/history.jsx');__REACT_HOT_LOADER__.register(_default, 'default', 'src/wwwdev/src/wwwdev/src/history.jsx');}();;
