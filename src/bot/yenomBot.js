@@ -46,13 +46,17 @@ const getChatsCurrenciesObservable = () =>
         .filter(chatId => chatId !== archiveName)
         .switchMap(chatId =>
             storage.getItem(storageId(null, chatId), 'currencies')
+                .filter(currencies => !!currencies)
                 .filter(currencies => Object.keys(currencies).length > 1)
                 .map(currencies => Object.create({
                     chatId,
                     currencies: currencies || { RUB: 1 }
                 })))
 const updateCurrenciesDailyObservable = () =>
-    dailyIntervalTimer.timerEvent()
+    Observable.merge(
+        dailyIntervalTimer.timerEvent(),
+        Observable.of(true) // check currencies every start
+    )
         .switchMap(() => Observable.combineLatest(
             getCurrencyRateObservable(),
             getChatsCurrenciesObservable(),

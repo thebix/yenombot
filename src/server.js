@@ -15,26 +15,26 @@ nodeCleanup((exitCode, signal) => {
 })
 
 // bot
-compositeSubscription.add(
-    storage.isInitialized()
-        .filter(isStorageInitizlized => isStorageInitizlized)
-        .mergeMap(() => yenomBot())
-        .subscribe(
+compositeSubscription.add(storage.isInitialized()
+    .filter(isStorageInitizlized => isStorageInitizlized)
+    .mergeMap(() => yenomBot())
+    .subscribe(
         () => { },
         error => {
             log(`Unhandled exception: server.yenombot: error while handling userText / userActions. Error=${error && error.message
                 ? error.message : JSON.stringify(error)}`, logLevel.ERROR)
             compositeSubscription.unsubscribe()
-        }))
+        }
+    ))
 
 // www
-compositeSubscription.add(
-    storage.isInitialized()
-        .filter(isStorageInitizlized => isStorageInitizlized)
-        .mergeMap(() => yenomWww())
-        .subscribe(
+compositeSubscription.add(storage.isInitialized()
+    .filter(isStorageInitizlized => isStorageInitizlized)
+    .mergeMap(() => yenomWww())
+    .subscribe(
         () => { },
         error => {
             log(`Unhandled exception: server.yenomWww: Error=${error && error.message ? error.message : JSON.stringify(error)}`, logLevel.ERROR)
             compositeSubscription.unsubscribe()
-        }))
+        }
+    ))
