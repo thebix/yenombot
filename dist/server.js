@@ -15,8 +15,7 @@ var compositeSubscription = new _rxjs.Subscription();
 });
 
 // bot
-compositeSubscription.add(
-_storage2.default.isInitialized().
+compositeSubscription.add(_storage2.default.isInitialized().
 filter(function (isStorageInitizlized) {return isStorageInitizlized;}).
 mergeMap(function () {return (0, _yenomBot2.default)();}).
 subscribe(
@@ -27,9 +26,9 @@ function (error) {
     compositeSubscription.unsubscribe();
 }));
 
+
 // www
-compositeSubscription.add(
-_storage2.default.isInitialized().
+compositeSubscription.add(_storage2.default.isInitialized().
 filter(function (isStorageInitizlized) {return isStorageInitizlized;}).
 mergeMap(function () {return (0, _yenomWww2.default)();}).
 subscribe(

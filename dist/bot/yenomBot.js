@@ -46,13 +46,17 @@ var getChatsCurrenciesObservable = function getChatsCurrenciesObservable() {retu
         filter(function (chatId) {return chatId !== _storage.archiveName;}).
         switchMap(function (chatId) {return (
                 _storage2.default.getItem((0, _handlers.storageId)(null, chatId), 'currencies').
+                filter(function (currencies) {return !!currencies;}).
                 filter(function (currencies) {return Object.keys(currencies).length > 1;}).
                 map(function (currencies) {return Object.create({
                         chatId: chatId,
                         currencies: currencies || { RUB: 1 } });}));}));};
 
 var updateCurrenciesDailyObservable = function updateCurrenciesDailyObservable() {return (
-        dailyIntervalTimer.timerEvent().
+        _rxjs.Observable.merge(
+        dailyIntervalTimer.timerEvent(),
+        _rxjs.Observable.of(true) // check currencies every start
+        ).
         switchMap(function () {return _rxjs.Observable.combineLatest(
             getCurrencyRateObservable(),
             getChatsCurrenciesObservable(),
