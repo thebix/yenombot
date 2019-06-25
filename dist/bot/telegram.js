@@ -22,9 +22,9 @@ var botMessageOptions = function botMessageOptions()
                         text: inlineButton.text,
                         callback_data: JSON.stringify(inlineButton.callbackData) };}));});
 
-
     }
     if (replyKeyboard && replyKeyboard.buttons && Array.isArray(replyKeyboard.buttons)) {var _replyKeyboard$button =
+
 
 
 
@@ -59,15 +59,29 @@ Telegram = function () {
             do(function (userAction) {return _this.bot.answerCallbackQuery(userAction.id, 'Команда получена', false);}).
             map(function (userAction) {return _message.UserAction.createFromTelegramUserAction(userAction);});
         } }, { key: 'botMessage', value: function botMessage(_ref)
+
+
+
+
+
         {var chatId = _ref.chatId,text = _ref.text,inlineButtonsGroups = _ref.inlineButtonsGroups,replyKeyboard = _ref.replyKeyboard;
-            return _rxjs.Observable.fromPromise(this.bot.sendMessage(chatId, text + ' \uD83E\uDD16',
+            return _rxjs.Observable.fromPromise(this.bot.sendMessage(
+            chatId, text + ' \uD83E\uDD16',
             botMessageOptions(inlineButtonsGroups, replyKeyboard))).
+
             map(function (botMessageSendSuccess) {return _message.BotMessageSendResult.createFromSuccess(botMessageSendSuccess);}).
             catch(function (botMessageSendError) {return _rxjs.Observable.of(_message.BotMessageSendResult.createFromError(botMessageSendError));});
         } }, { key: 'botMessageEdit', value: function botMessageEdit(_ref2)
+
+
+
+
+
         {var chatId = _ref2.chatId,text = _ref2.text,inlineButtonsGroups = _ref2.inlineButtonsGroups,messageIdToEdit = _ref2.messageIdToEdit;
-            return _rxjs.Observable.fromPromise(this.bot.editMessageText(text + ' \uD83E\uDD16',
+            return _rxjs.Observable.fromPromise(this.bot.editMessageText(
+            text + ' \uD83E\uDD16',
             botMessageOptions(inlineButtonsGroups, undefined, messageIdToEdit, chatId))).
+
             map(function (botMessageSendSuccess) {return _message.BotMessageSendResult.createFromSuccess(botMessageSendSuccess);}).
             catch(function (botMessageSendError) {return _rxjs.Observable.of(_message.BotMessageSendResult.createFromError(botMessageSendError));});
         } }, { key: 'chatInfo', value: function chatInfo(

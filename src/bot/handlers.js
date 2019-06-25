@@ -22,13 +22,18 @@ const lastChangeBalanceBotMessageId = {}
 /*
  * ERRORS HANDERS
  */
-const errorToUser = (userId, chatId) => [new BotMessage(userId, chatId,
-    'При при обработке запроса произошла ошибка. Пожалуйста, начните заново')]
+const errorToUser = (userId, chatId) => [
+    new BotMessage(userId, chatId, 'При при обработке запроса произошла ошибка. Пожалуйста, начните заново')]
 
 const botIsInDevelopmentToUser = (userId, chatId) => {
     log(`handlers.botIsInDevelopmentToUser: userId="${userId}" is not in token.developers array.`, logLevel.ERROR)
-    return Observable.from([new BotMessage(userId, chatId,
-        `В данный момент бот находится в режиме разработки. \nВаш идентификатор в мессенджере - "${userId}". Сообщите свой идентификатор по контактам в описании бота, чтобы Вас добавили в группу разработчиков`)]) // eslint-disable-line max-len
+    return Observable.from([
+        new BotMessage(
+            userId, chatId,
+            // eslint-disable-next-line max-len
+            `В данный момент бот находится в режиме разработки. \nВаш идентификатор в мессенджере - "${userId}". Сообщите свой идентификатор по контактам в описании бота, чтобы Вас добавили в группу разработчиков`
+        )
+    ])
 }
 
 /*
@@ -67,8 +72,10 @@ const getCategoriesObservable = (userId, chatId) =>
     storage.getItem(storageId(userId, chatId), 'paymentGroups')
         .map(categoriesArray => {
             if (categoriesArray === false)
-                log(`handlers:getCategoriesObservable: can't fetch categories. userId:<${userId}>, chatId:<${chatId}>`,
-                    logLevel.ERROR)
+                log(
+                    `handlers:getCategoriesObservable: can't fetch categories. userId:<${userId}>, chatId:<${chatId}>`,
+                    logLevel.ERROR
+                )
             return categoriesArray || []
         })
 
@@ -86,11 +93,11 @@ const getCurrenciesObservable = (userId, chatId) =>
 /*
  * USER MESSAGE HELPERS
  */
-const start = (userId, chatId) => Observable.from([new BotMessage(userId, chatId,
-    'Вас приветствует yenomBot!')])
+const start = (userId, chatId) => Observable.from([
+    new BotMessage(userId, chatId, 'Вас приветствует yenomBot!')])
 
-const help = (userId, chatId) => Observable.from([new BotMessage(userId, chatId,
-    'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')])
+const help = (userId, chatId) => Observable.from([
+    new BotMessage(userId, chatId, 'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')])
 
 const tokenInit = (userId, chatId, text) => {
     const tokenKey = text.split(' ')[1]
@@ -129,13 +136,16 @@ const balanceChange = (user, chatId, text, messageId) => {
     const parser = new Parser()
     let value
     try {
-        // TODO: trim and remove spaces
-        value = parser.parse(text).evaluate()
+        value = parser.parse(text.replace(/ /g, '').replace(/,/g, '.')).evaluate()
         if (!value)
             return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
         if (value === Infinity)
-            return Observable.from([new BotMessage(userId, chatId,
-                'Я открою тебе маленькую тайну http://elementy.ru/email/1530320/Pochemu_nelzya_delit_na_nol')])
+            return Observable.from([
+                new BotMessage(
+                    userId, chatId,
+                    'Я открою тебе маленькую тайну http://elementy.ru/email/1530320/Pochemu_nelzya_delit_na_nol'
+                )])
+        value = Math.round(value * 100) / 100
     } catch (ex) {
         return Observable.from([new BotMessage(userId, chatId, 'Не понял выражение')])
     }
@@ -175,8 +185,10 @@ const balanceChange = (user, chatId, text, messageId) => {
     const balanceUpdateError = newBalanceObservable
         .filter(newBalanceObject => !newBalanceObject)
         .switchMap(() => {
-            log(`handlers: balanceChange: can't update balance. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
-                logLevel.ERROR)
+            log(
+                `handlers: balanceChange: can't update balance. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
+                logLevel.ERROR
+            )
             return [new BotMessage(userId, chatId, 'При обновлении баланса возникла ошибка')]
         })
 
@@ -207,8 +219,10 @@ const balanceChange = (user, chatId, text, messageId) => {
     const historySaveError = historySaveObservable
         .filter(isHistorySaved => !isHistorySaved)
         .switchMap(() => {
-            log(`handlers:balanceChange: can't save history item. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
-                logLevel.ERROR)
+            log(
+                `handlers:balanceChange: can't save history item. userId:<${userId}>, chatId:<${chatId}>, text:<${text}>, messageId:<${messageId}>`,
+                logLevel.ERROR
+            )
             return [new BotMessage(userId, chatId, 'При обновлении истории возникла ошибка')]
         })
 
@@ -219,16 +233,18 @@ const balanceChange = (user, chatId, text, messageId) => {
                 .filter(isHistorySaved => !!isHistorySaved),
             categories => {
                 const cols = 3 // count in horizontal block
-                const buttonsGroups = [new InlineButtonsGroup(
-                    [new InlineButton('Удалить', {
-                        hId: messageId,
-                        cmd: commands.BALANCE_REMOVE
-                    })]
-                )]
+                const buttonsGroups = [
+                    new InlineButtonsGroup([
+                        new InlineButton('Удалить', {
+                            hId: messageId,
+                            cmd: commands.BALANCE_REMOVE
+                        })])]
                 const blocksCount = parseInt(categories.length / cols, 10)
                     + ((categories.length % cols) > 0 ? 1 : 0)
                 for (let i = 0; i < blocksCount; i += 1) {
+                    // eslint-disable-next-line function-paren-newline
                     buttonsGroups.push(
+                        // eslint-disable-next-line function-paren-newline
                         new InlineButtonsGroup(
                             categories.slice(i * cols, cols * (i + 1))
                                 .map(category => {
@@ -238,16 +254,19 @@ const balanceChange = (user, chatId, text, messageId) => {
                                         hId: messageId,
                                         cmd: commands.BALANCE_CATEGORY_CHANGE
                                     })
-                                })
-                        )
-                    )
+                                })))
                 }
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CHANGE
                 // buttonsGroups.length > 1 since at least one group (Delete button) always exists
-                return Observable.from([new BotMessage(userId, chatId, `Записал ${value}.${buttonsGroups.length > 1 ? ' Выбери категорию' : ''}`,
-                    buttonsGroups)])
+                return Observable.from([
+                    new BotMessage(
+                        userId, chatId,
+                        `Записал ${value}.${buttonsGroups.length > 1 ? ' Выбери категорию' : ''}`,
+                        buttonsGroups
+                    )])
                     .concat(balance(userId, chatId))
-            })
+            }
+        )
             .concatMap(item => item.delay(10))
     return Observable.merge(addUserToStorageError, balanceUpdateError, historySaveError, successObservable)
 }
@@ -286,13 +305,14 @@ const commentChange = (userId, chatId, text) => {
                 if (!editMessageId) {
                     return Observable.empty()
                 }
-                return Observable.of(new BotMessageEdit(editMessageId, chatId,
+                return Observable.of(new BotMessageEdit(
+                    editMessageId, chatId,
                     `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment}${updatedHistoryItem.date_delete
                         ? ' удалено из истории' : ''}`,
                     [new InlineButtonsGroup(updatedHistoryItem.date_delete
                         ? []
-                        : [new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])])
-                )
+                        : [new InlineButton('Удалить', { hId: updatedHistoryItem.id, cmd: commands.BALANCE_REMOVE })])]
+                ))
             })
             .concat(balance(userId, chatId))
 
@@ -328,8 +348,10 @@ const stats = (userId, chatId, text) => {
     const dateStartTime = dateStart.getTime()
     const curTicks = dateEndTime - dateStartTime
     if (curTicks < 1000 * 60 * 60 * 4)
-        return Observable.from([new BotMessage(userId, chatId,
-            'Слишком короткий интервал. Минимум 4 часа.')])
+        return Observable.from([new BotMessage(
+            userId, chatId,
+            'Слишком короткий интервал. Минимум 4 часа.'
+        )])
 
     const intervalLength = lib.time.daysBetween(dateStart, lib.time.getChangedDateTime({ ticks: 1 }, dateEnd))
 
@@ -348,7 +370,8 @@ const stats = (userId, chatId, text) => {
             }
         }
     ).concatMap(storageData => {
-        const { nonUserPaymentCategories = [],
+        const {
+            nonUserPaymentCategories = [],
             historyAll = [],
             balanceUsers = {}
         } = storageData
@@ -357,8 +380,11 @@ const stats = (userId, chatId, text) => {
             .filter(historyItem => !historyItem.date_delete)
             .sort((i1, i2) => i2.id - i1.id)
         const successMessages = [
-            new BotMessage(userId, chatId,
-                `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`) // eslint-disable-line max-len
+            new BotMessage(
+                userId, chatId,
+                // eslint-disable-next-line max-len
+                `Период: ${lib.time.dateWeekdayString(dateStart)} - ${lib.time.dateWeekdayString(dateEndUser)}\nДней: ${lib.time.daysBetween(dateStart, dateEnd)}`
+            )
         ]
         if (historyAllSorted.length === 0) {
             successMessages.push(new BotMessage(userId, chatId, 'Нет записей для отображения'))
@@ -367,12 +393,12 @@ const stats = (userId, chatId, text) => {
         }
 
         // users in history
-        const historyUsers = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-            historyAllSorted.map(item => item.user_id))) || []
+        // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+        const historyUsers = Array.from(new Set(historyAllSorted.map(item => item.user_id))) || []
         // categories in history
-        const historyCategories = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-            historyAllSorted.map(item => item.category))) || []
-        const userSumsPevPeriods = {}  // summary of all payments by user in previous periods ~~, doesn't unclude current period~~
+        // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+        const historyCategories = Array.from(new Set(historyAllSorted.map(item => item.category))) || []
+        const userSumsPevPeriods = {} // summary of all payments by user in previous periods ~~, doesn't unclude current period~~
         historyUsers.forEach(user => {
             userSumsPevPeriods[user] = 0
         })
@@ -423,7 +449,14 @@ const stats = (userId, chatId, text) => {
         }
         let i = 0
         for (i; i < historyAllSorted.length; i += 1) {
-            const { date_create, value, user_id, category } = historyAllSorted[i]
+            const {
+                // eslint-disable-next-line camelcase
+                date_create,
+                value,
+                // eslint-disable-next-line camelcase
+                user_id,
+                category
+            } = historyAllSorted[i]
             historyItemTicks = new Date(date_create).getTime()
             // check if we need to increase period
             while (historyItemTicks < curIntervalDateStart.getTime()) {
@@ -444,7 +477,7 @@ const stats = (userId, chatId, text) => {
             categoriesSumsPevPeriods[category] += value
         }
 
-        const periodsAllCount = Object.keys(userSumsByPeriods).length  // all history periods count
+        const periodsAllCount = Object.keys(userSumsByPeriods).length // all history periods count
         if (periodsAllCount === 0) {
             successMessages.push(new BotMessage(userId, chatId, 'Нет записей для отображения'))
             return Observable.from(successMessages)
@@ -535,8 +568,12 @@ const categoryChange = (userId, chatId, data, messageId) => {
             .map(updatedHistoryItem => {
                 lastCommands[storageId(userId, chatId)] = commands.BALANCE_CATEGORY_CHANGE
                 lastChangeBalanceBotMessageId[storageId(userId, chatId)] = messageId
-                return new BotMessageEdit(messageId, chatId, `${updatedHistoryItem.value}, ${updatedHistoryItem.category}`,
-                    [new InlineButtonsGroup([new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])])
+                return new BotMessageEdit(
+                    messageId,
+                    chatId,
+                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}`,
+                    [new InlineButtonsGroup([new InlineButton('Удалить', { hId, cmd: commands.BALANCE_REMOVE })])]
+                )
             })
     return Observable.merge(historyUpdateError, successObservable)
 }
@@ -572,21 +609,30 @@ const balanceDelete = (userId, chatId, data, messageId) => {
                 return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
                     .switchMap(isBalanceUpdated => {
                         if (!isBalanceUpdated) {
-                            log(`handlers:balanceDelete: can't update storage item. hId:<${hId}>, chatId:<${chatId}, messageId:<${messageId}>`,
-                                logLevel.ERROR)
+                            log(
+                                `handlers:balanceDelete: can't update storage item. hId:<${hId}>, chatId:<${chatId}, messageId:<${messageId}>`,
+                                logLevel.ERROR
+                            )
                             return errorToUser(userId, chatId)
                         }
                         return Observable.from([
-                            new BotMessageEdit(messageId, chatId,
-                                `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`)])
+                            new BotMessageEdit(
+                                messageId,
+                                chatId,
+                                `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`
+                            )])
                             .concat(balance(userId, chatId))
                     })
             }
             return Observable.from([
-                new BotMessageEdit(messageId, chatId,
-                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`)])
+                new BotMessageEdit(
+                    messageId,
+                    chatId,
+                    `${updatedHistoryItem.value}, ${updatedHistoryItem.category}, ${updatedHistoryItem.comment} удалено из истории`
+                )])
                 .concat(balance(userId, chatId))
-        })
+        }
+    )
         .concatMap(item => item)
     return Observable.merge(historyUpdateError, successObservable)
 }
@@ -595,7 +641,13 @@ const balanceDelete = (userId, chatId, data, messageId) => {
  * EXPORTS
  */
 const mapUserMessageToBotMessages = message => { // eslint-disable-line complexity
-    const { text, from, chat, id, user } = message
+    const {
+        text,
+        from,
+        chat,
+        id,
+        user
+    } = message
     const chatId = chat ? chat.id : from
 
     let messagesToUser

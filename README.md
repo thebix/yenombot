@@ -28,7 +28,12 @@ export default {
                 title: 'Cat 2',
                 id: '2'
             }],
-            nonUserPaymentGroups: ['Cat 2']
+            nonUserPaymentGroups: ['Cat 2'],
+            currencies: {
+                "EUR": 1,
+                "USD": 1.13,
+                "RUB": 75
+            }   
         }
     }
      

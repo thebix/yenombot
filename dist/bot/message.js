@@ -134,8 +134,10 @@ function ReplyKeyboardButton(text) {_classCallCheck(this, ReplyKeyboardButton);
 // send or edit message from bot to user
 var BotMessage = exports.BotMessage = function () {
     // INFO: userId, chatId, text - reqired params
-    function BotMessage(userId,
+    function BotMessage(
+    userId,
     chatId)
+
 
 
     {var text = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';var inlineButtonsGroups = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : undefined;var replyKeyboard = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : undefined;_classCallCheck(this, BotMessage);
@@ -158,7 +160,14 @@ BotMessageEdit = exports.BotMessageEdit = function (_BotMessage) {_inherits(BotM
 
 
 BotMessageSendResult = exports.BotMessageSendResult = function () {
-    function BotMessageSendResult(_ref2) {var chatId = _ref2.chatId,messageText = _ref2.messageText,statusCode = _ref2.statusCode,statusMessage = _ref2.statusMessage,ok = _ref2.ok,messageId = _ref2.messageId;_classCallCheck(this, BotMessageSendResult);
+    function BotMessageSendResult(_ref2)
+
+
+
+
+
+
+    {var chatId = _ref2.chatId,messageText = _ref2.messageText,statusCode = _ref2.statusCode,statusMessage = _ref2.statusMessage,ok = _ref2.ok,messageId = _ref2.messageId;_classCallCheck(this, BotMessageSendResult);
         this.chatId = chatId;
         this.messageId = messageId;
         this.messageText = messageText;

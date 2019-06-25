@@ -22,13 +22,18 @@ var _root = require('../lib/root');var _root2 = _interopRequireDefault(_root);fu
 /*
                                                                                                                                                                                                                                                                                                                                                                                                                                         * ERRORS HANDERS
                                                                                                                                                                                                                                                                                                                                                                                                                                         */
-var errorToUser = function errorToUser(userId, chatId) {return [new _message.BotMessage(userId, chatId,
-    'При при обработке запроса произошла ошибка. Пожалуйста, начните заново')];};
+var errorToUser = function errorToUser(userId, chatId) {return [
+    new _message.BotMessage(userId, chatId, 'При при обработке запроса произошла ошибка. Пожалуйста, начните заново')];};
 
 var botIsInDevelopmentToUser = function botIsInDevelopmentToUser(userId, chatId) {
     (0, _logger.log)('handlers.botIsInDevelopmentToUser: userId="' + userId + '" is not in token.developers array.', _logger.logLevel.ERROR);
-    return _Observable.Observable.from([new _message.BotMessage(userId, chatId, '\u0412 \u0434\u0430\u043D\u043D\u044B\u0439 \u043C\u043E\u043C\u0435\u043D\u0442 \u0431\u043E\u0442 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0440\u0430\u0437\u0440\u0430\u0431\u043E\u0442\u043A\u0438. \n\u0412\u0430\u0448 \u0438\u0434\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440 \u0432 \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0435 - "' +
-    userId + '". \u0421\u043E\u043E\u0431\u0449\u0438\u0442\u0435 \u0441\u0432\u043E\u0439 \u0438\u0434\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440 \u043F\u043E \u043A\u043E\u043D\u0442\u0430\u043A\u0442\u0430\u043C \u0432 \u043E\u043F\u0438\u0441\u0430\u043D\u0438\u0438 \u0431\u043E\u0442\u0430, \u0447\u0442\u043E\u0431\u044B \u0412\u0430\u0441 \u0434\u043E\u0431\u0430\u0432\u0438\u043B\u0438 \u0432 \u0433\u0440\u0443\u043F\u043F\u0443 \u0440\u0430\u0437\u0440\u0430\u0431\u043E\u0442\u0447\u0438\u043A\u043E\u0432')]); // eslint-disable-line max-len
+    return _Observable.Observable.from([
+    new _message.BotMessage(
+    userId, chatId,
+    // eslint-disable-next-line max-len
+    '\u0412 \u0434\u0430\u043D\u043D\u044B\u0439 \u043C\u043E\u043C\u0435\u043D\u0442 \u0431\u043E\u0442 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0440\u0430\u0437\u0440\u0430\u0431\u043E\u0442\u043A\u0438. \n\u0412\u0430\u0448 \u0438\u0434\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440 \u0432 \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0435 - "' + userId + '". \u0421\u043E\u043E\u0431\u0449\u0438\u0442\u0435 \u0441\u0432\u043E\u0439 \u0438\u0434\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440 \u043F\u043E \u043A\u043E\u043D\u0442\u0430\u043A\u0442\u0430\u043C \u0432 \u043E\u043F\u0438\u0441\u0430\u043D\u0438\u0438 \u0431\u043E\u0442\u0430, \u0447\u0442\u043E\u0431\u044B \u0412\u0430\u0441 \u0434\u043E\u0431\u0430\u0432\u0438\u043B\u0438 \u0432 \u0433\u0440\u0443\u043F\u043F\u0443 \u0440\u0430\u0437\u0440\u0430\u0431\u043E\u0442\u0447\u0438\u043A\u043E\u0432')]);
+
+
 };
 
 /*
@@ -67,8 +72,10 @@ var getCategoriesObservable = function getCategoriesObservable(userId, chatId) {
         _storage2.default.getItem(storageId(userId, chatId), 'paymentGroups').
         map(function (categoriesArray) {
             if (categoriesArray === false)
-            (0, _logger.log)('handlers:getCategoriesObservable: can\'t fetch categories. userId:<' + userId + '>, chatId:<' + chatId + '>',
+            (0, _logger.log)('handlers:getCategoriesObservable: can\'t fetch categories. userId:<' +
+            userId + '>, chatId:<' + chatId + '>',
             _logger.logLevel.ERROR);
+
             return categoriesArray || [];
         }));};
 
@@ -86,11 +93,11 @@ var getCurrenciesObservable = function getCurrenciesObservable(userId, chatId) {
 /*
                     * USER MESSAGE HELPERS
                     */
-var start = function start(userId, chatId) {return _Observable.Observable.from([new _message.BotMessage(userId, chatId,
-    'Вас приветствует yenomBot!')]);};
+var start = function start(userId, chatId) {return _Observable.Observable.from([
+    new _message.BotMessage(userId, chatId, 'Вас приветствует yenomBot!')]);};
 
-var help = function help(userId, chatId) {return _Observable.Observable.from([new _message.BotMessage(userId, chatId,
-    'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')]);};
+var help = function help(userId, chatId) {return _Observable.Observable.from([
+    new _message.BotMessage(userId, chatId, 'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')]);};
 
 var tokenInit = function tokenInit(userId, chatId, text) {
     var tokenKey = text.split(' ')[1];
@@ -129,13 +136,16 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     var parser = new _exprEval.Parser();
     var value = void 0;
     try {
-        // TODO: trim and remove spaces
-        value = parser.parse(text).evaluate();
+        value = parser.parse(text.replace(/ /g, '').replace(/,/g, '.')).evaluate();
         if (!value)
         return _Observable.Observable.from([new _message.BotMessage(userId, chatId, 'Не понял выражение')]);
         if (value === Infinity)
-        return _Observable.Observable.from([new _message.BotMessage(userId, chatId,
+        return _Observable.Observable.from([
+        new _message.BotMessage(
+        userId, chatId,
         'Я открою тебе маленькую тайну http://elementy.ru/email/1530320/Pochemu_nelzya_delit_na_nol')]);
+
+        value = Math.round(value * 100) / 100;
     } catch (ex) {
         return _Observable.Observable.from([new _message.BotMessage(userId, chatId, 'Не понял выражение')]);
     }
@@ -175,8 +185,10 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     var balanceUpdateError = newBalanceObservable.
     filter(function (newBalanceObject) {return !newBalanceObject;}).
     switchMap(function () {
-        (0, _logger.log)('handlers: balanceChange: can\'t update balance. userId:<' + userId + '>, chatId:<' + chatId + '>, text:<' + text + '>, messageId:<' + messageId + '>',
+        (0, _logger.log)('handlers: balanceChange: can\'t update balance. userId:<' +
+        userId + '>, chatId:<' + chatId + '>, text:<' + text + '>, messageId:<' + messageId + '>',
         _logger.logLevel.ERROR);
+
         return [new _message.BotMessage(userId, chatId, 'При обновлении баланса возникла ошибка')];
     });
 
@@ -207,8 +219,10 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     var historySaveError = historySaveObservable.
     filter(function (isHistorySaved) {return !isHistorySaved;}).
     switchMap(function () {
-        (0, _logger.log)('handlers:balanceChange: can\'t save history item. userId:<' + userId + '>, chatId:<' + chatId + '>, text:<' + text + '>, messageId:<' + messageId + '>',
+        (0, _logger.log)('handlers:balanceChange: can\'t save history item. userId:<' +
+        userId + '>, chatId:<' + chatId + '>, text:<' + text + '>, messageId:<' + messageId + '>',
         _logger.logLevel.ERROR);
+
         return [new _message.BotMessage(userId, chatId, 'При обновлении истории возникла ошибка')];
     });
 
@@ -219,16 +233,18 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     filter(function (isHistorySaved) {return !!isHistorySaved;}),
     function (categories) {
         var cols = 3; // count in horizontal block
-        var buttonsGroups = [new _message.InlineButtonsGroup(
-        [new _message.InlineButton('Удалить', {
+        var buttonsGroups = [
+        new _message.InlineButtonsGroup([
+        new _message.InlineButton('Удалить', {
             hId: messageId,
             cmd: _commands2.default.BALANCE_REMOVE })])];
-
 
         var blocksCount = parseInt(categories.length / cols, 10) + (
         categories.length % cols > 0 ? 1 : 0);
         for (var i = 0; i < blocksCount; i += 1) {
+            // eslint-disable-next-line function-paren-newline
             buttonsGroups.push(
+            // eslint-disable-next-line function-paren-newline
             new _message.InlineButtonsGroup(
             categories.slice(i * cols, cols * (i + 1)).
             map(function (category) {var
@@ -239,15 +255,18 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
                     cmd: _commands2.default.BALANCE_CATEGORY_CHANGE });
 
             })));
-
-
         }
         lastCommands[storageId(userId, chatId)] = _commands2.default.BALANCE_CHANGE;
         // buttonsGroups.length > 1 since at least one group (Delete button) always exists
-        return _Observable.Observable.from([new _message.BotMessage(userId, chatId, '\u0417\u0430\u043F\u0438\u0441\u0430\u043B ' + value + '.' + (buttonsGroups.length > 1 ? ' Выбери категорию' : ''),
+        return _Observable.Observable.from([
+        new _message.BotMessage(
+        userId, chatId, '\u0417\u0430\u043F\u0438\u0441\u0430\u043B ' +
+        value + '.' + (buttonsGroups.length > 1 ? ' Выбери категорию' : ''),
         buttonsGroups)]).
+
         concat(balance(userId, chatId));
     }).
+
     concatMap(function (item) {return item.delay(10);});
     return _Observable.Observable.merge(addUserToStorageError, balanceUpdateError, historySaveError, successObservable);
 };
@@ -286,7 +305,8 @@ var commentChange = function commentChange(userId, chatId, text) {
         if (!editMessageId) {
             return _Observable.Observable.empty();
         }
-        return _Observable.Observable.of(new _message.BotMessageEdit(editMessageId, chatId,
+        return _Observable.Observable.of(new _message.BotMessageEdit(
+        editMessageId, chatId,
         updatedHistoryItem.value + ', ' + updatedHistoryItem.category + ', ' + updatedHistoryItem.comment + (updatedHistoryItem.date_delete ?
         ' удалено из истории' : ''),
         [new _message.InlineButtonsGroup(updatedHistoryItem.date_delete ?
@@ -328,8 +348,10 @@ var stats = function stats(userId, chatId, text) {
     var dateStartTime = dateStart.getTime();
     var curTicks = dateEndTime - dateStartTime;
     if (curTicks < 1000 * 60 * 60 * 4)
-    return _Observable.Observable.from([new _message.BotMessage(userId, chatId,
+    return _Observable.Observable.from([new _message.BotMessage(
+    userId, chatId,
     'Слишком короткий интервал. Минимум 4 часа.')]);
+
 
     var intervalLength = _root2.default.time.daysBetween(dateStart, _root2.default.time.getChangedDateTime({ ticks: 1 }, dateEnd));
 
@@ -351,15 +373,19 @@ var stats = function stats(userId, chatId, text) {
 
 
 
+
         storageData.nonUserPaymentCategories,nonUserPaymentCategories = _storageData$nonUserP === undefined ? [] : _storageData$nonUserP,_storageData$historyA = storageData.historyAll,historyAll = _storageData$historyA === undefined ? [] : _storageData$historyA,_storageData$balanceU = storageData.balanceUsers,balanceUsers = _storageData$balanceU === undefined ? {} : _storageData$balanceU;
         var periodNumber = 0;
         var historyAllSorted = historyAll.
         filter(function (historyItem) {return !historyItem.date_delete;}).
         sort(function (i1, i2) {return i2.id - i1.id;});
         var successMessages = [
-        new _message.BotMessage(userId, chatId, '\u041F\u0435\u0440\u0438\u043E\u0434: ' +
-        _root2.default.time.dateWeekdayString(dateStart) + ' - ' + _root2.default.time.dateWeekdayString(dateEndUser) + '\n\u0414\u043D\u0435\u0439: ' + _root2.default.time.daysBetween(dateStart, dateEnd)) // eslint-disable-line max-len
-        ];
+        new _message.BotMessage(
+        userId, chatId,
+        // eslint-disable-next-line max-len
+        '\u041F\u0435\u0440\u0438\u043E\u0434: ' + _root2.default.time.dateWeekdayString(dateStart) + ' - ' + _root2.default.time.dateWeekdayString(dateEndUser) + '\n\u0414\u043D\u0435\u0439: ' + _root2.default.time.daysBetween(dateStart, dateEnd))];
+
+
         if (historyAllSorted.length === 0) {
             successMessages.push(new _message.BotMessage(userId, chatId, 'Нет записей для отображения'));
             return _Observable.Observable.from(successMessages).
@@ -367,11 +393,11 @@ var stats = function stats(userId, chatId, text) {
         }
 
         // users in history
-        var historyUsers = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-        historyAllSorted.map(function (item) {return item.user_id;}))) || [];
+        // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+        var historyUsers = Array.from(new Set(historyAllSorted.map(function (item) {return item.user_id;}))) || [];
         // categories in history
-        var historyCategories = Array.from(new Set( // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
-        historyAllSorted.map(function (item) {return item.category;}))) || [];
+        // http://stackoverflow.com/questions/1960473/unique-values-in-an-array
+        var historyCategories = Array.from(new Set(historyAllSorted.map(function (item) {return item.category;}))) || [];
         var userSumsPevPeriods = {}; // summary of all payments by user in previous periods ~~, doesn't unclude current period~~
         historyUsers.forEach(function (user) {
             userSumsPevPeriods[user] = 0;
@@ -423,6 +449,13 @@ var stats = function stats(userId, chatId, text) {
         }
         var i = 0;
         for (i; i < historyAllSorted.length; i += 1) {var _historyAllSorted$i =
+
+
+
+
+
+
+
             historyAllSorted[i],date_create = _historyAllSorted$i.date_create,value = _historyAllSorted$i.value,user_id = _historyAllSorted$i.user_id,category = _historyAllSorted$i.category;
             historyItemTicks = new Date(date_create).getTime();
             // check if we need to increase period
@@ -535,8 +568,12 @@ var categoryChange = function categoryChange(userId, chatId, data, messageId) {v
     map(function (updatedHistoryItem) {
         lastCommands[storageId(userId, chatId)] = _commands2.default.BALANCE_CATEGORY_CHANGE;
         lastChangeBalanceBotMessageId[storageId(userId, chatId)] = messageId;
-        return new _message.BotMessageEdit(messageId, chatId, updatedHistoryItem.value + ', ' + updatedHistoryItem.category,
+        return new _message.BotMessageEdit(
+        messageId,
+        chatId,
+        updatedHistoryItem.value + ', ' + updatedHistoryItem.category,
         [new _message.InlineButtonsGroup([new _message.InlineButton('Удалить', { hId: hId, cmd: _commands2.default.BALANCE_REMOVE })])]);
+
     });
     return _Observable.Observable.merge(historyUpdateError, successObservable);
 };
@@ -572,21 +609,30 @@ var balanceDelete = function balanceDelete(userId, chatId, data, messageId) {var
             return _storage2.default.updateItem(storageId(userId, chatId), 'balance', newBalanceObject).
             switchMap(function (isBalanceUpdated) {
                 if (!isBalanceUpdated) {
-                    (0, _logger.log)('handlers:balanceDelete: can\'t update storage item. hId:<' + hId + '>, chatId:<' + chatId + ', messageId:<' + messageId + '>',
+                    (0, _logger.log)('handlers:balanceDelete: can\'t update storage item. hId:<' +
+                    hId + '>, chatId:<' + chatId + ', messageId:<' + messageId + '>',
                     _logger.logLevel.ERROR);
+
                     return errorToUser(userId, chatId);
                 }
                 return _Observable.Observable.from([
-                new _message.BotMessageEdit(messageId, chatId,
+                new _message.BotMessageEdit(
+                messageId,
+                chatId,
                 updatedHistoryItem.value + ', ' + updatedHistoryItem.category + ', ' + updatedHistoryItem.comment + ' \u0443\u0434\u0430\u043B\u0435\u043D\u043E \u0438\u0437 \u0438\u0441\u0442\u043E\u0440\u0438\u0438')]).
+
                 concat(balance(userId, chatId));
             });
         }
         return _Observable.Observable.from([
-        new _message.BotMessageEdit(messageId, chatId,
+        new _message.BotMessageEdit(
+        messageId,
+        chatId,
         updatedHistoryItem.value + ', ' + updatedHistoryItem.category + ', ' + updatedHistoryItem.comment + ' \u0443\u0434\u0430\u043B\u0435\u043D\u043E \u0438\u0437 \u0438\u0441\u0442\u043E\u0440\u0438\u0438')]).
+
         concat(balance(userId, chatId));
     }).
+
     concatMap(function (item) {return item;});
     return _Observable.Observable.merge(historyUpdateError, successObservable);
 };
@@ -595,7 +641,13 @@ var balanceDelete = function balanceDelete(userId, chatId, data, messageId) {var
     * EXPORTS
     */
 var mapUserMessageToBotMessages = function mapUserMessageToBotMessages(message) {// eslint-disable-line complexity
-    var text = message.text,from = message.from,chat = message.chat,id = message.id,user = message.user;
+    var
+    text =
+
+
+
+
+    message.text,from = message.from,chat = message.chat,id = message.id,user = message.user;
     var chatId = chat ? chat.id : from;
 
     var messagesToUser = void 0;

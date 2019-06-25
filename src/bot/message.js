@@ -134,11 +134,13 @@ export class ReplyKeyboardButton {
 // send or edit message from bot to user
 export class BotMessage {
     // INFO: userId, chatId, text - reqired params
-    constructor(userId,
+    constructor(
+        userId,
         chatId,
         text = '',
         inlineButtonsGroups = undefined,
-        replyKeyboard = undefined) {
+        replyKeyboard = undefined
+    ) {
         this.userId = userId
         this.chatId = chatId
         this.text = text
@@ -158,7 +160,14 @@ export class BotMessageEdit extends BotMessage {
 }
 
 export class BotMessageSendResult {
-    constructor({ chatId, messageText, statusCode, statusMessage, ok, messageId }) {
+    constructor({
+        chatId,
+        messageText,
+        statusCode,
+        statusMessage,
+        ok,
+        messageId
+    }) {
         this.chatId = chatId
         this.messageId = messageId
         this.messageText = messageText

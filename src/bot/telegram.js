@@ -21,15 +21,15 @@ const botMessageOptions = (
                     .map(inlineButton => ({
                         text: inlineButton.text,
                         callback_data: JSON.stringify(inlineButton.callbackData)
-                    }))
-            )
+                    })))
     }
     if (replyKeyboard && replyKeyboard.buttons && Array.isArray(replyKeyboard.buttons)) {
         const {
             buttons = [],
             resizeKeyboard = false,
             oneTimeKeyboard = false,
-            selective = false } = replyKeyboard
+            selective = false
+        } = replyKeyboard
 
         options.reply_markup.resize_keyboard = resizeKeyboard
         options.reply_markup.one_time_keyboard = oneTimeKeyboard
@@ -59,15 +59,29 @@ export default class Telegram {
             .do(userAction => this.bot.answerCallbackQuery(userAction.id, 'Команда получена', false))
             .map(userAction => UserAction.createFromTelegramUserAction(userAction))
     }
-    botMessage({ chatId, text, inlineButtonsGroups, replyKeyboard }) {
-        return Observable.fromPromise(this.bot.sendMessage(chatId, `${text} 🤖`,
-            botMessageOptions(inlineButtonsGroups, replyKeyboard)))
+    botMessage({
+        chatId,
+        text,
+        inlineButtonsGroups,
+        replyKeyboard
+    }) {
+        return Observable.fromPromise(this.bot.sendMessage(
+            chatId, `${text} 🤖`,
+            botMessageOptions(inlineButtonsGroups, replyKeyboard)
+        ))
             .map(botMessageSendSuccess => BotMessageSendResult.createFromSuccess(botMessageSendSuccess))
             .catch(botMessageSendError => Observable.of(BotMessageSendResult.createFromError(botMessageSendError)))
     }
-    botMessageEdit({ chatId, text, inlineButtonsGroups, messageIdToEdit }) {
-        return Observable.fromPromise(this.bot.editMessageText(`${text} 🤖`,
-            botMessageOptions(inlineButtonsGroups, undefined, messageIdToEdit, chatId)))
+    botMessageEdit({
+        chatId,
+        text,
+        inlineButtonsGroups,
+        messageIdToEdit
+    }) {
+        return Observable.fromPromise(this.bot.editMessageText(
+            `${text} 🤖`,
+            botMessageOptions(inlineButtonsGroups, undefined, messageIdToEdit, chatId)
+        ))
             .map(botMessageSendSuccess => BotMessageSendResult.createFromSuccess(botMessageSendSuccess))
             .catch(botMessageSendError => Observable.of(BotMessageSendResult.createFromError(botMessageSendError)))
     }
