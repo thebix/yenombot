@@ -44,20 +44,20 @@ var dateTimeString = exports.dateTimeString = function dateTimeString() {var dat
 var storageId = exports.storageId = function storageId(userId, chatId) {return '' + chatId;};
 
 var initializeBalanceObservable = function initializeBalanceObservable(userId, chatId) {return (
-        _storage2.default.getItem(storageId(userId, chatId), 'balanceInit').
+        _storage.storage.getItem('balanceInit', storageId(userId, chatId)).
         switchMap(function (balanceInitValue) {
             var balanceObject = {
                 balance: balanceInitValue || 0,
                 period: new Date().getMonth() };
 
-            return _storage2.default.updateItem(storageId(userId, chatId), 'balance', balanceObject).
+            return _storage.storage.updateItem('balance', balanceObject, storageId(userId, chatId)).
             map(function (isBalanceObjectUpdated) {return (
                     isBalanceObjectUpdated === true ?
                     balanceObject :
                     null);});
         }));};
 var getBalanceObservable = function getBalanceObservable(userId, chatId) {return (
-        _storage2.default.getItem(storageId(userId, chatId), 'balance').
+        _storage.storage.getItem('balance', storageId(userId, chatId)).
         switchMap(function (balanceObject) {
             if (balanceObject === false)
             return _Observable.Observable.of(null);
@@ -69,7 +69,7 @@ var getBalanceObservable = function getBalanceObservable(userId, chatId) {return
             return _Observable.Observable.of(balanceObject);
         }));};
 var getCategoriesObservable = function getCategoriesObservable(userId, chatId) {return (
-        _storage2.default.getItem(storageId(userId, chatId), 'paymentGroups').
+        _storage.storage.getItem('paymentGroups', storageId(userId, chatId)).
         map(function (categoriesArray) {
             if (categoriesArray === false)
             (0, _logger.log)('handlers:getCategoriesObservable: can\'t fetch categories. userId:<' +
@@ -80,7 +80,7 @@ var getCategoriesObservable = function getCategoriesObservable(userId, chatId) {
         }));};
 
 var getCurrenciesObservable = function getCurrenciesObservable(userId, chatId) {return (
-        _storage2.default.getItem(storageId(userId, chatId), 'currencies').
+        _storage.storage.getItem('currencies', storageId(userId, chatId)).
         map(function (currencies) {
             if (currencies == null)
             (0, _logger.log)('handlers:getCurrenciesObservable: can\'t fetch currencies. userId:<' + userId + '>, chatId:<' + chatId + '>', _logger.logLevel.INFO);
@@ -93,8 +93,51 @@ var getCurrenciesObservable = function getCurrenciesObservable(userId, chatId) {
 /*
                     * USER MESSAGE HELPERS
                     */
-var start = function start(userId, chatId) {return _Observable.Observable.from([
-    new _message.BotMessage(userId, chatId, 'Вас приветствует yenomBot!')]);};
+
+var start = function start(userId, chatId, messageId, title, username) {
+    lastCommands[storageId(userId, chatId)] = _commands2.default.START;
+    return _storage2.default.updateItemsByMeta([{
+        isActive: true,
+        user: {
+            name: title,
+            username: username } }],
+
+    storageId(userId, chatId))
+    // .pipe(
+    // tap(() => logEvent(messageId, storageId(userId, chatId), analyticsEventTypes.START)),
+    .mergeMap(function (isStorageUpdated) {
+        if (!isStorageUpdated) {
+            (0, _logger.log)('handlers.start: userId="' + userId + '" state wasn\'t updated / created.', _logger.logLevel.ERROR);
+            return _Observable.Observable.from(errorToUser(userId, chatId));
+        }
+        return _Observable.Observable.from([
+        new _message.BotMessage(
+        userId, chatId,
+        'Вас приветствует yenomBot! Чтобы остановить меня введите /stop')]);
+
+    });
+    // )
+};
+
+var stop = function stop(userId, chatId, messageId) {
+    lastCommands[storageId(userId, chatId)] = undefined;
+    return _storage2.default.archive(storageId(userId, chatId))
+    // .pipe(
+    // tap(() => logEvent(messageId, storageId(userId, chatId), analyticsEventTypes.STOP)),
+    .mergeMap(function (isStateUpdated) {
+        if (!isStateUpdated) {
+            (0, _logger.log)('handlers.stop: userId="' + userId + '" state wasn\'t updated.', _logger.logLevel.ERROR);
+            return _Observable.Observable.from(errorToUser(userId, chatId));
+        }
+        return _Observable.Observable.from([
+        new _message.BotMessage(
+        userId, chatId,
+        'С Вами прощается yenomBot!')]);
+
+    });
+    // )
+};
+
 
 var help = function help(userId, chatId) {return _Observable.Observable.from([
     new _message.BotMessage(userId, chatId, 'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')]);};
@@ -110,7 +153,7 @@ var tokenInit = function tokenInit(userId, chatId, text) {
             fieldName: key,
             item: initDataItems[key] };});
 
-    return _storage2.default.updateItems(storageId(userId, chatId), dataItems).
+    return _storage.storage.updateItems(dataItems, storageId(userId, chatId)).
     mergeMap(function (isStorageUpdated) {return (
             !isStorageUpdated ?
             _Observable.Observable.from(errorToUser(userId, chatId)) :
@@ -151,7 +194,7 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
     }
 
     // TODO: this error should prevent further observables from emitting
-    var addUserToStorageError = _storage2.default.getItem(storageId(userId, chatId), 'balanceUsers').
+    var addUserToStorageError = _storage.storage.getItem('balanceUsers', storageId(userId, chatId)).
     concatMap(function (balanceUsers) {
         var balanceUsersUpdated = {};
         if (balanceUsers) {
@@ -159,7 +202,7 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
         }
         if (!balanceUsersUpdated[userId]) {
             balanceUsersUpdated[userId] = (firstName || '') + ' ' + (lastName || '');
-            return _storage2.default.updateItem(storageId(userId, chatId), 'balanceUsers', balanceUsersUpdated).
+            return _storage.storage.updateItem('balanceUsers', balanceUsersUpdated, storageId(userId, chatId)).
             switchMap(function (updateResult) {return updateResult ?
                 _Observable.Observable.empty() :
                 _Observable.Observable.from(errorToUser(userId, chatId));});
@@ -175,7 +218,7 @@ var balanceChange = function balanceChange(user, chatId, text, messageId) {var
         }var
         balanceValue = balanceObject.balance;
         var newBalanceObject = Object.assign({}, balanceObject, { balance: Math.round((balanceValue - value) * 100) / 100 });
-        return _storage2.default.updateItem(storageId(userId, chatId), 'balance', newBalanceObject).
+        return _storage.storage.updateItem('balance', newBalanceObject, storageId(userId, chatId)).
         map(function (isBalanceUpdated) {return isBalanceUpdated ?
             newBalanceObject :
             null;});
@@ -356,7 +399,7 @@ var stats = function stats(userId, chatId, text) {
     var intervalLength = _root2.default.time.daysBetween(dateStart, _root2.default.time.getChangedDateTime({ ticks: 1 }, dateEnd));
 
     return _Observable.Observable.combineLatest(
-    _storage2.default.getItems(storageId(userId, chatId), ['nonUserPaymentGroups', 'balanceUsers']),
+    _storage.storage.getItems(['nonUserPaymentGroups', 'balanceUsers'], storageId(userId, chatId)),
     _history2.default.getAll(chatId),
     function (storageData, historyAll) {var
 
@@ -606,7 +649,7 @@ var balanceDelete = function balanceDelete(userId, chatId, data, messageId) {var
         currentDate.getMonth() === dateCreated.getMonth()) {var
             balanceValue = balanceObject.balance;
             var newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue + updatedHistoryItem.value });
-            return _storage2.default.updateItem(storageId(userId, chatId), 'balance', newBalanceObject).
+            return _storage.storage.updateItem('balance', newBalanceObject, storageId(userId, chatId)).
             switchMap(function (isBalanceUpdated) {
                 if (!isBalanceUpdated) {
                     (0, _logger.log)('handlers:balanceDelete: can\'t update storage item. hId:<' +
@@ -647,14 +690,24 @@ var mapUserMessageToBotMessages = function mapUserMessageToBotMessages(message) 
 
 
 
-    message.text,from = message.from,chat = message.chat,id = message.id,user = message.user;
-    var chatId = chat ? chat.id : from;
+    message.text,from = message.from,chat = message.chat,id = message.id,user = message.user;var
+
+    chatId =
+
+
+
+
+
+    chat.id,type = chat.type,groupTitle = chat.title,lastName = chat.lastName,firstName = chat.firstName,username = chat.username;
 
     var messagesToUser = void 0;
     if (!_config2.default.isProduction && !_inputParser2.default.isDeveloper(from)) {
         messagesToUser = botIsInDevelopmentToUser(from, chatId);
     } else if (_inputParser2.default.isStart(text)) {
-        messagesToUser = start(from, chatId);
+        var title = type === 'private' ? (firstName || '') + ' ' + (lastName || '') : groupTitle;
+        messagesToUser = start(from, chatId, id, title, username || '');
+    } else if (_inputParser2.default.isStop(text)) {
+        messagesToUser = stop(from, chatId, id);
     } else if (_inputParser2.default.isHelp(text))
     messagesToUser = help(from, chatId);else
     if (_inputParser2.default.isToken(text))

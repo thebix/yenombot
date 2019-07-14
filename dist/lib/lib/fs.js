@@ -90,6 +90,17 @@ FileSystem = function () {function FileSystem() {_classCallCheck(this, FileSyste
                     });
                 });
             });
+        } }, { key: 'readDir', value: function readDir(
+        path) {
+            return new Promise(function (resolve, reject) {
+                lock.writeLock(path, function (release) {
+                    _fs2.default.readdir(path, undefined, function (err, files) {
+                        release();
+                        if (err) return reject(err);
+                        return resolve(files);
+                    });
+                });
+            });
         } }]);return FileSystem;}();
 
 
@@ -131,4 +142,7 @@ exports.default = FileSystem;var RxFileSystem = exports.RxFileSystem = function 
         } }, { key: 'mkDir', value: function mkDir(
         path) {
             return _rxjs2.default.Observable.fromPromise(this.filesystem.mkDir(path));
+        } }, { key: 'readDir', value: function readDir(
+        path) {
+            return _rxjs2.default.Observable.fromPromise(this.filesystem.readDir(path));
         } }]);return RxFileSystem;}();
