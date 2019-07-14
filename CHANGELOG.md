@@ -1,3 +1,6 @@
+## 0.9.2 (July 14, 2019)
+  - refactored 'storage' and 'state' to separate chats files
+
 ## 0.9.1 (June 23, 2019)
   - added rounding for calculations and values to decimal
 

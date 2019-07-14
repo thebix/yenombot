@@ -2,7 +2,7 @@
 var _nodeCleanup = require('node-cleanup');var _nodeCleanup2 = _interopRequireDefault(_nodeCleanup);
 var _yenomBot = require('./bot/yenomBot');var _yenomBot2 = _interopRequireDefault(_yenomBot);
 var _yenomWww = require('./yenomWww');var _yenomWww2 = _interopRequireDefault(_yenomWww);
-var _storage = require('./storage');var _storage2 = _interopRequireDefault(_storage);
+var _storage = require('./storage');
 var _logger = require('./logger');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
 
 (0, _logger.log)('Starting server', _logger.logLevel.INFO);
@@ -15,7 +15,7 @@ var compositeSubscription = new _rxjs.Subscription();
 });
 
 // bot
-compositeSubscription.add(_storage2.default.isInitialized().
+compositeSubscription.add(_storage.storage.isInitialized().
 filter(function (isStorageInitizlized) {return isStorageInitizlized;}).
 mergeMap(function () {return (0, _yenomBot2.default)();}).
 subscribe(
@@ -28,7 +28,7 @@ function (error) {
 
 
 // www
-compositeSubscription.add(_storage2.default.isInitialized().
+compositeSubscription.add(_storage.storage.isInitialized().
 filter(function (isStorageInitizlized) {return isStorageInitizlized;}).
 mergeMap(function () {return (0, _yenomWww2.default)();}).
 subscribe(
