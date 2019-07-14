@@ -5,7 +5,7 @@ import config from '../config'
 import token from '../token'
 import Telegram from './telegram'
 import mapUserMessageToBotMessages, { mapUserActionToBotMessages, storageId } from './handlers'
-import storage, { archiveName } from '../storage'
+import state, { storage } from '../storage'
 import { IntervalTimerRx, timerTypes } from '../lib/lib/timer'
 import UserMessage, { BotMessage } from './message';
 
@@ -16,16 +16,14 @@ const dailyIntervalTimer = new IntervalTimerRx(timerTypes.DAILY)
 
 const getCommandsForReportWeeklyObservable = () =>
     weeklyIntervalTimer.timerEvent()
-        .switchMap(() => storage.getStorageKeys())
-        .switchMap(chatIds => Observable.from(chatIds))
-        .filter(chatId => chatId !== archiveName)
+        .switchMap(() => state.getStates(true))
+        .switchMap(states => Observable.from(Object.keys(states)))
         .map(chatId => UserMessage.createCommand(chatId, '/stat mo su'))
 
 const getCommandsForReportMonthlyObservable = () =>
     monthlyIntervalTimer.timerEvent()
-        .switchMap(() => storage.getStorageKeys())
-        .switchMap(chatIds => Observable.from(chatIds))
-        .filter(chatId => chatId !== archiveName)
+        .switchMap(() => state.getStates(true))
+        .switchMap(states => Observable.from(Object.keys(states)))
         .map(chatId => UserMessage.createCommand(chatId, `/stat 1.${new Date().getMonth()}`))
 
 // region Currencies update
@@ -41,11 +39,10 @@ const getCurrencyRateObservable = () =>
         .catch(error => log(`${error}`), logLevel.ERROR)
 
 const getChatsCurrenciesObservable = () =>
-    storage.getStorageKeys()
-        .switchMap(chatIds => Observable.from(chatIds))
-        .filter(chatId => chatId !== archiveName)
-        .switchMap(chatId =>
-            storage.getItem(storageId(null, chatId), 'currencies')
+    state.getStates(true)
+        .switchMap(states => Observable.from(Object.keys(states)))
+        .flatMap(chatId =>
+            storage.getItem('currencies', storageId(null, chatId))
                 .filter(currencies => !!currencies)
                 .filter(currencies => Object.keys(currencies).length > 1)
                 .map(currencies => Object.create({
@@ -57,16 +54,13 @@ const updateCurrenciesDailyObservable = () =>
         dailyIntervalTimer.timerEvent(),
         Observable.of(true) // check currencies every start
     )
-        .switchMap(() => Observable.combineLatest(
-            getCurrencyRateObservable(),
-            getChatsCurrenciesObservable(),
-            (currencyRate, { chatId, currencies }) =>
-                Object.create({
-                    currencyRates: currencyRate.rates,
-                    chatId,
-                    currencies
-                })
-        ))
+        .switchMap(() => getCurrencyRateObservable())
+        .switchMap(currencyRate => getChatsCurrenciesObservable()
+            .map(({ chatId, currencies }) => Object.create({
+                currencyRates: currencyRate.rates,
+                chatId,
+                currencies
+            })))
         .map(({ currencyRates, chatId, currencies }) => {
             // TODO: atm base is EUR, consider calculate rate properly based on user's selected currency
             const newCurrencies = Object.assign({}, currencies)
@@ -79,7 +73,7 @@ const updateCurrenciesDailyObservable = () =>
             return { chatId, newCurrencies, oldCurrencies: currencies }
         })
         .flatMap(({ chatId, newCurrencies, oldCurrencies }) =>
-            storage.updateItem(storageId(null, chatId), 'currencies', newCurrencies)
+            storage.updateItem('currencies', newCurrencies, storageId(null, chatId))
                 .do(isSaved => {
                     if (!isSaved) {
                         log(`Error updating currencies in storage for the chat ${chatId}`, logLevel.ERROR)
@@ -99,7 +93,7 @@ const mapBotMessageToSendResult = message => {
             const { statusCode, messageText } = sendOrEditResult
             const { chatId } = message
             if (statusCode === 403) {
-                return storage.archive(chatId)
+                return state.archive(chatId)
                     .map(() => {
                         log(`yenomBot: chatId<${chatId}> forbidden error: <${messageText}>, message: <${JSON.stringify(message)}>, moving to archive`, logLevel.INFO) // eslint-disable-line max-len
                         return sendOrEditResult

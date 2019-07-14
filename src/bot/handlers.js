@@ -8,7 +8,7 @@ import { Parser } from 'expr-eval'
 
 import { BotMessage, InlineButton, BotMessageEdit, InlineButtonsGroup } from './message'
 import commands from './commands'
-import storage from '../storage'
+import state, { storage } from '../storage'
 import { log, logLevel } from '../logger'
 import token from '../token'
 import InputParser from './inputParser'
@@ -44,20 +44,20 @@ export const dateTimeString = (date = new Date()) => `${date.toLocaleDateString(
 export const storageId = (userId, chatId) => `${chatId}`
 
 const initializeBalanceObservable = (userId, chatId) =>
-    storage.getItem(storageId(userId, chatId), 'balanceInit')
+    storage.getItem('balanceInit', storageId(userId, chatId))
         .switchMap(balanceInitValue => {
             const balanceObject = {
                 balance: balanceInitValue || 0,
                 period: new Date().getMonth()
             }
-            return storage.updateItem(storageId(userId, chatId), 'balance', balanceObject)
+            return storage.updateItem('balance', balanceObject, storageId(userId, chatId))
                 .map(isBalanceObjectUpdated => (
                     isBalanceObjectUpdated === true
                         ? balanceObject
                         : null))
         })
 const getBalanceObservable = (userId, chatId) =>
-    storage.getItem(storageId(userId, chatId), 'balance')
+    storage.getItem('balance', storageId(userId, chatId))
         .switchMap(balanceObject => {
             if (balanceObject === false)
                 return Observable.of(null)
@@ -69,7 +69,7 @@ const getBalanceObservable = (userId, chatId) =>
             return Observable.of(balanceObject)
         })
 const getCategoriesObservable = (userId, chatId) =>
-    storage.getItem(storageId(userId, chatId), 'paymentGroups')
+    storage.getItem('paymentGroups', storageId(userId, chatId))
         .map(categoriesArray => {
             if (categoriesArray === false)
                 log(
@@ -80,7 +80,7 @@ const getCategoriesObservable = (userId, chatId) =>
         })
 
 const getCurrenciesObservable = (userId, chatId) =>
-    storage.getItem(storageId(userId, chatId), 'currencies')
+    storage.getItem('currencies', storageId(userId, chatId))
         .map(currencies => {
             if (currencies == null)
                 log(`handlers:getCurrenciesObservable: can't fetch currencies. userId:<${userId}>, chatId:<${chatId}>`, logLevel.INFO)
@@ -93,8 +93,51 @@ const getCurrenciesObservable = (userId, chatId) =>
 /*
  * USER MESSAGE HELPERS
  */
-const start = (userId, chatId) => Observable.from([
-    new BotMessage(userId, chatId, 'Вас приветствует yenomBot!')])
+
+const start = (userId, chatId, messageId, title, username) => {
+    lastCommands[storageId(userId, chatId)] = commands.START
+    return state.updateItemsByMeta([{
+        isActive: true,
+        user: {
+            name: title,
+            username
+        }
+    }], storageId(userId, chatId))
+        // .pipe(
+        // tap(() => logEvent(messageId, storageId(userId, chatId), analyticsEventTypes.START)),
+        .mergeMap(isStorageUpdated => {
+            if (!isStorageUpdated) {
+                log(`handlers.start: userId="${userId}" state wasn't updated / created.`, logLevel.ERROR)
+                return Observable.from(errorToUser(userId, chatId))
+            }
+            return Observable.from([
+                new BotMessage(
+                    userId, chatId,
+                    'Вас приветствует yenomBot! Чтобы остановить меня введите /stop'
+                )])
+        })
+    // )
+}
+
+const stop = (userId, chatId, messageId) => {
+    lastCommands[storageId(userId, chatId)] = undefined
+    return state.archive(storageId(userId, chatId))
+        // .pipe(
+        // tap(() => logEvent(messageId, storageId(userId, chatId), analyticsEventTypes.STOP)),
+        .mergeMap(isStateUpdated => {
+            if (!isStateUpdated) {
+                log(`handlers.stop: userId="${userId}" state wasn't updated.`, logLevel.ERROR)
+                return Observable.from(errorToUser(userId, chatId))
+            }
+            return Observable.from([
+                new BotMessage(
+                    userId, chatId,
+                    'С Вами прощается yenomBot!'
+                )])
+        })
+    // )
+}
+
 
 const help = (userId, chatId) => Observable.from([
     new BotMessage(userId, chatId, 'Помощь\nЗдесь Вы можете узнать актуальную информацию о своих деньгах.')])
@@ -110,7 +153,7 @@ const tokenInit = (userId, chatId, text) => {
             fieldName: key,
             item: initDataItems[key]
         }))
-    return storage.updateItems(storageId(userId, chatId), dataItems)
+    return storage.updateItems(dataItems, storageId(userId, chatId))
         .mergeMap(isStorageUpdated => (
             !isStorageUpdated
                 ? Observable.from(errorToUser(userId, chatId))
@@ -151,7 +194,7 @@ const balanceChange = (user, chatId, text, messageId) => {
     }
 
     // TODO: this error should prevent further observables from emitting
-    const addUserToStorageError = storage.getItem(storageId(userId, chatId), 'balanceUsers')
+    const addUserToStorageError = storage.getItem('balanceUsers', storageId(userId, chatId))
         .concatMap(balanceUsers => {
             let balanceUsersUpdated = {}
             if (balanceUsers) {
@@ -159,7 +202,7 @@ const balanceChange = (user, chatId, text, messageId) => {
             }
             if (!balanceUsersUpdated[userId]) {
                 balanceUsersUpdated[userId] = `${firstName || ''} ${lastName || ''}`
-                return storage.updateItem(storageId(userId, chatId), 'balanceUsers', balanceUsersUpdated)
+                return storage.updateItem('balanceUsers', balanceUsersUpdated, storageId(userId, chatId))
                     .switchMap(updateResult => (updateResult
                         ? Observable.empty()
                         : Observable.from(errorToUser(userId, chatId))
@@ -175,7 +218,7 @@ const balanceChange = (user, chatId, text, messageId) => {
             }
             const { balance: balanceValue } = balanceObject
             const newBalanceObject = Object.assign({}, balanceObject, { balance: Math.round((balanceValue - value) * 100) / 100 })
-            return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
+            return storage.updateItem('balance', newBalanceObject, storageId(userId, chatId))
                 .map(isBalanceUpdated => (isBalanceUpdated
                     ? newBalanceObject
                     : null
@@ -356,7 +399,7 @@ const stats = (userId, chatId, text) => {
     const intervalLength = lib.time.daysBetween(dateStart, lib.time.getChangedDateTime({ ticks: 1 }, dateEnd))
 
     return Observable.combineLatest(
-        storage.getItems(storageId(userId, chatId), ['nonUserPaymentGroups', 'balanceUsers']),
+        storage.getItems(['nonUserPaymentGroups', 'balanceUsers'], storageId(userId, chatId)),
         history.getAll(chatId),
         (storageData, historyAll) => {
             const {
@@ -606,7 +649,7 @@ const balanceDelete = (userId, chatId, data, messageId) => {
                 && currentDate.getMonth() === dateCreated.getMonth()) {
                 const { balance: balanceValue } = balanceObject
                 const newBalanceObject = Object.assign({}, balanceObject, { balance: balanceValue + updatedHistoryItem.value })
-                return storage.updateItem(storageId(userId, chatId), 'balance', newBalanceObject)
+                return storage.updateItem('balance', newBalanceObject, storageId(userId, chatId))
                     .switchMap(isBalanceUpdated => {
                         if (!isBalanceUpdated) {
                             log(
@@ -648,13 +691,23 @@ const mapUserMessageToBotMessages = message => { // eslint-disable-line complexi
         id,
         user
     } = message
-    const chatId = chat ? chat.id : from
+    const {
+        id: chatId,
+        type,
+        title: groupTitle,
+        lastName,
+        firstName,
+        username
+    } = chat
 
     let messagesToUser
     if (!config.isProduction && !InputParser.isDeveloper(from)) {
         messagesToUser = botIsInDevelopmentToUser(from, chatId)
     } else if (InputParser.isStart(text)) {
-        messagesToUser = start(from, chatId)
+        const title = type === 'private' ? `${firstName || ''} ${lastName || ''}` : groupTitle
+        messagesToUser = start(from, chatId, id, title, username || '')
+    } else if (InputParser.isStop(text)) {
+        messagesToUser = stop(from, chatId, id)
     } else if (InputParser.isHelp(text))
         messagesToUser = help(from, chatId)
     else if (InputParser.isToken(text))

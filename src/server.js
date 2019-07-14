@@ -2,7 +2,7 @@ import { Subscription } from 'rxjs'
 import nodeCleanup from 'node-cleanup'
 import yenomBot from './bot/yenomBot'
 import yenomWww from './yenomWww'
-import storage from './storage'
+import { storage } from './storage'
 import { log, logLevel } from './logger'
 
 log('Starting server', logLevel.INFO)

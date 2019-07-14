@@ -3,7 +3,7 @@ import config from './config'
 import WwwServer, { mimeTypes, WwwResponse } from './lib/lib/wwwServer'
 import { log, logLevel } from './logger'
 import history from './history/history'
-import storage from './storage'
+import { storage } from './storage'
 
 const HISTORY_PAGE_COUNT = 150
 
@@ -25,7 +25,7 @@ const handleApi = {
         const { chatId } = body
         if (method !== 'POST' || !chatId)
             return Observable.of(handleApiError404('/api/categories'))
-        return storage.getItem(chatId, 'paymentGroups')
+        return storage.getItem('paymentGroups', chatId)
             .map(storageCategories => new WwwResponse({
                 httpCode: 200,
                 filePath: '/api/categories',
@@ -38,7 +38,7 @@ const handleApi = {
         const { chatId } = body
         if (method !== 'POST' || !chatId)
             return Observable.of(handleApiError404('/api/users'))
-        return storage.getItem(chatId, 'balanceUsers')
+        return storage.getItem('balanceUsers', chatId)
             .map(storageBalanceUsers => new WwwResponse({
                 httpCode: 200,
                 filePath: '/api/users',
@@ -61,7 +61,7 @@ const handleApi = {
         let skip = +skipParam
         return Observable.combineLatest(
             history.getAll(chatId),
-            storage.getItem(chatId, 'nonUserPaymentGroups'),
+            storage.getItem('nonUserPaymentGroups', chatId),
             (historyAll, nonUserPaymentCategories) => {
                 const categories = bodyCategories ? bodyCategories.split(',') : []
                 const users = bodyUsers ? bodyUsers.split(',') : []
