@@ -3,7 +3,7 @@ var _config = require('./config');var _config2 = _interopRequireDefault(_config)
 var _wwwServer = require('./lib/lib/wwwServer');var _wwwServer2 = _interopRequireDefault(_wwwServer);
 var _logger = require('./logger');
 var _history = require('./history/history');var _history2 = _interopRequireDefault(_history);
-var _storage = require('./storage');var _storage2 = _interopRequireDefault(_storage);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _objectWithoutProperties(obj, keys) {var target = {};for (var i in obj) {if (keys.indexOf(i) >= 0) continue;if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;target[i] = obj[i];}return target;}
+var _storage = require('./storage');function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _objectWithoutProperties(obj, keys) {var target = {};for (var i in obj) {if (keys.indexOf(i) >= 0) continue;if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;target[i] = obj[i];}return target;}
 
 var HISTORY_PAGE_COUNT = 150;
 
@@ -25,7 +25,7 @@ var handleApi = {
         chatId = body.chatId;
         if (method !== 'POST' || !chatId)
         return _rxjs.Observable.of(handleApiError404('/api/categories'));
-        return _storage2.default.getItem(chatId, 'paymentGroups').
+        return _storage.storage.getItem('paymentGroups', chatId).
         map(function (storageCategories) {return new _wwwServer.WwwResponse({
                 httpCode: 200,
                 filePath: '/api/categories',
@@ -38,7 +38,7 @@ var handleApi = {
         chatId = body.chatId;
         if (method !== 'POST' || !chatId)
         return _rxjs.Observable.of(handleApiError404('/api/users'));
-        return _storage2.default.getItem(chatId, 'balanceUsers').
+        return _storage.storage.getItem('balanceUsers', chatId).
         map(function (storageBalanceUsers) {return new _wwwServer.WwwResponse({
                 httpCode: 200,
                 filePath: '/api/users',
@@ -61,7 +61,7 @@ var handleApi = {
         var skip = +skipParam;
         return _rxjs.Observable.combineLatest(
         _history2.default.getAll(chatId),
-        _storage2.default.getItem(chatId, 'nonUserPaymentGroups'),
+        _storage.storage.getItem('nonUserPaymentGroups', chatId),
         function (historyAll, nonUserPaymentCategories) {
             var categories = bodyCategories ? bodyCategories.split(',') : [];
             var users = bodyUsers ? bodyUsers.split(',') : [];

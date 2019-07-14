@@ -16,16 +16,14 @@ var dailyIntervalTimer = new _timer.IntervalTimerRx(_timer.timerTypes.DAILY);
 
 var getCommandsForReportWeeklyObservable = function getCommandsForReportWeeklyObservable() {return (
         weeklyIntervalTimer.timerEvent().
-        switchMap(function () {return _storage2.default.getStorageKeys();}).
-        switchMap(function (chatIds) {return _rxjs.Observable.from(chatIds);}).
-        filter(function (chatId) {return chatId !== _storage.archiveName;}).
+        switchMap(function () {return _storage2.default.getStates(true);}).
+        switchMap(function (states) {return _rxjs.Observable.from(Object.keys(states));}).
         map(function (chatId) {return _message2.default.createCommand(chatId, '/stat mo su');}));};
 
 var getCommandsForReportMonthlyObservable = function getCommandsForReportMonthlyObservable() {return (
         monthlyIntervalTimer.timerEvent().
-        switchMap(function () {return _storage2.default.getStorageKeys();}).
-        switchMap(function (chatIds) {return _rxjs.Observable.from(chatIds);}).
-        filter(function (chatId) {return chatId !== _storage.archiveName;}).
+        switchMap(function () {return _storage2.default.getStates(true);}).
+        switchMap(function (states) {return _rxjs.Observable.from(Object.keys(states));}).
         map(function (chatId) {return _message2.default.createCommand(chatId, '/stat 1.' + new Date().getMonth());}));};
 
 // region Currencies update
@@ -41,11 +39,10 @@ var getCurrencyRateObservable = function getCurrencyRateObservable() {return (
         catch(function (error) {return (0, _logger.log)('' + error);}, _logger.logLevel.ERROR));};
 
 var getChatsCurrenciesObservable = function getChatsCurrenciesObservable() {return (
-        _storage2.default.getStorageKeys().
-        switchMap(function (chatIds) {return _rxjs.Observable.from(chatIds);}).
-        filter(function (chatId) {return chatId !== _storage.archiveName;}).
-        switchMap(function (chatId) {return (
-                _storage2.default.getItem((0, _handlers.storageId)(null, chatId), 'currencies').
+        _storage2.default.getStates(true).
+        switchMap(function (states) {return _rxjs.Observable.from(Object.keys(states));}).
+        flatMap(function (chatId) {return (
+                _storage.storage.getItem('currencies', (0, _handlers.storageId)(null, chatId)).
                 filter(function (currencies) {return !!currencies;}).
                 filter(function (currencies) {return Object.keys(currencies).length > 1;}).
                 map(function (currencies) {return Object.create({
@@ -57,15 +54,12 @@ var updateCurrenciesDailyObservable = function updateCurrenciesDailyObservable()
         dailyIntervalTimer.timerEvent(),
         _rxjs.Observable.of(true) // check currencies every start
         ).
-        switchMap(function () {return _rxjs.Observable.combineLatest(
-            getCurrencyRateObservable(),
-            getChatsCurrenciesObservable(),
-            function (currencyRate, _ref) {var chatId = _ref.chatId,currencies = _ref.currencies;return (
-                    Object.create({
-                        currencyRates: currencyRate.rates,
-                        chatId: chatId,
-                        currencies: currencies }));});}).
-
+        switchMap(function () {return getCurrencyRateObservable();}).
+        switchMap(function (currencyRate) {return getChatsCurrenciesObservable().
+            map(function (_ref) {var chatId = _ref.chatId,currencies = _ref.currencies;return Object.create({
+                    currencyRates: currencyRate.rates,
+                    chatId: chatId,
+                    currencies: currencies });});}).
 
         map(function (_ref2) {var currencyRates = _ref2.currencyRates,chatId = _ref2.chatId,currencies = _ref2.currencies;
             // TODO: atm base is EUR, consider calculate rate properly based on user's selected currency
@@ -79,7 +73,7 @@ var updateCurrenciesDailyObservable = function updateCurrenciesDailyObservable()
             return { chatId: chatId, newCurrencies: newCurrencies, oldCurrencies: currencies };
         }).
         flatMap(function (_ref3) {var chatId = _ref3.chatId,newCurrencies = _ref3.newCurrencies,oldCurrencies = _ref3.oldCurrencies;return (
-                _storage2.default.updateItem((0, _handlers.storageId)(null, chatId), 'currencies', newCurrencies).
+                _storage.storage.updateItem('currencies', newCurrencies, (0, _handlers.storageId)(null, chatId)).
                 do(function (isSaved) {
                     if (!isSaved) {
                         (0, _logger.log)('Error updating currencies in storage for the chat ' + chatId, _logger.logLevel.ERROR);

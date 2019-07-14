@@ -15,6 +15,10 @@ InputParser = function () {function InputParser() {_classCallCheck(this, InputPa
         text) {
             var pattern = /^\/start|старт/i;
             return text.match(pattern);
+        } }, { key: 'isStop', value: function isStop(
+        text) {
+            var pattern = /^\/stop|стоп/i;
+            return text.match(pattern);
         } }, { key: 'isHelp', value: function isHelp(
         text) {
             var pattern = /^\/help|помощь/i;
